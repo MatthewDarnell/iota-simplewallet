@@ -3,6 +3,7 @@ project(iota_simplewallet C)
 set(CMAKE_C_STANDARD 99)
 include(ExternalProject)
 
+#Determine arch
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(x64 1)
     set(crypto_SUBDIR x64)
@@ -12,17 +13,35 @@ endif()
 
 
 
-### Main app
+### Main library
 include_directories(${CMAKE_SOURCE_DIR}/deps/include)
 link_directories(${CMAKE_SOURCE_DIR}/deps/lib)
 
-
-add_executable(iota_simplewallet
-        src/main.c
+file(GLOB iota_simplewallet_SRC
+        deps/cJSON.c
+        deps/sqlite3.c
+        src/config/config.c
         src/crypto/crypt.c
-        deps/lib/libsodium.a
+        src/database/sqlite3/db.c
+        src/iota/test.c
         )
-target_link_libraries(iota_simplewallet sodium cclient cjson common http_parser sqlite3 pthread)
+
+add_library(iota_simplewallet
+    ${iota_simplewallet_SRC}
+        )
+
+target_link_libraries(iota_simplewallet logger libsodium.a cclient common http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread ws2_32 wsock32 )
+add_dependencies(iota_simplewallet sqlite3 crypto iota.c cjson)
+
+
+#Should we build the cli app
+set(BUILD_CLI "Build the cli application" ON)
+if(BUILD_CLI)
+    add_executable(wallet
+            src/main.c
+            )
+    target_link_libraries(wallet iota_simplewallet)
+endif(BUILD_CLI)
 
 
 ##
@@ -38,24 +57,15 @@ if (SQLITE3_FOUND)
     include_directories(${SQLITE3_INCLUDE_DIRS})
     target_link_libraries (iota_simplewallet ${SQLITE3_LIBRARIES})
 else()
-  if (Win32)
-      if(DEFINED x64)
-        set(SQLITE_URL https://www.sqlite.org/2020/sqlite-dll-win64-x64-3310100.zip)
-        set(SQLITE_HASH 300c5f26feb297968f06790c5b1e19db9347da67)
-      else()
-          set(SQLITE_URL https://www.sqlite.org/2020/sqlite-dll-win32-x86-3310100.zip)
-          set(SQLITE_HASH 3475dccc0378a0b2407ae78725d1a18d7885cdd5)
-      endif()
-  endif(Win32)
-
   ExternalProject_Add(sqlite3
-          URL ${SQLITE_URL}
-          URL_HASH SHA1=${SQLITE_HASH}
+          URL  https://sqlite.org/2020/sqlite-amalgamation-3310100.zip
+          URL_HASH SHA1=a58e91a39b7b4ab720dbc843c201fb6a18eaf32b
           CONFIGURE_COMMAND ""
           BUILD_IN_SOURCE 1
-          BUILD_COMMAND ""
           BUILD_ALWAYS 1
-          INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory ./ ${CMAKE_SOURCE_DIR}/deps/lib
+          BUILD_COMMAND ${CMAKE_COMMAND} -E copy ./sqlite3.h ${CMAKE_SOURCE_DIR}/deps/include/sqlite3.h
+          INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ./sqlite3.c ${CMAKE_SOURCE_DIR}/deps/sqlite3.c
+
           )
 endif (SQLITE3_FOUND)
 
@@ -67,6 +77,8 @@ if (WIN32)
     else()
         set(CRYPTO_FOLDER libsodium-win32)
     endif()
+    set(SODIUM_STATIC 1)
+    set(SODIUM_EXPORT)
     ExternalProject_Add(crypto
             URL "https://download.libsodium.org/libsodium/releases/libsodium-1.0.18-mingw.tar.gz"
             URL_HASH SHA1=9e7143e7f0e4232bd6b867cf37e7995165a220ae
@@ -76,20 +88,34 @@ if (WIN32)
             BUILD_ALWAYS 1
             INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory ${CRYPTO_FOLDER}/lib ${CMAKE_SOURCE_DIR}/deps/lib
             )
-    set(SODIUM_STATIC 1)
-    set(SODIUM_EXPORT)
-
 endif (WIN32)
 
 
 #iota.c
+
+#ugly hack for mingw
 if (WIN32)
     file(MAKE_DIRECTORY "${CMAKE_SOURCE_DIR}/cmake-build-debug/iota.c-prefix/src/iota.c-build/mbedtls/src/ext_mbedtls-build/include/mbedtls")
     file(MAKE_DIRECTORY "${CMAKE_SOURCE_DIR}/cmake-build-debug/iota.c-prefix/src/iota.c-build/mbedtls/src/ext_mbedtls-build/scripts")
 endif (WIN32)
-
 ExternalProject_Add(iota.c
         GIT_REPOSITORY https://github.com/iotaledger/iota.c
-        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_SOURCE_DIR}/deps
+        GIT_TAG 22b52d7c4333d6828ab48b811807be8081fbf15c
+        UPDATE_COMMAND ""
+        CMAKE_ARGS -DCMAKE_EXE_LINKER_FLAGS="-fno-stack-protector" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_LINK_LIBRARY_FLAG="-g -lws2_32 -lm" -DCMAKE_CXX_FLAGS="-lm" -DCMAKE_INSTALL_PREFIX=${CMAKE_SOURCE_DIR}/deps
         )
 
+
+#cJSON
+ExternalProject_Add(cjson
+        GIT_REPOSITORY https://github.com/DaveGamble/cJSON
+        GIT_TAG 2955fe5ec49a672848a323a7c943c9525d16c83f
+        UPDATE_COMMAND ""
+        BUILD_IN_SOURCE 1
+        BUILD_COMMAND ${CMAKE_COMMAND} -E copy ./cJSON.c ${CMAKE_SOURCE_DIR}/deps/
+        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ./cJSON.h ${CMAKE_SOURCE_DIR}/deps/
+        CONFIGURE_COMMAND ${CMAKE_COMMAND} -E copy ./cJSON.h ${CMAKE_SOURCE_DIR}/deps/include/cjson
+        )
+
+#iota.c ships with cJSON, but we are supplying our own version (issue with shipped cJSON lib on  win32)
+add_dependencies(cjson iota.c)
