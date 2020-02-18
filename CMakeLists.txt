@@ -27,6 +27,7 @@ file(GLOB iota_simplewallet_SRC
         src/config/config.c
         src/crypto/crypt.c
         src/database/sqlite3/db.c
+        src/database/sqlite3/tables.c
         src/iota/test.c
         )
 
