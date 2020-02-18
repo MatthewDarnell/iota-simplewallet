@@ -3,12 +3,11 @@
 //
 #include <stdio.h>
 #include <stdlib.h>
-#include <sqlite3.h>
 #include "../../config/config.h"
 #include "tables.h"
 #include "db.h"
-sqlite3 *connection = NULL;
 int init_db() {
+  sqlite3 *connection = NULL;
   char* path = get_config("database");
   if(!path) {
     fprintf(stderr, "Unable to read database path from config\n");
@@ -22,9 +21,29 @@ int init_db() {
     exit(1);
   }
   create_tables(connection);
+  sqlite3_close(connection);
   return 0;
 }
 
-void close_db() {
-    sqlite3_close(connection);
+sqlite3* get_db_handle() {
+  sqlite3* handle = NULL;
+  char* path = get_config("database");
+  if(!path) {
+    fprintf(stderr, "Unable to read database path from config\n");
+    return NULL;
+  }
+  int rc = sqlite3_open(path, &handle);
+  free(path);
+  if(rc) {
+    fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(handle));
+    sqlite3_close(handle);
+    return NULL;
+  }
+  sqlite3_exec(handle, "PRAGMA foreign_keys = ON", 0 ,0 ,0);
+
+  return handle;
+}
+
+void close_db_handle(sqlite3* handle) {
+    sqlite3_close(handle);
 }
