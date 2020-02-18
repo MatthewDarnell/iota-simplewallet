@@ -17,9 +17,13 @@ endif()
 include_directories(${CMAKE_SOURCE_DIR}/deps/include)
 link_directories(${CMAKE_SOURCE_DIR}/deps/lib)
 
-file(GLOB iota_simplewallet_SRC
+#deps we are building from source
+add_library(deps
         deps/cJSON.c
         deps/sqlite3.c
+        )
+
+file(GLOB iota_simplewallet_SRC
         src/config/config.c
         src/crypto/crypt.c
         src/database/sqlite3/db.c
@@ -30,8 +34,8 @@ add_library(iota_simplewallet
     ${iota_simplewallet_SRC}
         )
 
-target_link_libraries(iota_simplewallet logger libsodium.a cclient common http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread ws2_32 wsock32 )
-add_dependencies(iota_simplewallet sqlite3 crypto iota.c cjson)
+target_link_libraries(iota_simplewallet deps logger libsodium.a cclient common http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread ws2_32 wsock32 )
+add_dependencies(iota_simplewallet deps crypto iota.c cjson)
 
 
 #Should we build the cli app
@@ -40,6 +44,7 @@ if(BUILD_CLI)
     add_executable(wallet
             src/main.c
             )
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O0")
     target_link_libraries(wallet iota_simplewallet)
 endif(BUILD_CLI)
 
