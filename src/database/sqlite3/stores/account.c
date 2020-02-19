@@ -9,7 +9,7 @@
 
 #define enforce_max_length(len) if(len > 1024) return -1;
 #define enforce_max_length_null(len) if(len > 1024) return NULL;
-int create_account(sqlite3* db, const char* username, const char* seed_c, const char* salt, const char* nonce) {
+int _create_account(sqlite3* db, const char* username, const char* seed_c, const char* salt, const char* nonce) {
   enforce_max_length(strlen(username) + strlen(seed_c) + strlen(salt) + strlen(nonce))
   sqlite3_stmt* stmt;
   int rc;

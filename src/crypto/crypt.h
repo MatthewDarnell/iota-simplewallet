@@ -4,10 +4,9 @@
 
 #ifndef IOTA_SIMPLEWALLET_CRYPT_H
 #define IOTA_SIMPLEWALLET_CRYPT_H
-
+#include <stddef.h>
 int init_crypto();
-char *generate_random(size_t len);
-int encrypt(char *data, size_t len, char *key, size_t keylen);
+int encrypt(unsigned char* c, size_t* c_len, unsigned char* salt, size_t max_salt_len, size_t* salt_len, unsigned char* nonce, size_t max_nonce_len, size_t* nonce_len, char *data, size_t len, char *password);
 int decrypt(char *data, size_t len, char *key, size_t keylen);
 
 #endif //IOTA_SIMPLEWALLET_CRYPT_H

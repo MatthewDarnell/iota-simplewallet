@@ -27,9 +27,11 @@ file(GLOB iota_simplewallet_SRC
         src/config/config.c
         src/config/logger.c
         src/crypto/crypt.c
+        src/crypto/password.c
         src/crypto/random.c
         src/database/sqlite3/db.c
         src/database/sqlite3/tables.c
+        src/database/sqlite3/helpers/account.c
         src/database/sqlite3/stores/account.c
         src/database/sqlite3/stores/address.c
         src/database/sqlite3/stores/incoming_transaction.c
