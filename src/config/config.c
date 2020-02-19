@@ -21,16 +21,20 @@ const char *default_config = "{"
                         "}";
 const char* default_path = "wallet.conf";
 
-void __fill_missing_configs_with_defaults(cJSON** object) {  //object exists with the minimal set of parameters
+//Returns number of overwritten configs
+int __fill_missing_configs_with_defaults(cJSON** object) {  //object exists with the minimal set of parameters
   cJSON* default_json = cJSON_Parse(default_config);
   cJSON* temp_key = NULL;
+  int num_overwrites = 0;
   cJSON_ArrayForEach(temp_key, default_json) {
         if(!cJSON_HasObjectItem(*object, temp_key->string)) {
       cJSON* temp_value = cJSON_GetObjectItem(default_json, temp_key->string);
       cJSON_AddItemToObject(*object, temp_key->string, temp_value);
+      num_overwrites++;
     } else {
     }
   }
+  return num_overwrites;
 }
 
 //Check whether a file exists and is not 0 length
@@ -124,7 +128,11 @@ int load_config(const char *path) {
       );
     } else {
 
-      __fill_missing_configs_with_defaults(&config_obj);
+      if(__fill_missing_configs_with_defaults(&config_obj) > 0) {
+        char* data_to_overwrite = cJSON_Print(config_obj);
+        __write_to_file_and_create(config_file, data_to_overwrite);
+        free(data_to_overwrite);
+      }
 
       cJSON_AddItemToObject(
           config,
