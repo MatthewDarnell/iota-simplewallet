@@ -38,6 +38,8 @@ file(GLOB iota_simplewallet_SRC
         src/database/sqlite3/stores/outgoing_transaction.c
         src/database/sqlite3/stores/input_to_output.c
         src/iota/generate_seed.c
+        src/iota/generate_address.c
+        src/iota/init.c
         src/iota/test.c
         )
 
