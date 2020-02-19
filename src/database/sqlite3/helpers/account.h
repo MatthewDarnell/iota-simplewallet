@@ -6,4 +6,5 @@
 #define IOTA_SIMPLEWALLET_ACCOUNT_H
 #include <sqlite3.h>
 int create_account(sqlite3* db, const char* username, char* password);
+int verify_login(sqlite3* db, const char* username, char* password);
 #endif //IOTA_SIMPLEWALLET_ACCOUNT_H
