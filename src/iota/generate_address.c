@@ -61,9 +61,15 @@ cJSON* get_new_address(const char* seed, int index, int num_addresses) {
   while(out_trits != NULL) {
     tryte_t addr_trytes[128] = { 0 };
     flex_trits_to_trytes(addr_trytes, 81, out_trits->hash, 243, 243);
+
+    cJSON* object = cJSON_CreateObject();
+    cJSON_AddItemToObject(object, "address", cJSON_CreateString((const char*)addr_trytes));
+    cJSON_AddItemToObject(object, "index", cJSON_CreateNumber(index));
+    index++;
+
     cJSON_AddItemToArray(
         json_addresses,
-        cJSON_CreateString((const char*)addr_trytes)
+        object
       );
     out_trits = hash243_queue_pop(&addresses);
   }
