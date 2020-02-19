@@ -3,10 +3,14 @@
 //
 
 #include <stdio.h>
+#include <string.h>
 #include "../../../config/logger.h"
 #include "input_to_output.h"
 
+#define enforce_max_length(len) if(len > 1024) return -1;
+#define enforce_max_length_null(len) if(len > 1024) return NULL;
 int create_input_to_output(sqlite3* db, const char* input_hash, int64_t output_serial) {
+  enforce_max_length(strlen(input_hash) + 30)
   sqlite3_stmt* stmt;
   int rc;
 
@@ -39,6 +43,7 @@ int create_input_to_output(sqlite3* db, const char* input_hash, int64_t output_s
 }
 
 cJSON* get_inputs_for_output(sqlite3* db, int64_t output_serial) {
+  enforce_max_length_null(30)
   sqlite3_stmt* stmt;
   int rc;
 

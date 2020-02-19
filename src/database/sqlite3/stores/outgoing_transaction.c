@@ -3,10 +3,14 @@
 //
 
 #include <stdio.h>
+#include <string.h>
 #include "../../../config/logger.h"
 #include "outgoing_transaction.h"
 
+#define enforce_max_length(len) if(len > 1024) return -1;
+#define enforce_max_length_null(len) if(len > 1024) return NULL;
 int create_outgoing_transaction(sqlite3* db, const char* dest_address, const char* change_address, uint64_t amount, const char* trytes) {
+  enforce_max_length(strlen(dest_address) + strlen(change_address) + 30 + strlen(trytes))
   sqlite3_stmt* stmt;
   int rc;
 
@@ -42,6 +46,7 @@ int create_outgoing_transaction(sqlite3* db, const char* dest_address, const cha
 
 
 cJSON* get_outgoing_transaction_by_serial(sqlite3* db, int serial) {
+  enforce_max_length_null(10)
   sqlite3_stmt* stmt;
   int rc;
 
@@ -132,6 +137,7 @@ cJSON* get_all_unsent_outgoing_transactions(sqlite3* db) {
   return json;
 }
 int mark_outgoing_transaction_sent(sqlite3* db, int serial, const char* bundle, const char* hash) {
+  enforce_max_length(strlen(bundle) + strlen(hash))
   sqlite3_stmt* stmt;
   int rc;
 

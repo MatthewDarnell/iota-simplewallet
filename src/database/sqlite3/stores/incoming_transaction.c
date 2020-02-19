@@ -3,10 +3,14 @@
 //
 
 #include <stdio.h>
+#include <string.h>
 #include "../../../config/logger.h"
 #include "incoming_transaction.h"
 
+#define enforce_max_length(len) if(len > 1024) return -1;
+#define enforce_max_length_null(len) if(len > 1024) return NULL;
 int create_incoming_transaction(sqlite3* db, const char* address, uint64_t amount, const char* bundle, const char* hash, const char* time, int confirmed) {
+  enforce_max_length(strlen(address) + 30 + strlen(bundle) + strlen(hash) + strlen(time) + 10)
   sqlite3_stmt* stmt;
   int rc;
 
@@ -41,6 +45,7 @@ int create_incoming_transaction(sqlite3* db, const char* address, uint64_t amoun
 
 
 cJSON* get_incoming_transaction_by_address(sqlite3* db, const char* address) {
+  enforce_max_length_null(strlen(address))
   sqlite3_stmt* stmt;
   int rc;
 
@@ -85,6 +90,7 @@ cJSON* get_incoming_transaction_by_address(sqlite3* db, const char* address) {
 }
 
 cJSON* get_unspents_by_username(sqlite3* db, const char* username) {
+  enforce_max_length_null(strlen(username))
   sqlite3_stmt* stmt;
   int rc;
 

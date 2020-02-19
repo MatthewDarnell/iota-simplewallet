@@ -3,11 +3,15 @@
 //
 
 #include <stdio.h>
+#include <string.h>
 #include "../../../config/logger.h"
 #include "address.h"
 
+#define enforce_max_length(len) if(len > 1024) return -1;
+#define enforce_max_length_null(len) if(len > 1024) return NULL;
 
 int create_address(sqlite3* db, const char* address, uint32_t offset, const char* username) {
+  enforce_max_length(strlen(address) + strlen(username) + 10)
   sqlite3_stmt* stmt;
   int rc;
 
@@ -26,17 +30,18 @@ int create_address(sqlite3* db, const char* address, uint32_t offset, const char
   rc = sqlite3_step(stmt);
 
   if (rc != SQLITE_DONE) {
-    fprintf(stderr,"%s execution failed: %s", __func__, sqlite3_errmsg(db));
+    log_error("%s execution failed: %s", __func__, sqlite3_errmsg(db));
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
     return -1;
   }
   sqlite3_finalize(stmt);
-  fprintf(stdout, "Created new address %s for user %s", address, username);
+  log_debug("Created new address %s for user %s", address, username);
   return 0;
 }
 
 cJSON* get_address_by_address(sqlite3* db, const char* address) {
+  enforce_max_length_null(strlen(address))
   sqlite3_stmt* stmt;
   int rc;
 
@@ -68,6 +73,7 @@ cJSON* get_address_by_address(sqlite3* db, const char* address) {
 }
 
 cJSON* get_next_fresh_address(sqlite3* db, const char* username) {
+  enforce_max_length_null(strlen(username))
   sqlite3_stmt* stmt;
   int rc;
 
@@ -99,6 +105,7 @@ cJSON* get_next_fresh_address(sqlite3* db, const char* username) {
 }
 
 int mark_address_is_change_address(sqlite3* db, const char* address) {
+  enforce_max_length(strlen(address))
   sqlite3_stmt* stmt;
   int rc;
 
@@ -114,7 +121,7 @@ int mark_address_is_change_address(sqlite3* db, const char* address) {
   rc = sqlite3_step(stmt);
 
   if (rc != SQLITE_DONE) {
-    fprintf(stderr,"%s execution failed: %s", __func__, sqlite3_errmsg(db));
+    log_error("%s execution failed: %s", __func__, sqlite3_errmsg(db));
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
     return -1;

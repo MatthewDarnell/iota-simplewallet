@@ -27,6 +27,7 @@ file(GLOB iota_simplewallet_SRC
         src/config/config.c
         src/config/logger.c
         src/crypto/crypt.c
+        src/crypto/random.c
         src/database/sqlite3/db.c
         src/database/sqlite3/tables.c
         src/database/sqlite3/stores/account.c
@@ -34,6 +35,7 @@ file(GLOB iota_simplewallet_SRC
         src/database/sqlite3/stores/incoming_transaction.c
         src/database/sqlite3/stores/outgoing_transaction.c
         src/database/sqlite3/stores/input_to_output.c
+        src/iota/generate_seed.c
         src/iota/test.c
         )
 
@@ -51,7 +53,7 @@ if(BUILD_CLI)
     add_executable(wallet
             src/main.c
             )
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O0")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O3")
     target_link_libraries(wallet iota_simplewallet)
 endif(BUILD_CLI)
 
