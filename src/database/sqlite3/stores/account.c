@@ -3,6 +3,7 @@
 //
 #include <stdio.h>
 #include <inttypes.h>
+#include "../../../config/logger.h"
 #include "account.h"
 
 int create_account(sqlite3* db, const char* username, const char* seed_c, const char* salt, const char* nonce) {
@@ -13,7 +14,7 @@ int create_account(sqlite3* db, const char* username, const char* seed_c, const 
   rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
 
   if (rc != SQLITE_OK) {
-    fprintf(stderr, "%s -- Failed to create prepared statement: %s\n", __func__, sqlite3_errmsg(db));
+    log_error("%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
     return -1;
   }
 
@@ -25,7 +26,7 @@ int create_account(sqlite3* db, const char* username, const char* seed_c, const 
   rc = sqlite3_step(stmt);
 
   if (rc != SQLITE_DONE) {
-    fprintf(stderr,"%s execution failed: %s\n", __func__, sqlite3_errmsg(db));
+    log_error("%s execution failed: %s", __func__, sqlite3_errmsg(db));
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
     return -1;
@@ -42,7 +43,7 @@ cJSON* get_account_by_username(sqlite3* db, const char* username) {
   rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
 
   if (rc != SQLITE_OK) {
-    fprintf(stderr, "%s -- Failed to create prepared statement: %s\n", __func__, sqlite3_errmsg(db));
+    log_error("%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
     return NULL;
   }
 

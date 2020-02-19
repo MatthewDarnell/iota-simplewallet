@@ -9,15 +9,20 @@
 cJSON *config = NULL;
 const char *default_config = "{"
                         "\"database\": \"iota-simplewallet.db\","
-                        "\"minAddressPool\": \"5\""
+                        "\"minAddressPool\": \"5\","
+                        "\"logFile\": \"iota-simplewallet.log\""
                         "}";
 const char* default_path = "wallet.conf";
 
-int __is_valid_config(cJSON* object) {  //object exists with the minimal set of parameters
-  if(!object) return -1;
-  if(!cJSON_HasObjectItem(object, "database")) return -2;
-  if(!cJSON_HasObjectItem(object, "minAddressPool")) return -3;
-  return 0;
+void __fill_missing_configs_with_defaults(cJSON** object) {  //object exists with the minimal set of parameters
+  cJSON* default_json = cJSON_Parse(default_config);
+  cJSON* temp_key = NULL;
+  cJSON_ArrayForEach(temp_key, default_json) {
+    if(!cJSON_HasObjectItem(*object, temp_key->string)) {
+      cJSON* temp_value = cJSON_GetObjectItem(default_json, temp_key->string);
+      cJSON_AddItemToObject(*object, temp_key->string, temp_value);
+    }
+  }
 }
 
 //Check whether a file exists and is not 0 length
@@ -36,7 +41,6 @@ int __does_file_exist(const char* path) {
 
 //Read a file into a cJSON struct
 cJSON* __read_file(const char* path) {
-
   FILE* iFile = fopen(path, "rb");
   if(!iFile) {
     fprintf(stderr, "Unable to open configuration file <%s>\n", path);
@@ -111,6 +115,9 @@ int load_config(const char *path) {
         cJSON_Parse(default_config)
       );
     } else {
+
+      __fill_missing_configs_with_defaults(&config_obj);
+
       cJSON_AddItemToObject(
           config,
           "config",

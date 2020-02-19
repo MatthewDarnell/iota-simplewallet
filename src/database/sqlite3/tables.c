@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <sqlite3.h>
-
+#include "../../config/logger.h"
 //db should already be opened
 int create_tables(sqlite3* db) {
   char *zErrMsg = 0;
@@ -25,11 +25,11 @@ int create_tables(sqlite3* db) {
     const char* query = tables[i];
     rc = sqlite3_exec(db, query, NULL, 0, &zErrMsg);
     if( rc != SQLITE_OK ){
-      fprintf(stderr, "SQL error on query %d: %s\nBailing out!\n", i, zErrMsg);
+      log_error("SQL error on query %d: %sBailing out!", i, zErrMsg);
       sqlite3_free(zErrMsg);
       exit(1);
     }
   }
-  printf("Created all Database Tables successfully\n");
+  log_info("Created all Database Tables successfully", "");
   return 0;
 }
