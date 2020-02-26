@@ -18,7 +18,7 @@ int create_outgoing_transaction(sqlite3* db, const char* dest_address, const cha
   rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
 
   if (rc != SQLITE_OK) {
-    log_error( "%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
+    log_wallet_error( "%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
     return -1;
   }
 
@@ -30,16 +30,16 @@ int create_outgoing_transaction(sqlite3* db, const char* dest_address, const cha
   rc = sqlite3_step(stmt);
 
   if (rc != SQLITE_DONE) {
-    log_error("%s execution failed: %s", __func__, sqlite3_errmsg(db));
+    log_wallet_error("%s execution failed: %s", __func__, sqlite3_errmsg(db));
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
     return -1;
   }
   sqlite3_finalize(stmt);
   #ifdef WIN32
-  log_info("Created new outgoing transaction to address <%s> (%I64d i)", dest_address, amount);
+  log_wallet_info("Created new outgoing transaction to address <%s> (%I64d i)", dest_address, amount);
   #else
-  log_info("Created new outgoing transaction to address <%s> (%lld i)", dest_address, amount);
+  log_wallet_info("Created new outgoing transaction to address <%s> (%lld i)", dest_address, amount);
   #endif
   return 0;
 }
@@ -54,7 +54,7 @@ cJSON* get_outgoing_transaction_by_serial(sqlite3* db, int serial) {
   rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
 
   if (rc != SQLITE_OK) {
-    log_error( "%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
+    log_wallet_error( "%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
     return NULL;
   }
 
@@ -99,7 +99,7 @@ cJSON* get_all_unsent_outgoing_transactions(sqlite3* db) {
   rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
 
   if (rc != SQLITE_OK) {
-    log_error( "%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
+    log_wallet_error( "%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
     return NULL;
   }
 
@@ -145,7 +145,7 @@ int mark_outgoing_transaction_sent(sqlite3* db, int serial, const char* bundle, 
   rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
 
   if (rc != SQLITE_OK) {
-    log_error( "%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
+    log_wallet_error( "%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
     return -1;
   }
 
@@ -156,7 +156,7 @@ int mark_outgoing_transaction_sent(sqlite3* db, int serial, const char* bundle, 
   rc = sqlite3_step(stmt);
 
   if (rc != SQLITE_DONE) {
-    log_error("%s execution failed: %s", __func__, sqlite3_errmsg(db));
+    log_wallet_error("%s execution failed: %s", __func__, sqlite3_errmsg(db));
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
     return -1;

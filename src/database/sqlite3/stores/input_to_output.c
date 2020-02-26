@@ -18,7 +18,7 @@ int create_input_to_output(sqlite3* db, const char* input_hash, int64_t output_s
   rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
 
   if (rc != SQLITE_OK) {
-    log_error( "%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
+    log_wallet_error( "%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
     return -1;
   }
 
@@ -28,16 +28,16 @@ int create_input_to_output(sqlite3* db, const char* input_hash, int64_t output_s
   rc = sqlite3_step(stmt);
 
   if (rc != SQLITE_DONE) {
-    log_error("%s execution failed: %s", __func__, sqlite3_errmsg(db));
+    log_wallet_error("%s execution failed: %s", __func__, sqlite3_errmsg(db));
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
     return -1;
   }
   sqlite3_finalize(stmt);
 #ifdef WIN32
-  log_info("Created new input->output link <%s> (%I64d i)", input_hash, output_serial);
+  log_wallet_info("Created new input->output link <%s> (%I64d i)", input_hash, output_serial);
 #else
-  log_info("Created new outgoing transaction to address <%s> (%lld i)", input, output_serial);
+  log_wallet_info("Created new outgoing transaction to address <%s> (%lld i)", input, output_serial);
 #endif
   return 0;
 }
@@ -51,7 +51,7 @@ cJSON* get_inputs_for_output(sqlite3* db, int64_t output_serial) {
   rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
 
   if (rc != SQLITE_OK) {
-    log_error( "%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
+    log_wallet_error( "%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
     return NULL;
   }
   sqlite3_bind_int64(stmt, 1, output_serial);
