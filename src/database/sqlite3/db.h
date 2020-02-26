@@ -4,7 +4,6 @@
 
 #ifndef IOTA_SIMPLEWALLET_DB_H
 #define IOTA_SIMPLEWALLET_DB_H
-#include <stddef.h>
 #include <sqlite3.h>
 int init_db();
 sqlite3* get_db_handle();
