@@ -11,13 +11,13 @@ int init_db() {
   sqlite3 *connection = NULL;
   char* path = get_config("database");
   if(!path) {
-    log_error( "Unable to read database path from config", "");
+    log_wallet_error( "Unable to read database path from config", "");
     exit(1);
   }
   int rc = sqlite3_open(path, &connection);
   free(path);
   if(rc) {
-    log_error( "Can't open database: %s", sqlite3_errmsg(connection));
+    log_wallet_error( "Can't open database: %s", sqlite3_errmsg(connection));
     sqlite3_close(connection);
     exit(1);
   }
@@ -30,13 +30,13 @@ sqlite3* get_db_handle() {
   sqlite3* handle = NULL;
   char* path = get_config("database");
   if(!path) {
-    log_error( "Unable to read database path from config", "");
+    log_wallet_error( "Unable to read database path from config", "");
     return NULL;
   }
   int rc = sqlite3_open(path, &handle);
   free(path);
   if(rc) {
-    log_error( "Can't open database: %s", sqlite3_errmsg(handle));
+    log_wallet_error( "Can't open database: %s", sqlite3_errmsg(handle));
     sqlite3_close(handle);
     return NULL;
   }

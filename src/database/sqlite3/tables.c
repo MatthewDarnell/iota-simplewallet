@@ -25,11 +25,11 @@ int create_tables(sqlite3* db) {
     const char* query = tables[i];
     rc = sqlite3_exec(db, query, NULL, 0, &zErrMsg);
     if( rc != SQLITE_OK ){
-      log_error("SQL error on query %d: %sBailing out!", i, zErrMsg);
+      log_wallet_error("SQL error on query %d: %sBailing out!", i, zErrMsg);
       sqlite3_free(zErrMsg);
       exit(1);
     }
   }
-  log_info("Created all Database Tables successfully", "");
+  log_wallet_info("Created all Database Tables successfully", "");
   return 0;
 }

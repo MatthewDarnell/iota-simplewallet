@@ -2,11 +2,10 @@
 // Created by matth on 2/18/2020.
 //
 
-#include <stdio.h>
 #include <string.h>
 #include <sodium.h>
-#include "../crypto/random.h"
-#include "generate_seed.h"
+#include "../../crypto/random.h"
+#include "../api.h"
 
 void generate_seed(char* buffer, uint32_t buf_max_len) {
   const char* char_set = "9ABCDEFGHIJKLMNOPQRSTUVWXYZ";

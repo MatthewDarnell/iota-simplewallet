@@ -3,33 +3,12 @@
 //
 
 #include <common/trinary/tryte.h>
-#include  <cclient/api/extended/get_new_address.h>
 #include <cclient/api/core/core_api.h>
-#include "../config/config.h"
-#include "generate_address.h"
+#include  <cclient/api/extended/extended_api.h>
+#include "../api.h"
 
 cJSON* get_new_address(const char* seed, int index, int num_addresses) {
-  iota_client_service_t *serv = NULL;
-
-  char* str_nodes = get_config("nodes");
-  cJSON* nodes = cJSON_Parse(str_nodes);
-  free(str_nodes);
-
-  if(cJSON_GetArraySize(nodes) < 1) {
-    fprintf(stderr, "Unable to get nodes\n");
-    cJSON_Delete(nodes);
-    return NULL;
-  }
-  cJSON* node = cJSON_GetArrayItem(nodes, 0);
-
-  const char* host = cJSON_GetObjectItem(node, "host")->valuestring;
-  const int port = atoi(cJSON_GetObjectItem(node, "port")->valuestring);
-  const char* pem = cJSON_GetObjectItem(node, "pem")->valuestring;
-
-  serv = iota_client_core_init(host, port, pem);
-
-  cJSON_Delete(nodes);
-
+  iota_client_service_t* serv = get_iota_client();
   //address options
   address_opt_t addresses_to_create;
   addresses_to_create.start = index;
@@ -42,6 +21,7 @@ cJSON* get_new_address(const char* seed, int index, int num_addresses) {
   //seed manipulation to ternary
   flex_trit_t seed_trits[FLEX_TRIT_SIZE_243] = { 0 };
   if (flex_trits_from_trytes(seed_trits, NUM_TRITS_ADDRESS, (tryte_t*)seed,  NUM_TRYTES_ADDRESS, NUM_TRYTES_ADDRESS) == 0) {
+    iota_client_core_destroy(&serv);
     return NULL;
   }
 
@@ -73,5 +53,8 @@ cJSON* get_new_address(const char* seed, int index, int num_addresses) {
       );
     out_trits = hash243_queue_pop(&addresses);
   }
+  hash243_queue_free(&addresses);
+  iota_client_core_destroy(&serv);
+
   return json_addresses;
 }

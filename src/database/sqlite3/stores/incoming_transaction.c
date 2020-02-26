@@ -18,7 +18,7 @@ int create_incoming_transaction(sqlite3* db, const char* address, uint64_t amoun
   rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
 
   if (rc != SQLITE_OK) {
-    log_error("%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
+    log_wallet_error("%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
     return -1;
   }
 
@@ -32,13 +32,13 @@ int create_incoming_transaction(sqlite3* db, const char* address, uint64_t amoun
   rc = sqlite3_step(stmt);
 
   if (rc != SQLITE_DONE) {
-    log_error("%s execution failed: %s", __func__, sqlite3_errmsg(db));
+    log_wallet_error("%s execution failed: %s", __func__, sqlite3_errmsg(db));
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
     return -1;
   }
   sqlite3_finalize(stmt);
-  log_info( "Created new incoming transaction <%s> for address %s", hash, address);
+  log_wallet_info( "Created new incoming transaction <%s> for address %s", hash, address);
   return 0;
 }
 
@@ -53,7 +53,7 @@ cJSON* get_incoming_transaction_by_address(sqlite3* db, const char* address) {
   rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
 
   if (rc != SQLITE_OK) {
-    log_error("%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
+    log_wallet_error("%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
     return NULL;
   }
 
@@ -103,7 +103,7 @@ cJSON* get_unspents_by_username(sqlite3* db, const char* username) {
   rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
 
   if (rc != SQLITE_OK) {
-    log_error("%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
+    log_wallet_error("%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
     return NULL;
   }
   sqlite3_bind_text(stmt, 1, username, -1, NULL);

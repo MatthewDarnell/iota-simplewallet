@@ -6,7 +6,7 @@
 #include <sodium.h>
 #include "../../../crypto/password.h"
 #include "../../../crypto/crypt.h"
-#include "../../../iota/generate_seed.h"
+#include "../../../iota/api.h"
 #include "../../../config/logger.h"
 #include "../stores/account.h"
 #include "account.h"
@@ -43,7 +43,7 @@ int create_account(sqlite3* db, const char* username, char* password) {
   sodium_memzero(password, strlen(password));
 
   if(encrypt_result < 0) {
-    log_fatal("Failed to Create Account! %d", encrypt_result);
+    log_wallet_fatal("Failed to Create Account! %d", encrypt_result);
   }
 
   char b64_cipher[256] = { 0 };
@@ -65,7 +65,7 @@ int create_account(sqlite3* db, const char* username, char* password) {
 int verify_login(sqlite3* db, const char* username, char* password) {
   cJSON* user = get_account_by_username(db, username);
   if(!user) {
-    log_error("User %s does not exist", username);
+    log_wallet_error("User %s does not exist", username);
     return -1;
   }
 
@@ -102,9 +102,9 @@ int verify_login(sqlite3* db, const char* username, char* password) {
 
 
   if(decrypt_result < 0 ) {
-    log_error("Invalid password, unable to login", "")
+    log_wallet_error("Invalid password, unable to login", "")
     return -1;
   }
-  log_info("Logged in successfully", "")
+  log_wallet_info("Logged in successfully", "")
   return 0;
 }
