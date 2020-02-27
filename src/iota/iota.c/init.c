@@ -18,5 +18,5 @@ void init_iota() {
   init_iota_client();
 }
 void shutdown_iota() {
-
+  log_wallet_info("Shutting Down IOTA C Library", "");
 }

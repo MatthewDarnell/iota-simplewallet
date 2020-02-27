@@ -20,5 +20,6 @@ void init_iota() {
   curl_global_init(CURL_GLOBAL_DEFAULT);
 }
 void shutdown_iota() {
+  log_wallet_info("Shutting Down IOTA C Library", "")
   curl_global_cleanup();
 }

@@ -28,21 +28,27 @@ void _log(enum LOG_LEVEL lvl, const char* format, ...) {
   timeinfo = localtime ( &rawtime );
 
   char *level;
+
   switch (lvl) {
     case 1:
       level = "INFO";
+      break;
     case 2:
-      level = "DEBUG";
+      level ="DEBUG";
+      break;
     case 3:
       level = "ERROR";
+      break;
     case 4:
       level = "FATAL";
+      break;
     default:
       level = "INFO";
+      break;
   };
 
-  char prefix_buffer[32] = { 0 };
-  snprintf(prefix_buffer, 32, "%s: %s", level, asctime(timeinfo));
+  char prefix_buffer[64] = { 0 };
+  snprintf(prefix_buffer, 63, "%s: %s", level, asctime(timeinfo));
   size_t len = strlen(prefix_buffer);
   prefix_buffer[len-1] = 0; //asctime adds \n
 

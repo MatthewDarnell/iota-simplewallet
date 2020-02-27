@@ -35,6 +35,7 @@ int _create_account(sqlite3* db, const char* username, const char* seed_c, const
     sqlite3_finalize(stmt);
     return -1;
   }
+  log_wallet_info("User.(%s) created successfully.", username);
   sqlite3_finalize(stmt);
   return 0;
 }

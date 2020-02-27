@@ -5,10 +5,16 @@
 #include <common/trinary/tryte.h>
 #include <cclient/api/core/core_api.h>
 #include  <cclient/api/extended/extended_api.h>
+#include "../../config/logger.h"
 #include "../api.h"
 
 cJSON* get_new_address(const char* seed, int index, int num_addresses) {
+  log_wallet_info("Creating %d addresses, starting with index %d", num_addresses-index, index);
   iota_client_service_t* serv = get_iota_client();
+  if(!serv) {
+    log_wallet_error("Unable to get iota client", "")
+    return NULL;
+  }
   //address options
   address_opt_t addresses_to_create;
   addresses_to_create.start = index;
@@ -22,17 +28,21 @@ cJSON* get_new_address(const char* seed, int index, int num_addresses) {
   flex_trit_t seed_trits[FLEX_TRIT_SIZE_243] = { 0 };
   if (flex_trits_from_trytes(seed_trits, NUM_TRITS_ADDRESS, (tryte_t*)seed,  NUM_TRYTES_ADDRESS, NUM_TRYTES_ADDRESS) == 0) {
     iota_client_core_destroy(&serv);
+    log_wallet_error("Error reading seed!", "");
     return NULL;
   }
 
   //generate address(es)
-  iota_client_get_new_address(
+  retcode_t ret = iota_client_get_new_address(
       serv,
       seed_trits,
       addresses_to_create,
       &addresses
     );
 
+  if(ret != RC_OK) {
+    log_wallet_error("%s", error_2_string(ret));
+  }
   //trits to trytes
   hash243_queue_entry_t* out_trits = hash243_queue_pop(&addresses);
 

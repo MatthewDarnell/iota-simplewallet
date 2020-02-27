@@ -36,7 +36,6 @@ static cJSON* get_trytes(cJSON* object) {
 
 
 void get_transaction_inputs_to_address(cJSON** addresses) {
-  printf("%s\n", __func__);
   cJSON *request = cJSON_CreateObject();
   cJSON *response = NULL;
 
@@ -65,8 +64,6 @@ void get_transaction_inputs_to_address(cJSON** addresses) {
     cJSON_Delete(response);
     return;
   }
- // const char* r = cJSON_Print(response);
-  //printf("\nTx Inputs:\n%s\n",r);
 
   cJSON* trytes_response = NULL;
   if((trytes_response = get_trytes(response)) == NULL) {
@@ -143,18 +140,31 @@ void get_transaction_inputs_to_address(cJSON** addresses) {
 
     for(j = 0; j < cJSON_GetArraySize(*addresses); j++) {
       cJSON* addr_obj = cJSON_GetArrayItem(*addresses, j);
-      if(!cJSON_HasObjectItem(addr_obj, "transactions")) {
-        cJSON_AddItemToObject(addr_obj, "transactions", cJSON_CreateArray());
-      }
-
       const char* addr_address = cJSON_GetObjectItem(addr_obj, "address")->valuestring;
       if(strcasecmp(addr_address, (const char*)address) == 0) {
-
+        if(!cJSON_HasObjectItem(addr_obj, "transactions")) {
+          cJSON_AddItemToObject(addr_obj, "transactions", cJSON_CreateArray());
+        }
         cJSON* addr_obj_txs = cJSON_GetObjectItem(addr_obj, "transactions");
         cJSON_AddItemToArray(addr_obj_txs, obj);
         break;
       }
     }
   }
+
+  j = 0;
+  while(1) {
+    if(j >=  cJSON_GetArraySize(*addresses)) {
+      break;
+    }
+    cJSON* obj = cJSON_GetArrayItem(*addresses, j);
+    if(!cJSON_HasObjectItem(obj, "transactions")) {
+      cJSON_DeleteItemFromArray(*addresses, j);
+      j--;
+    }
+    j++;
+  }
+
+
   cJSON_Delete(trytes_response);
 }

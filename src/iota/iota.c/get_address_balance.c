@@ -6,6 +6,7 @@
 #include <cclient/api/core/core_api.h>
 #include <common/trinary/flex_trit.h>
 #include "../../config/config.h"
+#include "../../config/logger.h"
 #include "../api.h"
 
 void get_address_balance(cJSON** addresses, uint64_t min_iota) {
@@ -14,7 +15,7 @@ void get_address_balance(cJSON** addresses, uint64_t min_iota) {
   get_balances_res_t *balance_res = get_balances_res_new();
 
   if(!serv || !balance_req || !balance_res) {
-    fprintf(stderr, "%s oom\n", __func__);
+    log_wallet_error( "%s oom\n", __func__);
     return;
   }
 
@@ -30,7 +31,7 @@ void get_address_balance(cJSON** addresses, uint64_t min_iota) {
 
   retcode_t ret_code = RC_ERROR;
   if((ret_code = iota_client_get_balances(serv, balance_req, balance_res)) != RC_OK) {
-    fprintf(stderr, "Get balances returned %s\n", error_2_string(ret_code));
+    log_wallet_error( "Get balances returned %s\n", error_2_string(ret_code));
     get_balances_req_free(&balance_req);
     get_balances_res_free(&balance_res);
     iota_client_core_destroy(&serv);
@@ -59,14 +60,26 @@ void get_address_balance(cJSON** addresses, uint64_t min_iota) {
     cJSON_AddStringToObject(address, "balance", str_balance);
   }
 
-  for(i=0; i<cJSON_GetArraySize(*addresses); i++) {
-    cJSON* obj  =  cJSON_GetArrayItem(*addresses, i);
-    if(!cJSON_HasObjectItem(obj, "balance")) {
-      printf("removing addr %s\n", cJSON_GetObjectItem(obj,  "address")->valuestring);
-      cJSON_Delete(obj);
-      i--;
+  i = 0;
+  while(1) {
+    if(i >=  cJSON_GetArraySize(*addresses)) {
+      break;
     }
+    cJSON* obj = cJSON_GetArrayItem(*addresses, i);
+    if(!cJSON_HasObjectItem(obj, "balance")) {
+      cJSON_DeleteItemFromArray(*addresses, i);
+      i--;
+    } else {
+      const char* balance = cJSON_GetObjectItem(obj, "balance")->valuestring;
+      uint64_t d_balance = strtoull(balance, NULL, 10);
+      if(d_balance < min_iota) {
+        cJSON_DeleteItemFromArray(*addresses, i);
+        i--;
+      }
+    }
+    i++;
   }
+
 
   get_balances_req_free(&balance_req);
   get_balances_res_free(&balance_res);

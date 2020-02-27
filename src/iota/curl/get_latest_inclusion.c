@@ -4,6 +4,7 @@
 
 #include "../api.h"
 #include "../../config/http.h"
+#include "../../config/logger.h"
 
 static cJSON* get_node_info() {
   cJSON* request = cJSON_CreateObject();
@@ -13,7 +14,7 @@ static cJSON* get_node_info() {
   cJSON* response = NULL;
   int ret;
   if((ret = post(str_request, &response)) < 0) {
-    fprintf(stderr, "%s failed with %d\n", __func__, ret);
+    log_wallet_error("%s failed with %d\n", __func__, ret);
     cJSON_Delete(response);
     return NULL;
   }
@@ -32,12 +33,19 @@ void get_latest_inclusion(cJSON** addresses_with_transactions, int include_uncon
       continue;
     }
 
+    cJSON* transaction_array = cJSON_GetObjectItem(address_object, "transactions");
+    size_t num_txs = cJSON_GetArraySize(transaction_array);
+
+    if(num_txs < 1) {
+      continue;
+    }
+
+
     cJSON* request = cJSON_CreateObject();
     cJSON_AddStringToObject(request, "command", "getInclusionStates");
     hash_array = cJSON_CreateArray();
 
-    cJSON* transaction_array = cJSON_GetObjectItem(address_object, "transactions");
-    for(j = 0; j < cJSON_GetArraySize(transaction_array); j++) {
+    for(j = 0; j < num_txs; j++) {
       cJSON* obj = cJSON_GetArrayItem(transaction_array, j);
       const char* hash = cJSON_GetObjectItem(obj, "hash")->valuestring;
       cJSON_AddItemToArray(hash_array, cJSON_CreateString(hash));
@@ -48,7 +56,7 @@ void get_latest_inclusion(cJSON** addresses_with_transactions, int include_uncon
     cJSON* info = get_node_info();
 
     if(!info) {
-      fprintf(stderr, "%s unable to get node info\n", __func__);
+      log_wallet_error("%s unable to get node info\n", __func__);
       continue;
     }
     const char* milestone = cJSON_GetObjectItem(info, "latestSolidSubtangleMilestone")->valuestring;
@@ -64,13 +72,13 @@ void get_latest_inclusion(cJSON** addresses_with_transactions, int include_uncon
 
     int ret;
     if((ret = post(str_request, &response)) < 0) {
-      fprintf(stderr, "%s failed with %d\n", __func__, ret);
+      log_wallet_error("%s failed with %d\n", __func__, ret);
       cJSON_Delete(response);
       continue;
     }
 
     if(!cJSON_HasObjectItem(response, "states")) {
-      fprintf(stderr,"\nExiting with %s\n", cJSON_Print(response));
+      log_wallet_error("\nExiting with %s\n", cJSON_Print(response));
       cJSON_Delete(response);
       continue;
     }

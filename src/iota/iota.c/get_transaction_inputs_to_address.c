@@ -5,20 +5,21 @@
 #include <sodium.h>
 #include <cclient/api/extended/extended_api.h>
 #include "../api.h"
+#include "../../config/logger.h"
 #include "../../config/config.h"
 
 void get_transaction_inputs_to_address(cJSON** addresses) {
   iota_client_service_t* serv = NULL;
   serv = get_iota_client();
   if(!serv) {
-    fprintf(stderr, "%s unable  to get iota node\n", __func__);
+    log_wallet_error( "%s unable  to get iota node\n", __func__);
     return;
   }
   find_transactions_req_t *find_tran = find_transactions_req_new();
   transaction_array_t *out_tx_objs = transaction_array_new();
 
   if (!find_tran || !out_tx_objs) {
-    fprintf(stderr, "Error getting tx inputs\n");
+    log_wallet_error( "Error getting tx inputs\n", "");
     iota_client_core_destroy(&serv);
     return;
   }
@@ -36,7 +37,7 @@ void get_transaction_inputs_to_address(cJSON** addresses) {
       tmp_hash, NUM_TRITS_HASH,
       (const tryte_t *)address,
       NUM_TRYTES_HASH, NUM_TRYTES_HASH)) {
-      fprintf(stderr, "Unable to convert address %s to trytes\n", address);
+      log_wallet_error( "Unable to convert address %s to trytes\n", address);
       find_transactions_req_free(&find_tran);
       transaction_array_free(out_tx_objs);
       iota_client_core_destroy(&serv);
@@ -45,7 +46,7 @@ void get_transaction_inputs_to_address(cJSON** addresses) {
     free(address);
     retcode_t push;
     if ((push = hash243_queue_push(&find_tran->addresses, tmp_hash)) != RC_OK) {
-      fprintf(stderr, "Error: push queue %s\n", error_2_string(push));
+      log_wallet_error( "Error: push queue %s\n", error_2_string(push));
       find_transactions_req_free(&find_tran);
       transaction_array_free(out_tx_objs);
       iota_client_core_destroy(&serv);
@@ -56,7 +57,7 @@ void get_transaction_inputs_to_address(cJSON** addresses) {
   retcode_t ret_code;
 
   if ((ret_code = iota_client_find_transaction_objects(serv, find_tran, out_tx_objs)) != RC_OK) {
-    fprintf(stderr, "Error finding Transactions:  %s\n", error_2_string(ret_code));
+    log_wallet_error( "Error finding Transactions:  %s\n", error_2_string(ret_code));
     find_transactions_req_free(&find_tran);
     iota_client_core_destroy(&serv);
     transaction_array_free(out_tx_objs);
@@ -67,13 +68,12 @@ void get_transaction_inputs_to_address(cJSON** addresses) {
 
   size_t count = transaction_array_len(out_tx_objs);
   if(count <= 0) {
-    fprintf(stderr, "0 inputs\n");
+    log_wallet_error( "Found %d inputs\n", count);
     find_transactions_req_free(&find_tran);
     iota_client_core_destroy(&serv);
     transaction_array_free(out_tx_objs);
     return;
   }
-
   tryte_t hash[NUM_TRYTES_HASH + 1] = { 0 };
   tryte_t address[NUM_TRYTES_ADDRESS + 1 ] = { 0 };
   tryte_t bundle[NUM_TRYTES_BUNDLE + 1 ] = { 0 };
@@ -130,18 +130,29 @@ void get_transaction_inputs_to_address(cJSON** addresses) {
 
     for(j = 0; j < cJSON_GetArraySize(*addresses); j++) {
       cJSON* addr_obj = cJSON_GetArrayItem(*addresses, j);
-      if(!cJSON_HasObjectItem(addr_obj, "transactions")) {
-        cJSON_AddItemToObject(addr_obj, "transactions", cJSON_CreateArray());
-      }
-
       const char* addr_address = cJSON_GetObjectItem(addr_obj, "address")->valuestring;
       if(strcasecmp(addr_address, (const char*)address) == 0) {
-
+        if(!cJSON_HasObjectItem(addr_obj, "transactions")) {
+          cJSON_AddItemToObject(addr_obj, "transactions", cJSON_CreateArray());
+        }
         cJSON* addr_obj_txs = cJSON_GetObjectItem(addr_obj, "transactions");
         cJSON_AddItemToArray(addr_obj_txs, obj);
         break;
       }
     }
+  }
+
+  j = 0;
+  while(1) {
+    if(j >=  cJSON_GetArraySize(*addresses)) {
+      break;
+    }
+    cJSON* obj = cJSON_GetArrayItem(*addresses, j);
+    if(!cJSON_HasObjectItem(obj, "transactions")) {
+      cJSON_DeleteItemFromArray(*addresses, j);
+      j--;
+    }
+    j++;
   }
 
   find_transactions_req_free(&find_tran);

@@ -31,7 +31,11 @@ int create_incoming_transaction(sqlite3* db, const char* address, uint64_t amoun
 
   rc = sqlite3_step(stmt);
 
-  if (rc != SQLITE_DONE) {
+  if(sqlite3_extended_errcode(db) == SQLITE_CONSTRAINT_UNIQUE) {
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return -1;
+  } else if(rc != SQLITE_DONE) {
     log_wallet_error("%s execution failed: %s", __func__, sqlite3_errmsg(db));
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);

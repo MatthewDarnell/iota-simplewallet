@@ -9,11 +9,13 @@
 #include "../../../iota/api.h"
 #include "../../../config/logger.h"
 #include "../stores/account.h"
+#include "generate_address.h"
 #include "account.h"
 
 int create_account(sqlite3* db, const char* username, char* password) {
   //Generate a secure password to derive encryption key
 
+  log_wallet_info("Creating new account.(%s)", username);
   unsigned char c[128] = { 0 };
   unsigned char s[128] = { 0 };
   unsigned char n[128] = { 0 };
@@ -97,6 +99,12 @@ int verify_login(sqlite3* db, const char* username, char* password) {
     n,
     password
   );
+
+  if(decrypt_result == 0) {
+    generate_address(username, (const char*)p); //Seed is decrypted, let's see if we need to generate any more addresses
+  }
+
+
   sodium_memzero(p, 128);
   sodium_memzero(password, strlen(password));
 

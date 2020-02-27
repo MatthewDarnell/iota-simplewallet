@@ -17,7 +17,8 @@ const char *default_config = "{"
                         "\"host\": \"nodes.thetangle.org\","
                         "\"port\": \"443\""
                         "}"
-                        "]"
+                        "],"
+                        "\"sendTag\": \"IOTA9C9WALLET\""
                         "}";
 const char* default_path = "wallet.conf";
 
