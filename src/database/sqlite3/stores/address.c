@@ -78,7 +78,7 @@ cJSON* get_next_fresh_address(sqlite3* db, const char* username) {
   sqlite3_stmt* stmt;
   int rc;
 
-  char* query = "SELECT * FROM address WHERE is_change=0 AND account=? ORDER BY offset ASC LIMIT 1";
+  char* query = "SELECT address FROM address WHERE is_change=0 AND account=? ORDER BY offset ASC LIMIT 1";
   rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
 
   if (rc != SQLITE_OK) {
@@ -93,13 +93,7 @@ cJSON* get_next_fresh_address(sqlite3* db, const char* username) {
   if (rc == SQLITE_ROW) {
     json =  cJSON_CreateObject();
 
-    cJSON_AddNumberToObject(json, "serial", sqlite3_column_int(stmt, 0 ));
-    cJSON_AddStringToObject(json, "address", (char*)sqlite3_column_text(stmt, 1 ));
-    cJSON_AddStringToObject(json, "balance", (char*)sqlite3_column_text(stmt, 2 ));
-    cJSON_AddNumberToObject(json, "offset", sqlite3_column_int(stmt, 3 ));
-    cJSON_AddStringToObject(json, "account", (char*)sqlite3_column_text(stmt, 4 ));
-    cJSON_AddNumberToObject(json, "is_change", sqlite3_column_int(stmt, 5 ));
-    cJSON_AddStringToObject(json, "created_at", (char*)sqlite3_column_text(stmt, 6));
+    cJSON_AddStringToObject(json, "address", (char*)sqlite3_column_text(stmt, 0 ));
   }
 
   sqlite3_finalize(stmt);

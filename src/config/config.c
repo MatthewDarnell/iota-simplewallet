@@ -6,6 +6,8 @@
 #include <string.h>
 #include <cjson/cJSON.h>
 #include "config.h"
+#include "logger.h"
+
 cJSON *config = NULL;
 const char *default_config = "{"
                         "\"database\": \"iota-simplewallet.db\","
@@ -193,6 +195,7 @@ int set_config(const char  *key, const char *value, int8_t save) {
         cJSON_GetObjectItem(config_obj, key)
       );
   }
+  log_wallet_debug("Setting config %s to %s", key, value);
   cJSON_AddItemToObject(
     cJSON_GetObjectItem(config, "config"),
     key,

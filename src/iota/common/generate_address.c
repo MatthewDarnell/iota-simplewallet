@@ -8,7 +8,7 @@
 #include "../../config/logger.h"
 #include "../api.h"
 
-cJSON* get_new_address(const char* seed, int index, int num_addresses) {
+cJSON* generate_new_addresses(const char* seed, int index, int num_addresses) {
   log_wallet_info("Creating %d addresses, starting with index %d", num_addresses-index, index);
   iota_client_service_t* serv = get_iota_client();
   if(!serv) {

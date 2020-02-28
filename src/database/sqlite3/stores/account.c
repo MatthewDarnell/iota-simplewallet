@@ -40,6 +40,48 @@ int _create_account(sqlite3* db, const char* username, const char* seed_c, const
   return 0;
 }
 
+cJSON* get_all_accounts(sqlite3* db) {
+  sqlite3_stmt* stmt;
+  int rc;
+
+  char* query = "SELECT * FROM account ORDER BY created_at ASC";
+  rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
+
+  if (rc != SQLITE_OK) {
+    log_wallet_error("%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
+    return NULL;
+  }
+
+  rc = sqlite3_step(stmt);
+
+  cJSON *json = cJSON_CreateArray();
+
+  while(rc == SQLITE_ROW) {
+    cJSON *row =  cJSON_CreateObject();
+    cJSON_AddNumberToObject(row, "index", sqlite3_column_int(stmt, 0 ));
+    cJSON_AddStringToObject(row, "username", (char*)sqlite3_column_text(stmt, 4 ));
+
+    uint64_t balance = sqlite3_column_int64(stmt, 5);
+    char str_balance[64] = { 0 };
+
+#ifdef WIN32
+    snprintf(str_balance, 64, "%I64d", balance);
+#else
+    snprintf(str_balance, 64, "%lld", balance);
+#endif
+
+    cJSON_AddStringToObject(row, "balance", str_balance);
+    cJSON_AddNumberToObject(row, "is_synced", sqlite3_column_int(stmt, 6));
+    cJSON_AddStringToObject(row, "created_at", (char*)sqlite3_column_text(stmt, 7));
+    cJSON_AddItemToArray(json, row);
+    rc = sqlite3_step(stmt);
+  }
+
+  sqlite3_finalize(stmt);
+  return json;
+}
+
+
 cJSON* get_account_by_username(sqlite3* db, const char* username) {
   enforce_max_length_null(strlen(username))
   sqlite3_stmt* stmt;

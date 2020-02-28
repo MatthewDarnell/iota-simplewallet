@@ -56,7 +56,7 @@ int generate_address(const char* username, const char* seed) {
 
 
 
-  cJSON* new_addresses = get_new_address(seed, latest_offset, num_addresses_to_create + latest_offset);
+  cJSON* new_addresses = generate_new_addresses(seed, latest_offset, num_addresses_to_create + latest_offset);
   if(!new_addresses) {
     pthread_mutex_unlock(&mutex);
     log_wallet_error("Failed to create addresses!", "")

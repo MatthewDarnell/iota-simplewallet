@@ -54,8 +54,10 @@ file(GLOB iota_simplewallet_SRC
         src/database/sqlite3/db.c
         src/database/sqlite3/tables.c
         src/database/sqlite3/helpers/account.c
+        src/database/sqlite3/helpers/address.c
         src/database/sqlite3/helpers/generate_address.c
         src/database/sqlite3/helpers/store_iota_inputs.c
+        src/database/sqlite3/helpers/transaction.c
         src/database/sqlite3/stores/account.c
         src/database/sqlite3/stores/address.c
         src/database/sqlite3/stores/incoming_transaction.c
@@ -105,8 +107,15 @@ add_dependencies(iota_simplewallet libsodium iota.c-library sqlite json)
 #Should we build the cli app
 if(BUILD_CLI)
     include_directories(${CMAKE_SOURCE_DIR}/deps/include)
+
+    file(GLOB wallet_src
+            src/wallet/cli/cli.c
+            src/wallet/main.c
+            )
+
+
     add_executable(wallet
-            src/main.c
+            ${wallet_src}
             )
     target_link_libraries(wallet iota_simplewallet wldap32)
     #target_link_libraries(wallet iota_simplewallet cclient logger libsodium.a common http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread wldap32 ws2_32 wsock32 crypt32)

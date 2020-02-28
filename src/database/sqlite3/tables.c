@@ -21,11 +21,36 @@ int create_tables(sqlite3* db) {
     "CREATE TABLE IF NOT EXISTS input_to_output(serial integer primary key autoincrement, input text references incoming_transaction(hash), output text references outgoing_transaction(serial), unique(input, output))"
   };
 
+  const int num_misc = 1;
+  const char* misc[] = {
+    "CREATE TRIGGER IF NOT EXISTS balance_updater"
+    " AFTER UPDATE ON address"
+    " BEGIN"
+    "  UPDATE account"
+    "   SET balance=("
+    "    SELECT SUM("
+    "     CAST(balance as INTEGER))"
+    "      FROM address"
+    "      WHERE username=account"
+    "   );"
+    "END;"
+  };
+
   for(i = 0; i < num_tables; i++) {
     const char* query = tables[i];
     rc = sqlite3_exec(db, query, NULL, 0, &zErrMsg);
     if( rc != SQLITE_OK ){
       log_wallet_error("SQL error on query %d: %sBailing out!", i, zErrMsg);
+      sqlite3_free(zErrMsg);
+      exit(1);
+    }
+  }
+
+  for(i = 0; i < num_misc; i++) {
+    const char* query = misc[i];
+    rc = sqlite3_exec(db, query, NULL, 0, &zErrMsg);
+    if( rc != SQLITE_OK ){
+      log_wallet_error("SQL error on query %d: %s - (%s)\nBailing out!", i, zErrMsg, query);
       sqlite3_free(zErrMsg);
       exit(1);
     }

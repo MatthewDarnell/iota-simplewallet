@@ -13,7 +13,7 @@ iota_client_service_t* get_iota_client();
 void free_iota_client(iota_client_service_t** serv);
 
 
-cJSON* get_new_address(const char* seed, int index, int num_addresses);
+cJSON* generate_new_addresses(const char* seed, int index, int num_addresses);
 void generate_seed(char* buffer, uint32_t buf_max_len);
 void get_address_balance(cJSON** addresses, uint64_t min_iota);
 void get_latest_inclusion(cJSON** addresses_with_transactions, int include_unconfirmed);

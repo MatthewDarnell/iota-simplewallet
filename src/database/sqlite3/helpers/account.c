@@ -12,7 +12,7 @@
 #include "generate_address.h"
 #include "account.h"
 
-int create_account(sqlite3* db, const char* username, char* password) {
+int __create_account(sqlite3* db, const char* username, char* password, const char* imported_seed) {
   //Generate a secure password to derive encryption key
 
   log_wallet_info("Creating new account.(%s)", username);
@@ -25,7 +25,12 @@ int create_account(sqlite3* db, const char* username, char* password) {
   size_t n_len = 0;
 
   char seed[128] = { 0 };
-  generate_seed(seed, 128);
+  if(imported_seed) {
+    memcpy(seed, imported_seed, 81);
+    log_wallet_info("importing seed %s\n", imported_seed);
+  } else {
+    generate_seed(seed, 128);
+  }
 
   int encrypt_result = encrypt(
       c,
@@ -64,6 +69,17 @@ int create_account(sqlite3* db, const char* username, char* password) {
     b64_nonce
     );
 }
+
+char* get_accounts(sqlite3* db) {
+  cJSON* json = get_all_accounts(db);
+  if(!json) {
+    return NULL;
+  } else {
+    char *ret_val = cJSON_Print(json);
+    cJSON_Delete(json);
+    return ret_val;  }
+}
+
 int verify_login(sqlite3* db, const char* username, char* password) {
   cJSON* user = get_account_by_username(db, username);
   if(!user) {
@@ -103,7 +119,6 @@ int verify_login(sqlite3* db, const char* username, char* password) {
   if(decrypt_result == 0) {
     generate_address(username, (const char*)p); //Seed is decrypted, let's see if we need to generate any more addresses
   }
-
 
   sodium_memzero(p, 128);
   sodium_memzero(password, strlen(password));

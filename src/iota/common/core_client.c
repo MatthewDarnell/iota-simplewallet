@@ -4,6 +4,7 @@
 
 #include <cjson/cJSON.h>
 #include <cclient/api/core/core_api.h>
+#include "../../config/logger.h"
 #include "../../config/config.h"
 #include "../api.h"
 
@@ -18,7 +19,7 @@ void init_iota_client() {
   free(str_nodes);
 
   if(cJSON_GetArraySize(nodes) < 1) {
-    fprintf(stderr, "Unable to get nodes\n");
+    log_wallet_error("Unable to get nodes\n", "");
     cJSON_Delete(nodes);
     return;
   }
