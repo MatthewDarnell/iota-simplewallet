@@ -5,6 +5,5 @@
 #ifndef IOTA_SIMPLEWALLET_STORE_IOTA_INPUTS_H
 #define IOTA_SIMPLEWALLET_STORE_IOTA_INPUTS_H
 #include <sqlite3.h>
-#include <cjson/cJSON.h>
-int store_inputs(sqlite3* db, cJSON* inputs);
+int store_inputs(sqlite3* db, char* str_inputs);
 #endif //IOTA_SIMPLEWALLET_STORE_IOTA_INPUTS_H

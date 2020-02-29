@@ -4,5 +4,5 @@
 
 #ifndef IOTA_SIMPLEWALLET_ADDRESS_H
 #define IOTA_SIMPLEWALLET_ADDRESS_H
-char* get_new_address(sqlite3* db, char* username);
+char* get_new_address(char* username);
 #endif //IOTA_SIMPLEWALLET_ADDRESS_H

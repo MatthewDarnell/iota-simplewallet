@@ -10,10 +10,12 @@
 #include "../../../config/logger.h"
 #include "../stores/account.h"
 #include "generate_address.h"
+#include "../db.h"
 #include "account.h"
 
-int __create_account(sqlite3* db, const char* username, char* password, const char* imported_seed) {
+int __create_account(const char* username, char* password, const char* imported_seed) {
   //Generate a secure password to derive encryption key
+  sqlite3* db = get_db_handle();
 
   log_wallet_info("Creating new account.(%s)", username);
   unsigned char c[128] = { 0 };
@@ -27,7 +29,6 @@ int __create_account(sqlite3* db, const char* username, char* password, const ch
   char seed[128] = { 0 };
   if(imported_seed) {
     memcpy(seed, imported_seed, 81);
-    log_wallet_info("importing seed %s\n", imported_seed);
   } else {
     generate_seed(seed, 128);
   }
@@ -61,17 +62,21 @@ int __create_account(sqlite3* db, const char* username, char* password, const ch
   sodium_bin2base64(b64_salt, 256, s, s_len, sodium_base64_VARIANT_ORIGINAL_NO_PADDING);
   sodium_bin2base64(b64_nonce, 256, n, n_len, sodium_base64_VARIANT_ORIGINAL_NO_PADDING);
 
-  return _create_account(
+  int ret_val = _create_account(
     db,
     username,
     b64_cipher,
     b64_salt,
     b64_nonce
     );
+  close_db_handle(db);
+  return ret_val;
 }
 
-char* get_accounts(sqlite3* db) {
+char* get_accounts() {
+  sqlite3* db = get_db_handle();
   cJSON* json = get_all_accounts(db);
+  close_db_handle(db);
   if(!json) {
     return NULL;
   } else {
@@ -80,8 +85,10 @@ char* get_accounts(sqlite3* db) {
     return ret_val;  }
 }
 
-int verify_login(sqlite3* db, const char* username, char* password) {
+int verify_login(const char* username, char* password) {
+  sqlite3* db = get_db_handle();
   cJSON* user = get_account_by_username(db, username);
+  close_db_handle(db);
   if(!user) {
     log_wallet_error("User %s does not exist", username);
     return -1;

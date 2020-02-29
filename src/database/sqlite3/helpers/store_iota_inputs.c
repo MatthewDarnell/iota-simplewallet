@@ -8,12 +8,17 @@
 #include "../stores/incoming_transaction.h"
 #include "store_iota_inputs.h"
 
-int store_inputs(sqlite3* db, cJSON* inputs) {
+int store_inputs(sqlite3* db, char* str_inputs) {
+  if(!str_inputs) {
+    return -1;
+  }
+  cJSON* inputs = cJSON_Parse(str_inputs);
   if(!inputs) {
     return -1;
   }
   size_t num_inputs = cJSON_GetArraySize(inputs);
   if(num_inputs < 1) {
+    cJSON_Delete(inputs);
     return -1;
   }
   cJSON* input = NULL;
@@ -63,5 +68,6 @@ int store_inputs(sqlite3* db, cJSON* inputs) {
 
     }
   }
+  cJSON_Delete(inputs);
   return 0;
 }

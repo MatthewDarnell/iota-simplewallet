@@ -4,10 +4,13 @@
 
 #include <cjson/cJSON.h>
 #include "../stores/incoming_transaction.h"
+#include "../db.h"
 #include "transaction.h"
 
-char* get_incoming_transaction_by_hash(sqlite3* db, char* hash) {
+char* get_incoming_transaction_by_hash(char* hash) {
+  sqlite3* db = get_db_handle();
   cJSON* json = get_incoming_transaction_hash(db, hash);
+  close_db_handle(db);
   if(!json) {
     return NULL;
   }
@@ -16,8 +19,10 @@ char* get_incoming_transaction_by_hash(sqlite3* db, char* hash) {
   return ret_val;
 }
 
-char* get_incoming_transactions(sqlite3* db, char* username, int offset, int num) {
+char* get_incoming_transactions(char* username, int offset, int num) {
+  sqlite3* db = get_db_handle();
   cJSON* json = get_all_incoming_transactions(db, username, offset, num);
+  close_db_handle(db);
   if(!json) {
     return NULL;
   }

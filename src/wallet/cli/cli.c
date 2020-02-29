@@ -2,14 +2,11 @@
 // Created by matth on 2/28/2020.
 //
 
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../../config/config.h"
-#include "../../config/logger.h"
-#include "../../database/sqlite3/helpers/account.h"
-#include "../../database/sqlite3/helpers/address.h"
-#include "../../database/sqlite3/helpers/transaction.h"
+#include "../../iota-simplewallet.h"
 #include "cli.h"
 
 const int num_cli_commands = 5;
@@ -56,12 +53,13 @@ const char* commands[] = {
 };
 
 
-int parse_command(sqlite3* db, char* buf, int* quit_flag) {
+int parse_command(char* buf, int* quit_flag) {
   char* username, *password, *saveptr;
   char* command = strtok_r(buf, " ", &saveptr);
   if(strcasecmp(command, "quit") == 0) {
     log_wallet_info("Got quit command, shutting down.", "");
-    *quit_flag = 1;
+    shutdown_threads();
+    pthread_exit(NULL);
   } else if(strcasecmp(command, "help") == 0) {
     const char *h = "\n----------\n"
                     "IOTA Wallet CLI Usage: \n"
@@ -82,14 +80,14 @@ int parse_command(sqlite3* db, char* buf, int* quit_flag) {
     log_wallet_info("%s", h);
     printf("%s", h);
   } else if(strcasecmp(command, "get_all_accounts") == 0) {
-    char* accounts = get_accounts(db);
+    char* accounts = get_accounts();
     printf("%s\n", accounts);
     log_wallet_info("%s\n", accounts);
     free(accounts);
   }
   else if(strcasecmp(command, "get_new_address") == 0) {
     username = strtok_r(NULL, " ", &saveptr);
-    char* address = get_new_address(db, username);
+    char* address = get_new_address(username);
     printf("%s\n", address);
     log_wallet_info("%s\n", address);
     free(address);
@@ -98,14 +96,14 @@ int parse_command(sqlite3* db, char* buf, int* quit_flag) {
     username = strtok_r(NULL, " ", &saveptr);
     int offset = atoi(strtok_r(NULL, " ", &saveptr));
     int limit = atoi(strtok_r(NULL, " ", &saveptr));
-    char* txs = get_incoming_transactions(db, username, offset, limit);
+    char* txs = get_incoming_transactions(username, offset, limit);
     printf("%s\n", txs);
     log_wallet_info("%s\n", txs);
     free(txs);
   }
   else if(strcasecmp(command, "get_transaction") == 0) {
     char* hash = strtok_r(NULL, " ", &saveptr);
-    char* tx = get_incoming_transaction_by_hash(db, hash);
+    char* tx = get_incoming_transaction_by_hash(hash);
     printf("%s\n", tx);
     log_wallet_info("%s\n", tx);
     free(tx);
@@ -118,7 +116,7 @@ int parse_command(sqlite3* db, char* buf, int* quit_flag) {
       log_wallet_error("Invalid usage:  create_account <username> <password>\n", "");
       return -1;
     }
-    if(0 == create_account(db, username, password)) {
+    if(0 == create_account(username, password)) {
       printf("OK\n");
       log_wallet_info("Created User %s\n", username);
     } else {
@@ -134,7 +132,7 @@ int parse_command(sqlite3* db, char* buf, int* quit_flag) {
       log_wallet_error("Invalid usage:  import_account <username> <password> <seed>\n", "");
       return -1;
     }
-    if(0 == import_account(db, username, password, seed)) {
+    if(0 == import_account(username, password, seed)) {
       printf("OK\n");
       log_wallet_info("Created User %s\n", username);
     } else {
@@ -149,7 +147,7 @@ int parse_command(sqlite3* db, char* buf, int* quit_flag) {
       log_wallet_error("Invalid usage:  login <username> <password>\n", "");
       return -1;
     }
-    if(0 == verify_login(db, username, password)) {
+    if(0 == verify_login(username, password)) {
       printf("OK\n");
       log_wallet_info("Successfully Logged In User %s\n", username);
     } else {

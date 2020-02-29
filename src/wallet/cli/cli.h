@@ -6,5 +6,5 @@
 #define IOTA_SIMPLEWALLET_CLI_H
 #include <sqlite3.h>
 int parse_cli(int argc, char *argv[]);
-int parse_command(sqlite3* db, char* buf, int* quit_flag);
+int parse_command(char* buf, int* quit_flag);
 #endif //IOTA_SIMPLEWALLET_CLI_H
