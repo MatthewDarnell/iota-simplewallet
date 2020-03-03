@@ -12,13 +12,10 @@ void init_logger();
 int init_db();
 int init_crypto();
 void init_iota();
-sqlite3* get_db_handle();
 
 
-void close_db_handle(sqlite3* handle);
 void shutdown_iota();
 void shutdown_config();
-
 
 /*
  *

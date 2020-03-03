@@ -43,6 +43,7 @@ file(GLOB iota_c_src
         src/iota/iota.c/get_transaction_inputs_to_address.c
         src/iota/iota.c/init.c
         src/iota/iota.c/send_transaction.c
+        src/iota/iota.c/send_trytes.c
         )
 
 file(GLOB iota_simplewallet_SRC
@@ -67,6 +68,7 @@ file(GLOB iota_simplewallet_SRC
         src/iota/common/generate_seed.c
         src/iota/api.h
         src/thread/deposit_detector.c
+        src/thread/send_transaction.c
         src/thread/helper/start.c
         deps/sqlite3.c
         deps/cJSON.c

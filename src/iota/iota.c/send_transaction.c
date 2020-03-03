@@ -104,8 +104,6 @@ char* send_transaction(char* seed, const char* dest_address, const char* change_
 
   retcode_t ret_code = RC_OK;
 
-  uint32_t depth = 3;
-  uint8_t mwm = 14;
   uint8_t security = 2;
 
   bundle_transactions_t *bundle = NULL;

@@ -140,7 +140,7 @@ int mark_outgoing_transaction_sent(sqlite3* db, int serial, const char* bundle, 
   sqlite3_stmt* stmt;
   int rc;
 
-  char* query = "UPDATE outgoing_transaction SET sent=1 WHERE serial=? AND bundle=? AND hash=?";
+  char* query = "UPDATE outgoing_transaction SET sent=1, bundle=?, hash=?  WHERE serial=?";
   rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
 
   if (rc != SQLITE_OK) {
@@ -148,9 +148,10 @@ int mark_outgoing_transaction_sent(sqlite3* db, int serial, const char* bundle, 
     return -1;
   }
 
-  sqlite3_bind_int(stmt, 1, serial);
-  sqlite3_bind_text(stmt, 2, bundle, -1, NULL);
-  sqlite3_bind_text(stmt, 3, hash, -1, NULL);
+  sqlite3_bind_text(stmt, 1, bundle, -1, NULL);
+  sqlite3_bind_text(stmt, 2, hash, -1, NULL);
+  sqlite3_bind_int(stmt, 3, serial);
+
 
   rc = sqlite3_step(stmt);
 
@@ -159,6 +160,8 @@ int mark_outgoing_transaction_sent(sqlite3* db, int serial, const char* bundle, 
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
     return -1;
+  } else {
+    log_wallet_debug("Marked Outgoing Transaction (%d) as sent. (hash=<%s>) (bundle=<%s>)\n", hash, bundle);
   }
   sqlite3_finalize(stmt);
   return 0;

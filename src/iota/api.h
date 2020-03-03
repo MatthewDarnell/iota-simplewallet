@@ -20,6 +20,7 @@ void get_latest_inclusion(cJSON** addresses_with_transactions, int include_uncon
 void get_transaction_inputs_to_address(cJSON** addresses);
 
 char* send_transaction(char* seed, const char* dest_address, const char* change_address, uint64_t value, cJSON* inputs);
+int send_trytes(char* out_bundle, int out_bundle_max_len, char* out_hash, int out_hash_max_len, uint64_t serial, const char* trytes);
 
 void init_iota();
 void shutdown_iota();
