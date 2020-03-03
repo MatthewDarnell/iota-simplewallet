@@ -30,6 +30,7 @@ void start_threads();
 void join_threads();
 void shutdown_threads();
 
+
 /*
  *
  *   Logging functions
@@ -83,7 +84,9 @@ int __create_account(const char* username, char* password, const char* imported_
 #define create_account(username, password) __create_account(username, password, NULL)
 #define import_account(username, password, seed) __create_account(username, password, seed)
 char* get_accounts();
-int verify_login(const char* username, char* password);
+
+//@zero_password: if > 0, This will mem-zero the decrypted password and seed after verifying the password is correct
+int verify_login(const char* username, char* password, int zero_password);
 
 
 
@@ -103,6 +106,9 @@ char* get_new_address(char* username);
 */
 char* get_incoming_transaction_by_hash(char* hash);
 char* get_incoming_transactions(char* username, int offset, int num);
+
+//Returns 0 on success, < 1 if failure
+int create_transaction(char* username, char* password, char* dest_address, uint64_t value);
 
 
 

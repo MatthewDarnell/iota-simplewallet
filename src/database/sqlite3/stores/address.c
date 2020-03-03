@@ -3,6 +3,7 @@
 //
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "../../../config/logger.h"
 #include "address.h"
@@ -66,7 +67,8 @@ cJSON* get_address_by_address(sqlite3* db, const char* address) {
     cJSON_AddNumberToObject(json, "offset", sqlite3_column_int(stmt, 3 ));
     cJSON_AddStringToObject(json, "account", (char*)sqlite3_column_text(stmt, 4 ));
     cJSON_AddNumberToObject(json, "is_change", sqlite3_column_int(stmt, 5 ));
-    cJSON_AddStringToObject(json, "created_at", (char*)sqlite3_column_text(stmt, 6));
+    cJSON_AddNumberToObject(json, "spent_from", sqlite3_column_int(stmt, 6 ));
+    cJSON_AddStringToObject(json, "created_at", (char*)sqlite3_column_text(stmt, 7));
   }
 
   sqlite3_finalize(stmt);
@@ -100,14 +102,44 @@ cJSON* get_next_fresh_address(sqlite3* db, const char* username) {
   return json;
 }
 
+cJSON* get_next_change_address(sqlite3* db, const char* username) {
+  enforce_max_length_null(strlen(username))
+  sqlite3_stmt* stmt;
+  int rc;
+
+  char* query = "SELECT address FROM address"
+                " WHERE is_change=1 AND account=?"
+                " AND address NOT IN"
+                " (SELECT change_address AS address FROM outgoing_transaction)"
+                " ORDER BY offset ASC LIMIT 1";
+  rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
+
+  if (rc != SQLITE_OK) {
+    log_wallet_error("%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
+    return NULL;
+  }
+
+  sqlite3_bind_text(stmt, 1, username, -1, NULL);
+  rc = sqlite3_step(stmt);
+
+  cJSON *json = NULL;
+  if (rc == SQLITE_ROW) {
+    json =  cJSON_CreateObject();
+
+    cJSON_AddStringToObject(json, "address", (char*)sqlite3_column_text(stmt, 0 ));
+  }
+
+  sqlite3_finalize(stmt);
+  return json;
+}
+
 cJSON* get_deposit_addresses(sqlite3* db) {
   sqlite3_stmt* stmt;
   int rc;
 
   char* query = "SELECT *"
-                " FROM address a"
-                " WHERE a.address NOT IN"
-                " (SELECT input AS address FROM input_to_output)"
+                " FROM address"
+                " WHERE is_change=0 AND spent_from=0"
   ;
   rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
 
@@ -128,10 +160,63 @@ cJSON* get_deposit_addresses(sqlite3* db) {
     cJSON_AddNumberToObject(row, "offset", sqlite3_column_int(stmt, 3 ));
     cJSON_AddStringToObject(row, "account", (char*)sqlite3_column_text(stmt, 4 ));
     cJSON_AddNumberToObject(row, "is_change", sqlite3_column_int(stmt, 5 ));
-    cJSON_AddStringToObject(row, "created_at", (char*)sqlite3_column_text(stmt, 6));
+    cJSON_AddNumberToObject(json, "spent_from", sqlite3_column_int(stmt, 6 ));
+    cJSON_AddStringToObject(row, "created_at", (char*)sqlite3_column_text(stmt, 7));
     cJSON_AddItemToArray(json, row);
     rc = sqlite3_step(stmt);
   }
+
+  sqlite3_finalize(stmt);
+  return json;
+}
+
+cJSON* get_addresses_for_spending(sqlite3* db, const char* username) {
+  sqlite3_stmt* stmt;
+  int rc;
+
+  char* query = "SELECT address, balance, offset"
+                " FROM address"
+                " WHERE CAST(balance AS INTEGER) > 0"
+                " AND account=?"
+                " ORDER BY CAST(balance AS INTEGER) ASC"
+  ;
+  rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
+
+  if (rc != SQLITE_OK) {
+    log_wallet_error("%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
+    return NULL;
+  }
+
+  sqlite3_bind_text(stmt, 1, username, -1, NULL);
+
+  rc = sqlite3_step(stmt);
+
+  cJSON *json = cJSON_CreateObject();
+  cJSON* inputs = cJSON_CreateArray();
+
+
+  uint64_t total_balance = 0;
+
+  while(rc == SQLITE_ROW) {
+    cJSON *row =  cJSON_CreateObject();
+    cJSON_AddStringToObject(row, "address", (char*)sqlite3_column_text(stmt, 0 ));
+    const char* balance = (const char*)sqlite3_column_text(stmt, 1);
+    cJSON_AddStringToObject(row, "balance", balance);
+    cJSON_AddNumberToObject(row, "offset", sqlite3_column_int(stmt, 2 ));
+    total_balance += strtoull(balance, NULL, 10);
+    cJSON_AddItemToArray(inputs, row);
+    rc = sqlite3_step(stmt);
+  }
+
+  char str_balance[64] = { 0 };
+
+#ifdef WIN32
+  snprintf(str_balance, 63, "%I64u", total_balance);
+#else
+  snprintf(str_balance, 63, "%llu", total_balance);
+#endif
+  cJSON_AddStringToObject(json, "total_balance", str_balance);
+  cJSON_AddItemToObject(json, "inputs", inputs);
 
   sqlite3_finalize(stmt);
   return json;
@@ -168,7 +253,7 @@ int32_t set_address_balance(sqlite3* db, const char* address, const char* balanc
   return 0;
 }
 
-int32_t get_num_fresh_addresses(sqlite3* db, const char* username) {
+int32_t get_num_change_addresses(sqlite3* db, const char* username) {
   enforce_max_length(strlen(username))
   sqlite3_stmt* stmt;
   int rc;
@@ -176,9 +261,40 @@ int32_t get_num_fresh_addresses(sqlite3* db, const char* username) {
   char* query = "SELECT COUNT(*) as num "
                 " FROM address a"
                 " WHERE account=? AND"
-                " is_change=0 AND"
+                " is_change=1 AND"
+                " AND spent_from=0 AND"
                 " a.address NOT IN "
-                " (SELECT input AS address FROM input_to_output)"
+                " (SELECT change_address AS address FROM outgoing_transaction)"
+  ;
+  rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
+
+  if (rc != SQLITE_OK) {
+    log_wallet_error("%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
+    return -1;
+  }
+
+  sqlite3_bind_text(stmt, 1, username, -1, NULL);
+  rc = sqlite3_step(stmt);
+
+  int num = -1;
+  if (rc == SQLITE_ROW) {
+    num = sqlite3_column_int(stmt, 0);
+  }
+
+  sqlite3_finalize(stmt);
+  return num;
+}
+
+int32_t get_num_fresh_addresses(sqlite3* db, const char* username) {
+  enforce_max_length(strlen(username))
+  sqlite3_stmt* stmt;
+  int rc;
+
+  char* query = "SELECT COUNT(*) as num "
+                " FROM address "
+                " WHERE account=? AND"
+                " is_change=0 AND"
+                "  spent_from=0"
                 ;
   rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
 
@@ -227,6 +343,33 @@ int32_t get_latest_offset(sqlite3* db, const char* username) {
   return offset;
 }
 
+int mark_address_spent_from(sqlite3* db, const char* address) {
+  enforce_max_length(strlen(address))
+  sqlite3_stmt* stmt;
+  int rc;
+
+  char* query = "UPDATE address SET spent_from=1 WHERE address=?";
+  rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
+
+  if (rc != SQLITE_OK) {
+    log_wallet_error("%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
+    return -1;
+  }
+
+  sqlite3_bind_text(stmt, 1, address, -1, NULL);
+  rc = sqlite3_step(stmt);
+
+  if (rc != SQLITE_DONE) {
+    log_wallet_error("%s execution failed: %s", __func__, sqlite3_errmsg(db));
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return -1;
+  } else {
+    log_wallet_debug("Marking address %s as a spent from", address);
+  }
+  sqlite3_finalize(stmt);
+  return 0;
+}
 
 int mark_address_is_change_address(sqlite3* db, const char* address) {
   enforce_max_length(strlen(address))
@@ -249,6 +392,8 @@ int mark_address_is_change_address(sqlite3* db, const char* address) {
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
     return -1;
+  } else {
+    log_wallet_debug("Marking address %s as a change address", address);
   }
   sqlite3_finalize(stmt);
   return 0;

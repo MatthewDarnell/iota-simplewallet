@@ -85,7 +85,7 @@ char* get_accounts() {
     return ret_val;  }
 }
 
-int verify_login(const char* username, char* password) {
+int verify_login(const char* username, char* password, int zero_password) {
   sqlite3* db = get_db_handle();
   cJSON* user = get_account_by_username(db, username);
   close_db_handle(db);
@@ -126,9 +126,13 @@ int verify_login(const char* username, char* password) {
   if(decrypt_result == 0) {
     generate_address(username, (const char*)p); //Seed is decrypted, let's see if we need to generate any more addresses
   }
-
   sodium_memzero(p, 128);
-  sodium_memzero(password, strlen(password));
+
+  if(zero_password != 0) {
+    sodium_memzero(password, strlen(password));
+  }
+
+
 
 
   if(decrypt_result < 0 ) {
@@ -136,5 +140,62 @@ int verify_login(const char* username, char* password) {
     return -1;
   }
   log_wallet_info("Logged in successfully", "")
+  return 0;
+}
+
+int decrypt_seed(char* out, size_t out_max_len, const char* username, char* password) {
+  log_wallet_info("decrypting: %s %s", username, password);
+  sqlite3* db = get_db_handle();
+  cJSON* user = get_account_by_username(db, username);
+  close_db_handle(db);
+  if(!user) {
+    log_wallet_error("User %s does not exist", username);
+    return -1;
+  }
+
+  char* b64_cipher = cJSON_GetObjectItem(user, "seed_ciphertext")->valuestring;
+  char* b64_nonce = cJSON_GetObjectItem(user, "nonce")->valuestring;
+  char* b64_salt = cJSON_GetObjectItem(user, "salt")->valuestring;
+
+  unsigned char c[128] = { 0 };
+  unsigned char s[128] = { 0 };
+  unsigned char n[128] = { 0 };
+
+  size_t c_len = 0,
+    s_len = 0,
+    n_len = 0;
+
+  sodium_base642bin(c, 128, b64_cipher, strlen(b64_cipher), NULL, &c_len, NULL, sodium_base64_VARIANT_ORIGINAL_NO_PADDING);
+  sodium_base642bin(n, 128, b64_nonce, strlen(b64_nonce), NULL, &n_len, NULL, sodium_base64_VARIANT_ORIGINAL_NO_PADDING);
+  sodium_base642bin(s, 128, b64_salt, strlen(b64_salt), NULL, &s_len, NULL, sodium_base64_VARIANT_ORIGINAL_NO_PADDING);
+  cJSON_Delete(user);
+
+  unsigned char p[256] = { 0 };
+
+  int decrypt_result = decrypt(
+    p,
+    256,
+    c,
+    c_len,
+    s,
+    n,
+    password
+  );
+
+
+  if(decrypt_result < 0 ) {
+    log_wallet_error("Invalid password, unable to decrypt seed", "")
+    return -1;
+  }
+
+  memcpy(
+    out,
+    p,
+    strlen((char*)p) > out_max_len ? out_max_len : strlen((char*)p)
+    );
+
+  sodium_memzero(p, 128);
+  sodium_memzero(password, strlen(password));
+
   return 0;
 }

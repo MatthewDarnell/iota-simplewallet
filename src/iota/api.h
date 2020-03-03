@@ -18,6 +18,9 @@ void generate_seed(char* buffer, uint32_t buf_max_len);
 void get_address_balance(cJSON** addresses, uint64_t min_iota);
 void get_latest_inclusion(cJSON** addresses_with_transactions, int include_unconfirmed);
 void get_transaction_inputs_to_address(cJSON** addresses);
+
+char* send_transaction(char* seed, const char* dest_address, const char* change_address, uint64_t value, cJSON* inputs);
+
 void init_iota();
 void shutdown_iota();
 #endif //IOTA_SIMPLEWALLET_API_H

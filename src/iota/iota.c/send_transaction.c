@@ -54,31 +54,30 @@ static retcode_t hash8019_array_to_json_array(hash8019_array_p array, cJSON* con
   }
  ]
 */
-int send_transaction(cJSON** addresses, char* seed, const char* dest_address, const char* change_address, uint64_t value, cJSON* inputs) {
+char* send_transaction(char* seed, const char* dest_address, const char* change_address, uint64_t value, cJSON* inputs) {
   //validate inputs
 
   if(!cJSON_IsArray(inputs)) {
     log_wallet_error("Invalid input (not array type!) %s", cJSON_Print(inputs));
-    return -1;
+    return NULL;
   }
 
   int num_inputs = cJSON_GetArraySize(inputs);
   if(num_inputs < 1) {
     log_wallet_error("Empty input array %s", cJSON_Print(inputs));
-    return -1;
+    return NULL;
   }
   cJSON* input_obj = NULL;
 
   uint64_t sum_inputs = 0;  //Don't want to include more than we are sending
-
-  cJSON_ArrayForEach(inputs, input_obj) {
+  cJSON_ArrayForEach(input_obj, inputs) {
     if(
       !cJSON_HasObjectItem(input_obj, "address") ||
       !cJSON_HasObjectItem(input_obj, "balance") ||
       !cJSON_HasObjectItem(input_obj, "offset")
     ) {
       log_wallet_error("Invalid input array %s", cJSON_Print(inputs));
-      return -1;
+      return NULL;
     } else {
       const char* balance = cJSON_GetObjectItem(input_obj, "balance")->valuestring;
       uint64_t d_balance = strtoull(balance, NULL, 10);
@@ -94,7 +93,7 @@ int send_transaction(cJSON** addresses, char* seed, const char* dest_address, co
 #else
     log_wallet_error("Not enough funds! Sending.(%llu i), only have (%llu i)", value, sum_inputs);
 #endif
-    return -1;
+    return NULL;
   }
 
   sum_inputs = 0;
@@ -139,7 +138,7 @@ int send_transaction(cJSON** addresses, char* seed, const char* dest_address, co
   inputs_t input_list = {};  // input list
 
   //for loop over inputs:
-  cJSON_ArrayForEach(inputs, input_obj) {
+  cJSON_ArrayForEach(input_obj, inputs) {
     const char* address = cJSON_GetObjectItem(input_obj, "address")->valuestring;
     const char* balance = cJSON_GetObjectItem(input_obj, "balance")->valuestring;
     int offset = cJSON_GetObjectItem(input_obj, "offset")->valueint;
@@ -184,7 +183,7 @@ int send_transaction(cJSON** addresses, char* seed, const char* dest_address, co
   ret_code = iota_client_prepare_transfers(serv, trit_seed, security, transfers, trit_change_addr, &input_list, true, 0, bundle);
   sodium_memzero(trit_seed, NUM_FLEX_TRITS_ADDRESS);
 
-
+bundle_dump(bundle);
   hash8019_array_p raw_tx = hash8019_array_new();
   flex_trit_t serialized_value[FLEX_TRIT_SIZE_8019];
   iota_transaction_t* tx = NULL;
@@ -196,7 +195,7 @@ int send_transaction(cJSON** addresses, char* seed, const char* dest_address, co
     transfer_array_free(transfers);
     iota_client_core_destroy(&serv);
     inputs_clear(&input_list);
-    return -1;
+    return NULL;
   }
   BUNDLE_FOREACH(bundle, tx) {
     // tx trytes must be in order, from last to 0.
@@ -206,8 +205,9 @@ int send_transaction(cJSON** addresses, char* seed, const char* dest_address, co
 
   cJSON* tx_array = cJSON_CreateObject();
   hash8019_array_to_json_array(raw_tx, tx_array, "trytes");
-
-  printf(" prepare transfers, tx returned: \n%s\n", cJSON_Print(tx_array));
+  char* ret_val = cJSON_PrintUnformatted(tx_array);
+  cJSON_Delete(tx_array);
+  //printf(" prepare transfers, tx returned: \n%s\n", cJSON_Print(tx_array));
 
   //TODO: store tx_array as trytes in db in this entry's <outgoing_transaction>
 
@@ -235,5 +235,5 @@ int send_transaction(cJSON** addresses, char* seed, const char* dest_address, co
   transfer_message_free(&tf);
   transfer_array_free(transfers);
   iota_client_core_destroy(&serv);
-  return 0;
+  return ret_val;
 }

@@ -26,7 +26,6 @@ void thread_deposit_detector(void* args) {
   int* quit_flag = (int*)args;
 
   sqlite3* db = get_db_handle();
-  int i = 0;
 
   while(1) {
     if(*quit_flag != 0) {
@@ -60,6 +59,13 @@ void thread_deposit_detector(void* args) {
 
     get_transaction_inputs_to_address(&address_array);
 
+    int input_len = cJSON_GetArraySize(address_array);
+
+    if(input_len < 1) { //No transactions found
+      continue;
+    }
+
+
     cJSON* obj, *transaction;
     cJSON_ArrayForEach(obj, address_array) {
       cJSON* transaction_array = cJSON_GetObjectItem(obj, "transactions");
@@ -76,7 +82,6 @@ void thread_deposit_detector(void* args) {
       }
     }
 
-
     get_latest_inclusion(&address_array, false);
     char* array_str = cJSON_PrintUnformatted(address_array);
     cJSON_Delete(address_array);
@@ -85,7 +90,6 @@ void thread_deposit_detector(void* args) {
       log_wallet_error("Deposit Detector failed to store tx inputs (%d)", ret_val);
     }
     free(array_str);
-    i++;
   }
   log_wallet_info("Shutting Down Deposit Detector Thread", "");
   close_db_handle(db);

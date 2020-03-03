@@ -10,7 +10,6 @@
 #define enforce_max_length(len) if(len > 1024) return -1;
 #define enforce_max_length_null(len) if(len > 1024) return NULL;
 int create_outgoing_transaction(sqlite3* db, const char* dest_address, const char* change_address, uint64_t amount, const char* trytes) {
-  enforce_max_length(strlen(dest_address) + strlen(change_address) + 30 + strlen(trytes))
   sqlite3_stmt* stmt;
   int rc;
 

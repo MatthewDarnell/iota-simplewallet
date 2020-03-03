@@ -61,7 +61,6 @@ file(GLOB iota_simplewallet_SRC
         src/database/sqlite3/stores/account.c
         src/database/sqlite3/stores/address.c
         src/database/sqlite3/stores/incoming_transaction.c
-        src/database/sqlite3/stores/input_to_output.c
         src/database/sqlite3/stores/outgoing_transaction.c
         src/iota/common/core_client.c
         src/iota/common/generate_address.c

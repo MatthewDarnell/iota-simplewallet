@@ -71,6 +71,7 @@ int parse_command(char* buf, int* quit_flag) {
                     "\tAddresses:\n"
                     "\t\tget_new_address <username>\n"
                     "\tTransactions:\n"
+                    "\t\tsend_transaction <username> <password> <destination_address> <amount>\n"
                     "\t\tget_all_transactions <username> <offset> <limit>\n"
                     "\t\tget_transaction <hash>\n"
                     "\tMisc:\n"
@@ -91,8 +92,7 @@ int parse_command(char* buf, int* quit_flag) {
     printf("%s\n", address);
     log_wallet_info("%s\n", address);
     free(address);
-  }
-  else if(strcasecmp(command, "get_all_transactions") == 0) {
+  } else if(strcasecmp(command, "get_all_transactions") == 0) {
     username = strtok_r(NULL, " ", &saveptr);
     int offset = atoi(strtok_r(NULL, " ", &saveptr));
     int limit = atoi(strtok_r(NULL, " ", &saveptr));
@@ -100,8 +100,20 @@ int parse_command(char* buf, int* quit_flag) {
     printf("%s\n", txs);
     log_wallet_info("%s\n", txs);
     free(txs);
-  }
-  else if(strcasecmp(command, "get_transaction") == 0) {
+  } else if(strcasecmp(command, "send_transaction") == 0) {
+    username = strtok_r(NULL, " ", &saveptr);
+    password = strtok_r(NULL, " ", &saveptr);
+    if(!username || !password) {
+      fprintf(stderr, "Invalid usage: send_transaction <username> <password>\n");
+      log_wallet_error("Invalid usage: send_transaction <username> <password>\n", "");
+      return -1;
+    }
+    char* destination = strtok_r(NULL, " ", &saveptr);
+    uint64_t amount = strtoull(strtok_r(NULL, " ", &saveptr), NULL, 10);
+    int res = create_transaction(username, password, destination, amount);
+    printf("%s\n", res == 0 ? "OK" : "NOT OK");
+    log_wallet_info("%s\n", res == 0 ? "OK" : "NOT OK");
+  } else if(strcasecmp(command, "get_transaction") == 0) {
     char* hash = strtok_r(NULL, " ", &saveptr);
     char* tx = get_incoming_transaction_by_hash(hash);
     printf("%s\n", tx);
@@ -147,7 +159,7 @@ int parse_command(char* buf, int* quit_flag) {
       log_wallet_error("Invalid usage:  login <username> <password>\n", "");
       return -1;
     }
-    if(0 == verify_login(username, password)) {
+    if(0 == verify_login(username, password, 1)) {
       printf("OK\n");
       log_wallet_info("Successfully Logged In User %s\n", username);
     } else {

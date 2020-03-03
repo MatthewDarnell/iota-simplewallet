@@ -94,6 +94,9 @@ void get_transaction_inputs_to_address(cJSON** addresses) {
     uint64_t t_time  = transaction_timestamp(tx);
     int64_t d_value = transaction_value(tx);
 
+    if(d_value == 0) {
+      continue;
+    }
 
     memset(time, 0, 128);
     memset(value, 0, 64);
@@ -121,6 +124,11 @@ void get_transaction_inputs_to_address(cJSON** addresses) {
       bundle, NUM_TRYTES_BUNDLE,
       trit_bundle,
       NUM_TRITS_BUNDLE, NUM_TRITS_BUNDLE);
+
+
+    log_wallet_info("hash: %s\n", (char*)hash);
+    log_wallet_info("bundle: %s\n", (char*)bundle);
+    log_wallet_info("address: %s\n", (char*)address);
 
     cJSON* obj = cJSON_CreateObject();
     cJSON_AddStringToObject(obj, "hash", (const char*)hash);
