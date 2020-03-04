@@ -18,4 +18,13 @@ if (WIN32)
             BUILD_ALWAYS 1
             INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory ${CRYPTO_FOLDER}/lib ${CMAKE_SOURCE_DIR}/deps/lib
             )
+else ()
+    ExternalProject_Add(libsodium
+            URL "https://github.com/jedisct1/libsodium/releases/download/1.0.18-RELEASE/libsodium-1.0.18.tar.gz"
+            URL_HASH SHA1=795b73e3f92a362fabee238a71735579bf46bb97
+            BUILD_IN_SOURCE 1
+            BUILD_ALWAYS 1
+            CONFIGURE_COMMAND ./configure --prefix=${CMAKE_SOURCE_DIR}/deps
+            BUILD_COMMAND make
+            )
 endif (WIN32)
