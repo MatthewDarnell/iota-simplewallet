@@ -9,6 +9,7 @@ if (WIN32)
 endif (WIN32)
 
 if (WIN32)
+    set(LINK_FLAGS " -fPIC -Wl,--export-all-symbols")
     ExternalProject_Add(iota.c-library
             GIT_REPOSITORY https://github.com/iotaledger/iota.c
             GIT_TAG 22b52d7c4333d6828ab48b811807be8081fbf15c

@@ -85,7 +85,8 @@ char* get_accounts();
 //@zero_password: if > 0, This will mem-zero the decrypted password and seed after verifying the password is correct
 int verify_login(const char* username, char* password, int zero_password);
 
-
+int switch_account(const char* username);
+char* get_main_account();
 
 /*
  *
@@ -93,6 +94,7 @@ int verify_login(const char* username, char* password, int zero_password);
  *
 */
 
+//@username: NULL to use main account
 char* get_new_address(char* username);
 
 
@@ -102,9 +104,12 @@ char* get_new_address(char* username);
  *
 */
 char* get_incoming_transaction_by_hash(char* hash);
+
+//@username: NULL to use main account
 char* get_incoming_transactions(char* username, int offset, int num);
 
 //Returns 0 on success, < 1 if failure
+//@username: NULL to use main account
 int create_transaction(char* username, char* password, char* dest_address, uint64_t value);
 
 

@@ -23,10 +23,16 @@ int store_inputs(sqlite3* db, char* str_inputs) {
   }
   cJSON* input = NULL;
   cJSON_ArrayForEach(input, inputs) {
+
+    if(
+      !cJSON_HasObjectItem(input, "transactions")
+      ) {
+      continue;
+    }
+
     if(
       !cJSON_HasObjectItem(input, "address") ||
-      !cJSON_HasObjectItem(input, "balance") ||
-      !cJSON_HasObjectItem(input, "transactions")
+      !cJSON_HasObjectItem(input, "balance")
       ) {
       log_wallet_error("Invalid Transaction Input Array for Storing: <%s>", cJSON_Print(input));
       continue;

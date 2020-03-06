@@ -17,8 +17,12 @@ include_directories(${CMAKE_SOURCE_DIR}/deps/include)
 link_directories(${CMAKE_SOURCE_DIR}/deps/lib)
 link_directories(${CMAKE_SOURCE_DIR}/deps/bin)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -O3 -DFLEX_TRIT_ENCODING_3_TRITS_PER_BYTE")
-
+if(WIN32)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -g -Wall -O3 -DFLEX_TRIT_ENCODING_3_TRITS_PER_BYTE")
+    set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--export-all-symbols -Wl,--whole-archive")
+else()
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -O3 -DFLEX_TRIT_ENCODING_3_TRITS_PER_BYTE")
+endif()
 include(${CMAKE_SOURCE_DIR}/src/cmake/iota.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/src/cmake/sqlite3.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/src/cmake/sodium.cmake)
@@ -104,14 +108,15 @@ unset(USE_CURL_API)
 
 if(WIN32)
     set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--whole-archive")
+    set_target_properties(iota_simplewallet PROPERTIES
+            LINK_FLAGS "-Wl,--whole-archive -Wl,--export-all-symbols"
+            )
     target_link_libraries(iota_simplewallet cclient logger libsodium.a common http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread wldap32 ws2_32 wsock32 crypt32)
 else()
     target_link_libraries(iota_simplewallet cclient logger libsodium.so common http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread m dl)
 endif()
 
-#set_target_properties(iota_simplewallet PROPERTIES
-#        LINK_FLAGS "-Wl,--whole-archive"
-#        )
+
 
 add_dependencies(iota_simplewallet json libsodium iota.c-library sqlite)
 install(TARGETS iota_simplewallet DESTINATION ${CMAKE_SOURCE_DIR}/deps/lib)

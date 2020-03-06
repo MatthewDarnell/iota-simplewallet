@@ -52,14 +52,14 @@ void _log(enum LOG_LEVEL lvl, const char* format, ...) {
   size_t len = strlen(prefix_buffer);
   prefix_buffer[len-1] = 0; //asctime adds \n
 
-  char stream_buffer[512] = { 0 };
+  char stream_buffer[1024] = { 0 };
   va_list args;
   va_start (args, format);
-  vsnprintf (stream_buffer, 512-len-1,format, args);
+  vsnprintf (stream_buffer, 1024-len-1,format, args);
   va_end (args);
 
-  char out_buffer[512] = { 0 };
-  snprintf(out_buffer, 512, "%s --- %s\n", prefix_buffer, stream_buffer);
+  char out_buffer[1024] = { 0 };
+  snprintf(out_buffer, 1024, "%s --- %s\n", prefix_buffer, stream_buffer);
   fwrite(out_buffer, sizeof(char), strlen(out_buffer), oFile);
   fclose(oFile);
 }
