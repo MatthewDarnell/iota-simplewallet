@@ -186,20 +186,18 @@ char* get_config(const char *key) {
 
 //Set  Configuration Value
 //@save 1: save to file, otherwise only set  in-memory
-int set_config(const char  *key, const char *value, int8_t save) {
+int set_config(char  *key, char *value, int8_t save) {
   if(!config) return -1;
   if(!cJSON_HasObjectItem(config, "config")) return -1;
   cJSON *config_obj = cJSON_GetObjectItem(config, "config");
   if(cJSON_HasObjectItem(config_obj, key)) {
-    cJSON_Delete(
-        cJSON_GetObjectItem(config_obj, key)
-      );
+    cJSON_DeleteItemFromObject(config_obj, key);
   }
   log_wallet_debug("Setting config %s to %s", key, value);
-  cJSON_AddItemToObject(
-    cJSON_GetObjectItem(config, "config"),
+  cJSON_AddStringToObject(
+    config_obj,
     key,
-    cJSON_CreateString(value));
+    value);
   if(save) {
     if(!cJSON_HasObjectItem(config, "path")) return -1;
     cJSON *path_obj = cJSON_GetObjectItem(config, "path");

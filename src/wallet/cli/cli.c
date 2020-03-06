@@ -102,12 +102,21 @@ int parse_command(char* buf, int* quit_flag) {
       free(address);
     }
   } else if(strcasecmp(command, "get_all_transactions") == 0) {
-    int offset = atoi(strtok_r(NULL, " ", &saveptr));
-    int limit = atoi(strtok_r(NULL, " ", &saveptr));
-    char* txs = get_incoming_transactions(NULL, offset, limit);
-    printf("%s\n", txs);
-    log_wallet_info("%s\n", txs);
-    free(txs);
+
+    char* str_offset = strtok_r(NULL, " ", &saveptr);
+    char* str_limit = strtok_r(NULL, " ", &saveptr);
+
+    if(!str_limit || !str_offset) {
+      fprintf(stderr, "Usage: get_all_transactions <offset> <limit>\n");
+      log_wallet_error("Usage: get_all_transactions <offset> <limit>\n", "");
+    } else {
+      int offset = atoi(str_offset);
+      int limit = atoi(str_limit);
+      char* txs = get_incoming_transactions(NULL, offset, limit);
+      printf("%s\n", txs);
+      log_wallet_info("%s\n", txs);
+      free(txs);
+    }
   } else if(strcasecmp(command, "send_transaction") == 0) {
     password = strtok_r(NULL, " ", &saveptr);
     if(!password) {
