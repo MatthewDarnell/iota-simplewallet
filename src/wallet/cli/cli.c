@@ -55,6 +55,9 @@ const char* commands[] = {
 
 int parse_command(char* buf, int* quit_flag) {
   char* username, *password, *saveptr;
+  if(!buf) {
+    return 0;
+  }
   char* command = strtok_r(buf, " ", &saveptr);
   if(strcasecmp(command, "quit") == 0) {
     log_wallet_info("Got quit command, shutting down.", "");
@@ -88,10 +91,15 @@ int parse_command(char* buf, int* quit_flag) {
   }
   else if(strcasecmp(command, "get_new_address") == 0) {
     username = strtok_r(NULL, " ", &saveptr);
-    char* address = get_new_address(username);
-    printf("%s\n", address);
-    log_wallet_info("%s\n", address);
-    free(address);
+    char* address = NULL;
+    address = get_new_address(username);
+    if(!address) {
+      log_wallet_error("Unable to get a new address", "");
+    } else {
+      printf("%s\n", address);
+      log_wallet_info("%s\n", address);
+      free(address);
+    }
   } else if(strcasecmp(command, "get_all_transactions") == 0) {
     username = strtok_r(NULL, " ", &saveptr);
     int offset = atoi(strtok_r(NULL, " ", &saveptr));

@@ -6,7 +6,7 @@
 #include <windows.h>
 #else
 #include <unistd.h>
-#define Sleep(x) sleep(x)
+#define Sleep(x) sleep(x/1000)
 #endif
 
 #include <stdio.h>
@@ -34,10 +34,10 @@ void thread_deposit_detector(void* args) {
     Sleep(5 * 1000);
 
     cJSON *address_array = get_deposit_addresses(db);
-
     if (!address_array) {
       continue;
     } else if(cJSON_GetArraySize(address_array) < 1) {
+      cJSON_Delete(address_array);
       continue;
     }
 

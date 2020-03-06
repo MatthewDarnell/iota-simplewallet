@@ -6,7 +6,7 @@
 #include <windows.h>
 #else
 #include <unistd.h>
-#define Sleep(x) sleep(x)
+#define Sleep(x) sleep(x/1000)
 #endif
 
 #include <stdio.h>
@@ -34,7 +34,6 @@ void thread_send_transaction(void* args) {
     Sleep(5 * 1000);
 
     cJSON *transactions_to_send_array = get_all_unsent_outgoing_transactions(db);
-log_wallet_info("%s\n", cJSON_Print(transactions_to_send_array));
     if (!transactions_to_send_array) {
       continue;
     } else if(cJSON_GetArraySize(transactions_to_send_array) < 1) {

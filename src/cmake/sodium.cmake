@@ -24,7 +24,8 @@ else ()
             URL_HASH SHA1=795b73e3f92a362fabee238a71735579bf46bb97
             BUILD_IN_SOURCE 1
             BUILD_ALWAYS 1
-            CONFIGURE_COMMAND ./configure --prefix=${CMAKE_SOURCE_DIR}/deps
+            CMAKE_ARGS -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -fPIC"
+            CONFIGURE_COMMAND ./configure --enable-pic --enable-shared --prefix=${CMAKE_SOURCE_DIR}/deps
             BUILD_COMMAND make
             )
 endif (WIN32)

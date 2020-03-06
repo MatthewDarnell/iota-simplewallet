@@ -14,7 +14,7 @@ char* get_new_address(char* username) {
   if(!json) {
     return NULL;
   } else {
-    char *ret_val = cJSON_Print(json);
+    char *ret_val = cJSON_PrintUnformatted(json);
     cJSON_Delete(json);
     return ret_val;
   }

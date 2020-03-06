@@ -19,7 +19,6 @@ void get_address_balance(cJSON** addresses, uint64_t min_iota) {
     return;
   }
 
-
   int i;
   for(i=0; i < cJSON_GetArraySize(*addresses); i++) {
     flex_trit_t flex_addr[NUM_FLEX_TRITS_ADDRESS] = { 0 };

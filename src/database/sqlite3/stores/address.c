@@ -160,7 +160,7 @@ cJSON* get_deposit_addresses(sqlite3* db) {
     cJSON_AddNumberToObject(row, "offset", sqlite3_column_int(stmt, 3 ));
     cJSON_AddStringToObject(row, "account", (char*)sqlite3_column_text(stmt, 4 ));
     cJSON_AddNumberToObject(row, "is_change", sqlite3_column_int(stmt, 5 ));
-    cJSON_AddNumberToObject(json, "spent_from", sqlite3_column_int(stmt, 6 ));
+    cJSON_AddNumberToObject(row, "spent_from", sqlite3_column_int(stmt, 6 ));
     cJSON_AddStringToObject(row, "created_at", (char*)sqlite3_column_text(stmt, 7));
     cJSON_AddItemToArray(json, row);
     rc = sqlite3_step(stmt);
@@ -258,11 +258,11 @@ int32_t get_num_change_addresses(sqlite3* db, const char* username) {
   sqlite3_stmt* stmt;
   int rc;
 
-  char* query = "SELECT COUNT(*) as num "
+  char* query = "SELECT COUNT(*) as num"
                 " FROM address a"
                 " WHERE account=? AND"
                 " is_change=1 AND"
-                " AND spent_from=0 AND"
+                " spent_from=0 AND"
                 " a.address NOT IN "
                 " (SELECT change_address AS address FROM outgoing_transaction)"
   ;

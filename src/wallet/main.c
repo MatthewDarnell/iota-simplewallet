@@ -1,10 +1,13 @@
 
 #ifdef WIN32
 #include <windows.h>
-#define sleep(x) Sleep(x)
+#else
+#include <unistd.h>
+#define Sleep(x) sleep(x/1000)
 #endif
 
 #include <stdio.h>
+#include <string.h>
 #include <pthread.h>
 #include "../iota-simplewallet.h"
 #include "../thread/deposit_detector.h"
