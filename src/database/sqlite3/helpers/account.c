@@ -59,7 +59,7 @@ int __create_account(const char* username, char* password, const char* imported_
     generate_seed(seed, 128);
   }
 
-  int encrypt_result = encrypt(
+  int encrypt_result = encrypt_data(
       c,
       &c_len,
       s,
@@ -160,7 +160,7 @@ int verify_login(const char* username, char* password, int zero_password) {
 
   unsigned char p[256] = { 0 };
 
-  int decrypt_result = decrypt(
+  int decrypt_result = decrypt_data(
     p,
     256,
     c,
@@ -225,7 +225,7 @@ int decrypt_seed(char* out, size_t out_max_len, const char* username, char* pass
 
   unsigned char p[256] = { 0 };
 
-  int decrypt_result = decrypt(
+  int decrypt_result = decrypt_data(
     p,
     256,
     c,

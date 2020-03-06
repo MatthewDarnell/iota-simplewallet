@@ -113,7 +113,7 @@ if(WIN32)
             )
     target_link_libraries(iota_simplewallet cclient logger libsodium.a common http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread wldap32 ws2_32 wsock32 crypt32)
 else()
-    target_link_libraries(iota_simplewallet cclient logger libsodium.so common http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread m dl)
+    target_link_libraries(iota_simplewallet cclient logger sodium common http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread m dl)
 endif()
 
 

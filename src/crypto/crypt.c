@@ -11,7 +11,7 @@ int init_crypto() {
    return sodium_init();
 }
 
-int encrypt(unsigned char* c, size_t* c_len, unsigned char* salt, size_t max_salt_len, size_t* salt_len, unsigned char* nonce, size_t max_nonce_len, size_t* nonce_len, char *data, size_t len, char *password) {
+int encrypt_data(unsigned char* c, size_t* c_len, unsigned char* salt, size_t max_salt_len, size_t* salt_len, unsigned char* nonce, size_t max_nonce_len, size_t* nonce_len, char *data, size_t len, char *password) {
   if(max_salt_len < crypto_pwhash_SALTBYTES) {
     log_wallet_error("Salt isn't long enough, must be at least %d bytes.", crypto_pwhash_SALTBYTES);
     return -1;
@@ -44,7 +44,7 @@ int encrypt(unsigned char* c, size_t* c_len, unsigned char* salt, size_t max_sal
 
 }
 
-int decrypt(unsigned char *data, size_t max_data_len, unsigned char* c, size_t c_len, unsigned char* salt, unsigned char* nonce, char* password) {
+int decrypt_data(unsigned char *data, size_t max_data_len, unsigned char* c, size_t c_len, unsigned char* salt, unsigned char* nonce, char* password) {
   const int key_len = crypto_box_SEEDBYTES;
   unsigned char key[key_len];
   sodium_memzero(key, key_len);
