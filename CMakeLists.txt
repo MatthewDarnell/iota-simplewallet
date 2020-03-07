@@ -63,6 +63,7 @@ file(GLOB iota_simplewallet_SRC
         src/database/sqlite3/helpers/account.c
         src/database/sqlite3/helpers/address.c
         src/database/sqlite3/helpers/generate_address.c
+        src/database/sqlite3/helpers/get_inputs.c
         src/database/sqlite3/helpers/store_iota_inputs.c
         src/database/sqlite3/helpers/transaction.c
         src/database/sqlite3/stores/account.c
@@ -72,6 +73,7 @@ file(GLOB iota_simplewallet_SRC
         src/iota/common/core_client.c
         src/iota/common/generate_address.c
         src/iota/common/generate_seed.c
+        src/iota/common/get_inputs.c
         src/iota/api.h
         src/thread/deposit_detector.c
         src/thread/send_transaction.c

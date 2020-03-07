@@ -80,8 +80,28 @@ cJSON* get_all_accounts(sqlite3* db) {
   sqlite3_finalize(stmt);
   return json;
 }
+int is_account_synced(sqlite3* db, const char* username) {
+  enforce_max_length(strlen(username))
+  sqlite3_stmt* stmt;
+  int rc;
 
+  char* query = "SELECT is_synced FROM account WHERE username=? LIMIT 1";
+  rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
 
+  if (rc != SQLITE_OK) {
+    log_wallet_error("%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
+    return -1;
+  }
+
+  sqlite3_bind_text(stmt, 1, username, -1, NULL);
+  rc = sqlite3_step(stmt);
+  int is_synced = 0;
+  if (rc == SQLITE_ROW) {
+    is_synced = sqlite3_column_int(stmt, 0 );
+  }
+  sqlite3_finalize(stmt);
+  return is_synced;
+}
 cJSON* get_account_by_username(sqlite3* db, const char* username) {
   enforce_max_length_null(strlen(username))
   sqlite3_stmt* stmt;
@@ -124,4 +144,31 @@ cJSON* get_account_by_username(sqlite3* db, const char* username) {
 
   sqlite3_finalize(stmt);
   return json;
+}
+int mark_account_synced(sqlite3* db, const char* username) {
+  enforce_max_length(  strlen(username))
+  sqlite3_stmt* stmt;
+  int rc;
+
+  char* query = "UPDATE account SET is_synced=1  WHERE username=?";
+  rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
+
+  if (rc != SQLITE_OK) {
+    log_wallet_error( "%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
+    return -1;
+  }
+
+  sqlite3_bind_text(stmt, 1, username, -1, NULL);
+  rc = sqlite3_step(stmt);
+
+  if (rc != SQLITE_DONE) {
+    log_wallet_error("%s execution failed: %s", __func__, sqlite3_errmsg(db));
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return -1;
+  } else {
+    log_wallet_debug("Marked Account (<%s>) as Synced.\n", username);
+  }
+  sqlite3_finalize(stmt);
+  return 0;
 }

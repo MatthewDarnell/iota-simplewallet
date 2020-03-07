@@ -186,7 +186,7 @@ char* get_config(const char *key) {
 
 //Set  Configuration Value
 //@save 1: save to file, otherwise only set  in-memory
-int set_config(char  *key, char *value, int8_t save) {
+int set_config(const char* key, const char* value, int8_t save) {
   if(!config) return -1;
   if(!cJSON_HasObjectItem(config, "config")) return -1;
   cJSON *config_obj = cJSON_GetObjectItem(config, "config");

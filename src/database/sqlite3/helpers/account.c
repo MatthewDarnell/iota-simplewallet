@@ -12,6 +12,7 @@
 #include "../../../config/logger.h"
 #include "../stores/account.h"
 #include "generate_address.h"
+#include "get_inputs.h"
 #include "../db.h"
 #include "account.h"
 
@@ -118,7 +119,7 @@ int verify_login(const char* username, char* password, int zero_password) {
   int free_user = 0;
 
   if(username) {
-    u = username;
+    u = (char*)username;
     user = get_account_by_username(db, username);
   } else {
     u = get_config("mainAccount");
@@ -171,6 +172,7 @@ int verify_login(const char* username, char* password, int zero_password) {
   );
 
   if(decrypt_result == 0) {
+    get_account_inputs(u, (const char*)p); //Do we need to sync this account to find inputs
     generate_address(u, (const char*)p); //Seed is decrypted, let's see if we need to generate any more addresses
   }
   sodium_memzero(p, 128);
@@ -197,7 +199,6 @@ int verify_login(const char* username, char* password, int zero_password) {
 }
 
 int decrypt_seed(char* out, size_t out_max_len, const char* username, char* password) {
-  log_wallet_info("decrypting: %s %s", username, password);
   sqlite3* db = get_db_handle();
   cJSON* user = get_account_by_username(db, username);
   close_db_handle(db);
