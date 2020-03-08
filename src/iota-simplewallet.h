@@ -111,6 +111,12 @@ char* get_accounts();
 //@zero_password: if > 0, This will mem-zero the decrypted password and seed after verifying the password is correct
 int verify_login(const char* username, char* password, int zero_password);
 
+//Decrypt a users' seed
+//@out: the char[] in which to place the decrypted seed
+//@out_max_le: the max length of @out
+//@username: NULL to use main account
+//@password: the users' password
+int decrypt_seed(char* out, size_t out_max_len, const char* username, char* password);
 
 
 /*

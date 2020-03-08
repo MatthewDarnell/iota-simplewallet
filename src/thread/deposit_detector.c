@@ -17,7 +17,7 @@
 #include "../config/logger.h"
 #include "../database/sqlite3/stores/address.h"
 #include "../database/sqlite3/stores/incoming_transaction.h"
-#include "../database/sqlite3/helpers/store_iota_inputs.h"
+#include "../database/helpers/store_iota_inputs.h"
 #include "../iota/api.h"
 #include "deposit_detector.h"
 

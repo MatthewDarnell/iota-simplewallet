@@ -3,16 +3,15 @@
 //
 
 #include <stdlib.h>
+#include <string.h>
+#include <sqlite3.h>
 #include <cjson/cJSON.h>
-#include "../../../config/config.h"
-#include "../../../config/logger.h"
-#include "../db.h"
-#include "../stores/incoming_transaction.h"
-#include "../stores/outgoing_transaction.h"
-#include "../stores/address.h"
-#include "account.h"
-#include "../../../iota/api.h"
-#include "transaction.h"
+#include "../database/sqlite3/db.h"
+#include "../database/sqlite3/stores/address.h"
+#include "../database/sqlite3/stores/incoming_transaction.h"
+#include "../database/sqlite3/stores/outgoing_transaction.h"
+#include "../iota/api.h"
+#include "../iota-simplewallet.h"
 
 char* get_incoming_transaction_by_hash(char* hash) {
   sqlite3* db = get_db_handle();

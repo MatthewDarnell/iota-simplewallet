@@ -1,20 +1,18 @@
 //
-// Created by matth on 2/18/2020.
+// Created by matth on 3/8/2020.
 //
 
 #include <stdlib.h>
 #include <string.h>
 #include <sodium.h>
-#include "../../../crypto/password.h"
-#include "../../../crypto/crypt.h"
-#include "../../../iota/api.h"
-#include "../../../config/config.h"
-#include "../../../config/logger.h"
-#include "../stores/account.h"
-#include "generate_address.h"
-#include "get_inputs.h"
-#include "../db.h"
-#include "account.h"
+#include <sqlite3.h>
+#include "../crypto/crypt.h"
+#include "../database/helpers/get_inputs.h"
+#include "../database/sqlite3/stores/account.h"
+#include "../database/helpers/generate_address.h"
+#include "../database/sqlite3/db.h"
+#include "../iota/api.h"
+#include "../iota-simplewallet.h"
 
 int switch_account(const char* username) {
   set_config("mainAccount", username, 1);
@@ -61,18 +59,18 @@ int __create_account(const char* username, char* password, const char* imported_
   }
 
   int encrypt_result = encrypt_data(
-      c,
-      &c_len,
-      s,
-      128,
-      &s_len,
-      n,
-      128,
-      &n_len,
-      seed,
-      81,
-      password
-    );
+    c,
+    &c_len,
+    s,
+    128,
+    &s_len,
+    n,
+    128,
+    &n_len,
+    seed,
+    81,
+    password
+  );
 
   sodium_memzero(seed, 128);  //Clear sensitive data from stack immediately
   sodium_memzero(password, strlen(password));
@@ -95,7 +93,7 @@ int __create_account(const char* username, char* password, const char* imported_
     b64_cipher,
     b64_salt,
     b64_nonce
-    );
+  );
   close_db_handle(db);
   return ret_val;
 }
@@ -151,8 +149,8 @@ int verify_login(const char* username, char* password, int zero_password) {
   unsigned char n[128] = { 0 };
 
   size_t c_len = 0,
-         s_len = 0,
-         n_len = 0;
+    s_len = 0,
+    n_len = 0;
 
   sodium_base642bin(c, 128, b64_cipher, strlen(b64_cipher), NULL, &c_len, NULL, sodium_base64_VARIANT_ORIGINAL_NO_PADDING);
   sodium_base642bin(n, 128, b64_nonce, strlen(b64_nonce), NULL, &n_len, NULL, sodium_base64_VARIANT_ORIGINAL_NO_PADDING);
@@ -246,7 +244,7 @@ int decrypt_seed(char* out, size_t out_max_len, const char* username, char* pass
     out,
     p,
     strlen((char*)p) > out_max_len ? out_max_len : strlen((char*)p)
-    );
+  );
 
   sodium_memzero(p, 128);
   sodium_memzero(password, strlen(password));

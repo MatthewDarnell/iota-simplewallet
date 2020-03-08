@@ -3,12 +3,12 @@
 //
 
 #include <stdlib.h>
+#include <sqlite3.h>
 #include <cjson/cJSON.h>
-#include "../../../config/config.h"
-#include "../../../config/logger.h"
-#include "../stores/address.h"
-#include "../db.h"
-#include "address.h"
+#include "../config/config.h"
+#include "../database/sqlite3/db.h"
+#include "../database/sqlite3/stores/address.h"
+#include "../iota-simplewallet.h"
 
 char* get_new_address(char* username) {
   sqlite3* db = get_db_handle();

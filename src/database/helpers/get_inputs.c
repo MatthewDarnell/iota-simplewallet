@@ -4,11 +4,11 @@
 
 #include <sqlite3.h>
 #include <pthread.h>
-#include "../../../config/logger.h"
-#include "../../../iota/api.h"
-#include "../db.h"
-#include "../stores/account.h"
-#include "../stores/address.h"
+#include "../../config/logger.h"
+#include "../../iota/api.h"
+#include "../sqlite3/db.h"
+#include "../sqlite3/stores/account.h"
+#include "../sqlite3/stores/address.h"
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 int get_account_inputs(const char* username, const char* seed) {
