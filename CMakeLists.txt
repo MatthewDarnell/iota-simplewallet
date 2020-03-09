@@ -40,6 +40,7 @@ file(GLOB curl_src
         src/iota/curl/get_latest_inclusion.c
         src/iota/curl/get_transaction_inputs_to_address.c
         src/config/http.c
+        src/iota/curl/init.c
         )
 
 #iota.c based api queries
@@ -47,9 +48,8 @@ file(GLOB iota_c_src
         src/iota/iota.c/get_address_balance.c
         src/iota/iota.c/get_latest_inclusion.c
         src/iota/iota.c/get_transaction_inputs_to_address.c
+        src/iota/iota.c/were_addresses_spent_from.c
         src/iota/iota.c/init.c
-        src/iota/iota.c/send_transaction.c
-        src/iota/iota.c/send_trytes.c
         )
 
 file(GLOB iota_simplewallet_SRC
@@ -74,6 +74,11 @@ file(GLOB iota_simplewallet_SRC
         src/iota/common/generate_address.c
         src/iota/common/generate_seed.c
         src/iota/common/get_inputs.c
+
+        src/iota/iota.c/send_transaction.c
+        src/iota/iota.c/send_trytes.c
+
+
         src/iota/api.h
         src/thread/deposit_detector.c
         src/thread/send_transaction.c
@@ -86,13 +91,13 @@ file(GLOB iota_simplewallet_SRC
 if(USE_CURL_API)
     include(${CMAKE_CURRENT_LIST_DIR}/src/cmake/curl.cmake)
     message(STATUS "Using libcURL for IOTA network calls")
-    add_library(iota_simplewallet
+    add_library(iota_simplewallet SHARED
             ${iota_simplewallet_SRC}
             ${curl_src}
             )
     target_compile_definitions(iota_simplewallet PUBLIC "-DUSE_CURL_API")
     set(LIBRARIES "${LIBRARIES} libssl.a libssh2.a libnghttp2.a libcrypto.a libssl.a libcrypto.a libbrotlicommon-static.a libbrotlidec-static.a libbrotlienc-static.a libbrotlicommon-static.a libz.a libcurl.a wldap32 ")
-    add_dependencies(iota_simplewallet curl)
+    add_dependencies(iota_simplewallet curl openssl libssh2 nghttp2 brotli zlib)
     if(WIN32)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DCURL_STATICLIB")
     endif()
@@ -104,7 +109,6 @@ else()
             ${iota_c_src}
             )
 endif()
-unset(USE_CURL_API)
 
 
 
@@ -113,11 +117,18 @@ if(WIN32)
     set_target_properties(iota_simplewallet PROPERTIES
             LINK_FLAGS "-Wl,--whole-archive -Wl,--export-all-symbols"
             )
-    target_link_libraries(iota_simplewallet cclient logger libsodium.a common http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread wldap32 ws2_32 wsock32 crypt32)
+    if(USE_CURL_API)
+      message("linking to curl")
+      target_link_libraries(iota_simplewallet cclient libssl.a libssh2.a libnghttp2.a libcrypto.a libssl.a libcrypto.a libbrotlicommon-static.a libbrotlidec-static.a libbrotlienc-static.a libbrotlicommon-static.a libz.a libcurl.a wldap32 logger libsodium.a common http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread wldap32 ws2_32 wsock32 crypt32 libssl.a libssh2.a libnghttp2.a libcrypto.a libssl.a libcrypto.a libbrotlicommon-static.a libbrotlidec-static.a libbrotlienc-static.a libbrotlicommon-static.a libz.a libcurl.a wldap32)
+    else()
+        message("not linking to curl")
+      target_link_libraries(iota_simplewallet cclient logger libsodium.a common http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread wldap32 ws2_32 wsock32 crypt32)
+    endif()
 else()
     target_link_libraries(iota_simplewallet cclient logger sodium common http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread m dl)
 endif()
 
+unset(USE_CURL_API)
 
 
 add_dependencies(iota_simplewallet json libsodium iota.c-library sqlite)

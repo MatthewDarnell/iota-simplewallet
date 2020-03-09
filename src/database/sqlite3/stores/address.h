@@ -7,9 +7,12 @@
 #include <sqlite3.h>
 #include <cjson/cJSON.h>
 int create_address(sqlite3* db, const char* address, uint32_t offset, const char* username);
+cJSON* get_unspent_addresses(sqlite3* db);
+cJSON* get_unspent_addresses_by_username(sqlite3* db, const char* username);
 cJSON* get_address_by_address(sqlite3* db, const char* address);
 cJSON* get_next_fresh_address(sqlite3* db, const char* username);
 cJSON* get_next_change_address(sqlite3* db, const char* username);
+cJSON* get_all_addresses(sqlite3* db);
 cJSON* get_deposit_addresses(sqlite3* db);
 cJSON* get_addresses_for_spending(sqlite3* db, const char* username);
 int32_t set_address_balance(sqlite3* db, const char* address, const char* balance);

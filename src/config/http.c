@@ -98,7 +98,6 @@ int post(const char* query_string, cJSON** out) {
   snprintf(url, 256, "https://%s:%s", host, port);
   cJSON_Delete(nodes);
 
-  printf("Accessing %s\n", url);
   CURL *curl;
   CURLcode res;
   CURLcode* pres = &res;

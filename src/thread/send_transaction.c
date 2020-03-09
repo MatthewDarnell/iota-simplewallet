@@ -48,9 +48,9 @@ void thread_send_transaction(void* args) {
     cJSON_ArrayForEach(tx, transactions_to_send_array) {
       uint64_t serial = cJSON_GetObjectItem(tx, "serial")->valueint;
       const char* trytes = cJSON_GetObjectItem(tx, "trytes")->valuestring;
-      if(send_trytes(bundle, 127, hash, 127, serial, trytes) == 0) {
+     /* if(send_trytes(bundle, 127, hash, 127, serial, trytes) == 0) {
         mark_outgoing_transaction_sent(db, serial, bundle, hash);
-      }
+      }*/
     }
 
   }

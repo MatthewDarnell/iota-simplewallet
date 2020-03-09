@@ -4,6 +4,7 @@
 
 #include <sqlite3.h>
 #include <pthread.h>
+#include "../../config/config.h"
 #include "../../config/logger.h"
 #include "../../iota/api.h"
 #include "../sqlite3/db.h"
@@ -16,7 +17,6 @@ int get_account_inputs(const char* username, const char* seed) {
   sqlite3* db = get_db_handle();
 
   int is_synced = is_account_synced(db, username);
-  printf("Is %s synced: %d\n", username, is_synced);
   if(is_synced) {
     pthread_mutex_unlock(&mutex);
     return 0;
@@ -73,6 +73,49 @@ int get_account_inputs(const char* username, const char* seed) {
     }
     i++;
   }
+
+  cJSON_Delete(new_addresses);
+
+  //Get Inputs does not always seem to find all inputs. After getinputs is called, we are going
+  //to manually check address balance for the first <minAddressesToCheckWhenSyncing> addresses,
+  //as long as <minAddressesToCheckWhenSyncing> is greater than the highest key index found by getinputs
+  char* str_minAddressesToCheckWhenSyncing = get_config("minAddressesToCheckWhenSyncing");
+  if(str_minAddressesToCheckWhenSyncing) {
+    int minAddressesToCheckWhenSyncing = strtol(str_minAddressesToCheckWhenSyncing, NULL, 10);
+    if(minAddressesToCheckWhenSyncing > latest_key_index) {
+      cJSON* addresses = generate_new_addresses(seed, 0, minAddressesToCheckWhenSyncing);
+      if(addresses) {
+        cJSON_ArrayForEach(address, addresses) {
+          const char* addr = cJSON_GetObjectItem(address, "address")->valuestring;
+          uint32_t index = cJSON_GetObjectItem(address, "index")->valueint;
+          create_address(db, addr, index, username);  //will fail on duplicate addresses, just ignore
+        }
+        get_address_balance(&addresses, 1);
+        cJSON_ArrayForEach(address, addresses) {
+          const char* addr = cJSON_GetObjectItem(address, "address")->valuestring;
+          const char* balance = cJSON_GetObjectItem(address, "balance")->valuestring;
+          set_address_balance(db, addr, balance);
+        }
+        cJSON_Delete(address);
+      }
+    }
+    free(str_minAddressesToCheckWhenSyncing);
+  }
+
+
+  //Find if any addresses have been spent
+  cJSON* unspents = get_unspent_addresses_by_username(db, username);
+  were_addresses_spent_from(&unspents);
+  cJSON_ArrayForEach(address, unspents) {
+    int spent = cJSON_GetObjectItem(address, "spent_from")->valueint;
+    char* addr = cJSON_GetObjectItem(address, "address")->valuestring;
+    if(spent > 0) {
+      mark_address_spent_from(db, addr);
+    }
+  }
+
+
+
   mark_account_synced(db, username);
   close_db_handle(db);
   pthread_mutex_unlock(&mutex);

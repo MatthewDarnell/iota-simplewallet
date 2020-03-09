@@ -53,34 +53,66 @@ int generate_address(const char* username, const char* seed) {
     log_wallet_debug("Have sufficient amount of fresh addresses. (%d) (minimum to have is %d)", num_unused_addresses, min_address_pool);
     return 0;
   } else {
-    log_wallet_debug("Have insufficient amount of fresh addresses. (%d) Creating (%d) more.", num_unused_addresses, num_addresses_to_create+num_change_addresses_to_create);
-  }
+    cJSON* address = NULL;
+    int i = 0;
 
+    if(num_addresses_to_create > 0) {
+      log_wallet_debug("Have insufficient amount of fresh deposit addresses. (%d) Creating (%d) more.", num_unused_addresses, num_addresses_to_create);
 
-  cJSON* new_addresses = generate_new_addresses(seed, latest_offset, num_addresses_to_create + num_change_addresses_to_create + latest_offset);
-  if(!new_addresses) {
-    pthread_mutex_unlock(&mutex);
-    log_wallet_error("Failed to create addresses!", "")
-    return -1;
-  }
-
-  cJSON* address = NULL;
-
-  int i = 0;
-
-  cJSON_ArrayForEach(address, new_addresses) {
-    const char* addr = cJSON_GetObjectItem(address, "address")->valuestring;
-    uint32_t index = cJSON_GetObjectItem(address, "index")->valueint;
-    if(create_address(db, addr, index, username) < 0) {
-      log_wallet_error("Error storing address %s %d in database!", addr, index);
-    } else {
-      if(i >= num_addresses_to_create) {
-        mark_address_is_change_address(db, addr);
+      cJSON* new_addresses = generate_new_addresses(seed, latest_offset, num_addresses_to_create + latest_offset);
+      if(!new_addresses) {
+        pthread_mutex_unlock(&mutex);
+        log_wallet_error("Failed to create addresses!", "")
+        return -1;
       }
+      cJSON_ArrayForEach(address, new_addresses) {
+        const char* addr = cJSON_GetObjectItem(address, "address")->valuestring;
+        uint32_t index = cJSON_GetObjectItem(address, "index")->valueint;
+        if(create_address(db, addr, index, username) < 0) {
+          log_wallet_error("Error storing address %s %d in database!", addr, index);
+        } else {
+          if(i >= num_addresses_to_create) {
+            mark_address_is_change_address(db, addr);
+          }
+        }
+        i++;
+      }
+      cJSON_Delete(new_addresses);
     }
-    i++;
+
+
+    if(num_change_addresses_to_create > 0) {
+      log_wallet_debug("Have insufficient amount of fresh change addresses. (%d) Creating (%d) more.", num_unused_change_addresses, num_change_addresses_to_create);
+      latest_offset = get_latest_offset(db, username);
+      latest_offset++;
+      cJSON* new_change_addresses = generate_new_addresses(seed, latest_offset, num_change_addresses_to_create + latest_offset);
+      if(!new_change_addresses) {
+        pthread_mutex_unlock(&mutex);
+        log_wallet_error("Failed to create change addresses!", "")
+        return -1;
+      }
+
+      i = 0;
+
+      cJSON_ArrayForEach(address, new_change_addresses) {
+        const char* addr = cJSON_GetObjectItem(address, "address")->valuestring;
+        uint32_t index = cJSON_GetObjectItem(address, "index")->valueint;
+        if(create_address(db, addr, index, username) < 0) {
+          log_wallet_error("Error storing address %s %d in database!", addr, index);
+        } else {
+          if(i >= num_addresses_to_create) {
+            mark_address_is_change_address(db, addr);
+          }
+        }
+        i++;
+      }
+      cJSON_Delete(new_change_addresses);
+
+    }
+
   }
-  cJSON_Delete(new_addresses);
+
+
   close_db_handle(db);
   pthread_mutex_unlock(&mutex);
   return 0;

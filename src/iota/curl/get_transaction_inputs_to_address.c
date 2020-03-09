@@ -9,7 +9,6 @@
 #include "../api.h"
 
 static cJSON* get_trytes(cJSON* object) {
-  printf("%s\n", __func__);
   cJSON* trytes = NULL;
   cJSON* request = cJSON_CreateObject();
   cJSON_AddStringToObject(request, "command", "getTrytes");

@@ -9,7 +9,6 @@
 #include "../../config/http.h"
 
 void get_address_balance(cJSON** addresses, uint64_t min_iota) {
-  printf("%s\n", __func__);
   cJSON* request = cJSON_CreateObject();
   cJSON* response = NULL;
 

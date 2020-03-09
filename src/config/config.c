@@ -12,6 +12,7 @@ cJSON *config = NULL;
 const char *default_config = "{"
                         "\"database\": \"iota-simplewallet.db\","
                         "\"minAddressPool\": \"5\","
+                        "\"minAddressesToCheckWhenSyncing\": \"100\","
                         "\"logFile\": \"iota-simplewallet.log\","
                         "\"nodes\": ["
                         "{"

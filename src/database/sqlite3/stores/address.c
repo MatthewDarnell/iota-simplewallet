@@ -41,6 +41,82 @@ int create_address(sqlite3* db, const char* address, uint32_t offset, const char
   return 0;
 }
 
+cJSON* get_unspent_addresses(sqlite3* db) {
+  sqlite3_stmt* stmt;
+  int rc;
+
+  char* query = "SELECT address, balance, offset"
+                " FROM address"
+                " WHERE spent_from=0"
+                " ORDER BY offset ASC"
+  ;
+  rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
+
+  if (rc != SQLITE_OK) {
+    log_wallet_error("%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
+    return NULL;
+  }
+
+  rc = sqlite3_step(stmt);
+
+  cJSON *json = cJSON_CreateArray();
+
+
+
+  while(rc == SQLITE_ROW) {
+    cJSON *row =  cJSON_CreateObject();
+    cJSON_AddStringToObject(row, "address", (char*)sqlite3_column_text(stmt, 0 ));
+    const char* balance = (const char*)sqlite3_column_text(stmt, 1);
+    cJSON_AddStringToObject(row, "balance", balance);
+    cJSON_AddNumberToObject(row, "offset", sqlite3_column_int(stmt, 2 ));
+    cJSON_AddItemToArray(json, row);
+    rc = sqlite3_step(stmt);
+  }
+
+  sqlite3_finalize(stmt);
+  return json;
+}
+cJSON* get_unspent_addresses_by_username(sqlite3* db, const char* username) {
+  sqlite3_stmt* stmt;
+  int rc;
+
+  char* query = "SELECT address, balance, offset"
+                " FROM address"
+                " WHERE account=?"
+                " AND spent_from=0"
+                " ORDER BY offset ASC"
+  ;
+  rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
+
+  if (rc != SQLITE_OK) {
+    log_wallet_error("%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
+    return NULL;
+  }
+
+  sqlite3_bind_text(stmt, 1, username, -1, NULL);
+
+  rc = sqlite3_step(stmt);
+
+  cJSON *json = cJSON_CreateArray();
+
+
+
+  while(rc == SQLITE_ROW) {
+    cJSON *row =  cJSON_CreateObject();
+    cJSON_AddStringToObject(row, "address", (char*)sqlite3_column_text(stmt, 0 ));
+    const char* balance = (const char*)sqlite3_column_text(stmt, 1);
+    cJSON_AddStringToObject(row, "balance", balance);
+    cJSON_AddNumberToObject(row, "offset", sqlite3_column_int(stmt, 2 ));
+    cJSON_AddItemToArray(json, row);
+    rc = sqlite3_step(stmt);
+  }
+
+  sqlite3_finalize(stmt);
+  return json;
+
+}
+
+
 cJSON* get_address_by_address(sqlite3* db, const char* address) {
   enforce_max_length_null(strlen(address))
   sqlite3_stmt* stmt;
@@ -133,6 +209,43 @@ cJSON* get_next_change_address(sqlite3* db, const char* username) {
   return json;
 }
 
+cJSON* get_all_addresses(sqlite3* db) {
+  sqlite3_stmt* stmt;
+  int rc;
+
+  char* query = "SELECT *"
+                " FROM address"
+                " WHERE is_change=0"
+  ;
+  rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
+
+  if (rc != SQLITE_OK) {
+    log_wallet_error("%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
+    return NULL;
+  }
+
+  rc = sqlite3_step(stmt);
+
+  cJSON *json = cJSON_CreateArray();
+
+  while(rc == SQLITE_ROW) {
+    cJSON *row =  cJSON_CreateObject();
+    cJSON_AddNumberToObject(row, "serial", sqlite3_column_int(stmt, 0 ));
+    cJSON_AddStringToObject(row, "address", (char*)sqlite3_column_text(stmt, 1 ));
+    cJSON_AddStringToObject(row, "balance", (char*)sqlite3_column_text(stmt, 2 ));
+    cJSON_AddNumberToObject(row, "offset", sqlite3_column_int(stmt, 3 ));
+    cJSON_AddStringToObject(row, "account", (char*)sqlite3_column_text(stmt, 4 ));
+    cJSON_AddNumberToObject(row, "is_change", sqlite3_column_int(stmt, 5 ));
+    cJSON_AddNumberToObject(row, "spent_from", sqlite3_column_int(stmt, 6 ));
+    cJSON_AddStringToObject(row, "created_at", (char*)sqlite3_column_text(stmt, 7));
+    cJSON_AddItemToArray(json, row);
+    rc = sqlite3_step(stmt);
+  }
+
+  sqlite3_finalize(stmt);
+  return json;
+}
+
 cJSON* get_deposit_addresses(sqlite3* db) {
   sqlite3_stmt* stmt;
   int rc;
@@ -175,11 +288,14 @@ cJSON* get_addresses_for_spending(sqlite3* db, const char* username) {
   int rc;
 
   char* query = "SELECT address, balance, offset"
+                " FROM ("
+                " SELECT address, balance, offset"
                 " FROM address"
                 " WHERE CAST(balance AS INTEGER) > 0"
                 " AND account=?"
                 " ORDER BY CAST(balance AS INTEGER) ASC"
-  ;
+                ")"
+                " ORDER BY spent_from DESC";
   rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
 
   if (rc != SQLITE_OK) {
