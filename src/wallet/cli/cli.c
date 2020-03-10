@@ -81,6 +81,7 @@ int parse_command(char* buf, int* quit_flag) {
                     "\t\tget_transaction <hash>\n"
                     "\tMisc:\n"
                     "\t\thelp\n"
+                    "\t\tget_node_status\n"
                     "\t\tquit\n"
                     "\n----------\n\n";
     log_wallet_info("%s", h);
@@ -90,8 +91,12 @@ int parse_command(char* buf, int* quit_flag) {
     printf("%s\n", accounts);
     log_wallet_info("%s\n", accounts);
     free(accounts);
-  }
-  else if(strcasecmp(command, "get_new_address") == 0) {
+  } else if(strcasecmp(command, "get_node_status") == 0) {
+    char* status = get_node_status();
+    printf("%s\n", status);
+    log_wallet_info("%s\n", status);
+    free(status);
+  } else if(strcasecmp(command, "get_new_address") == 0) {
     char* address = NULL;
     address = get_new_address(NULL);
     if(!address) {

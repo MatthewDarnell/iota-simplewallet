@@ -47,6 +47,7 @@ file(GLOB curl_src
 file(GLOB iota_c_src
         src/iota/iota.c/get_address_balance.c
         src/iota/iota.c/get_latest_inclusion.c
+        src/iota/iota.c/get_node_info.c
         src/iota/iota.c/get_transaction_inputs_to_address.c
         src/iota/iota.c/were_addresses_spent_from.c
         src/iota/iota.c/init.c
@@ -55,6 +56,7 @@ file(GLOB iota_c_src
 file(GLOB iota_simplewallet_SRC
         src/api/account.c
         src/api/address.c
+        src/api/info.c
         src/api/transaction.c
         src/config/config.c
         src/config/logger.c
@@ -82,6 +84,7 @@ file(GLOB iota_simplewallet_SRC
         src/iota/api.h
         src/thread/address_balance_detector.c
         src/thread/deposit_detector.c
+        src/thread/node_info_updater.c
         src/thread/send_transaction.c
         src/thread/spent_from_detector.c
         src/thread/helper/start.c

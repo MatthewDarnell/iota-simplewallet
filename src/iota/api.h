@@ -25,6 +25,9 @@ int send_trytes(char* out_bundle, int out_bundle_max_len, char* out_hash, int ou
 
 void were_addresses_spent_from(cJSON** addresses);
 
+
+cJSON* get_node_info();
+
 void init_iota();
 void shutdown_iota();
 #endif //IOTA_SIMPLEWALLET_API_H

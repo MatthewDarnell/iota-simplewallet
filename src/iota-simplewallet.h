@@ -58,6 +58,16 @@ void _log(enum LOG_LEVEL, const char* format, ...);
 
 /*
  *
+ *   Info functions
+ *
+*/
+
+//Get current node info
+char* get_node_status();
+
+
+/*
+ *
  *   Configuration functions
  *
 */
