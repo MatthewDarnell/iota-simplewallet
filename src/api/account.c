@@ -196,7 +196,7 @@ int verify_login(const char* username, char* password, int zero_password) {
   return 0;
 }
 
-int decrypt_seed(char* out, size_t out_max_len, const char* username, char* password) {
+int decrypt_seed(char* out, int out_max_len, const char* username, char* password) {
   sqlite3* db = get_db_handle();
   cJSON* user = get_account_by_username(db, username);
   close_db_handle(db);

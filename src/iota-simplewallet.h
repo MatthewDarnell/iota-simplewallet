@@ -129,7 +129,7 @@ int verify_login(const char* username, char* password, int zero_password);
 //@out_max_le: the max length of @out
 //@username: NULL to use main account
 //@password: the users' password
-int decrypt_seed(char* out, size_t out_max_len, const char* username, char* password);
+int decrypt_seed(char* out, int out_max_len, const char* username, char* password);
 
 
 /*
