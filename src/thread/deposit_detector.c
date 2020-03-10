@@ -9,17 +9,14 @@
 #define Sleep(x) sleep(x/1000)
 #endif
 
-#include <stdio.h>
 #include <pthread.h>
 #include <cjson/cJSON.h>
 #include "../database/sqlite3/db.h"
-#include "../config/config.h"
 #include "../config/logger.h"
 #include "../database/sqlite3/stores/address.h"
 #include "../database/sqlite3/stores/incoming_transaction.h"
 #include "../database/helpers/store_iota_inputs.h"
 #include "../iota/api.h"
-#include "deposit_detector.h"
 
 void thread_deposit_detector(void* args) {
   log_wallet_info("Starting Deposit Detector Thread", "");
@@ -32,42 +29,6 @@ void thread_deposit_detector(void* args) {
       break;
     }
     Sleep(5 * 1000);
-
-    //Update any addresses which have been spent from
-    cJSON* json_address = NULL;
-    cJSON* unspents = get_unspent_addresses(db);
-    were_addresses_spent_from(&unspents);
-    if(unspents) {
-      cJSON_ArrayForEach(json_address, unspents) {
-        int spent = cJSON_GetObjectItem(json_address, "spent_from")->valueint;
-        char* addr = cJSON_GetObjectItem(json_address, "address")->valuestring;
-        if(spent > 0) {
-          mark_address_spent_from(db, addr);
-        }
-      }
-      cJSON_Delete(unspents);
-    }
-
-
-    cJSON* addr_obj = NULL;
-
-    //Get and update all address balances (not just fresh deposit addresses)
-    cJSON *all_address_array = get_all_addresses(db);
-    if(all_address_array) {
-      if(cJSON_GetArraySize(all_address_array) > 0) {
-        get_address_balance(&all_address_array, 1);
-        if(cJSON_GetArraySize(all_address_array) > 0) {
-          cJSON_ArrayForEach(addr_obj, all_address_array) {
-            const char* address = cJSON_GetObjectItem(addr_obj, "address")->valuestring;
-            const char* balance = cJSON_GetObjectItem(addr_obj, "balance")->valuestring;
-            set_address_balance(db, address, balance);
-          }
-        }
-        cJSON_Delete(all_address_array);
-      }
-    }
-
-
 
     cJSON *address_array = get_deposit_addresses(db);
     if (!address_array) {
@@ -84,6 +45,8 @@ void thread_deposit_detector(void* args) {
       cJSON_Delete(address_array);
       continue;
     }
+
+    cJSON* addr_obj = NULL;
 
     //Found at least 1 address with a balance. Update our balances in db
     cJSON_ArrayForEach(addr_obj, address_array) {
@@ -129,5 +92,4 @@ void thread_deposit_detector(void* args) {
   log_wallet_info("Shutting Down Deposit Detector Thread", "");
   close_db_handle(db);
   pthread_exit(0);
-
 }
