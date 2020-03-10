@@ -2,6 +2,10 @@
 // Created by matth on 2/29/2020.
 //
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef IOTA_SIMPLEWALLET_IOTA_SIMPLEWALLET_H
 #define IOTA_SIMPLEWALLET_IOTA_SIMPLEWALLET_H
 #include <stdint.h>
@@ -13,7 +17,6 @@
  *
 */
 
-void init_logger();
 int init_db();
 int init_crypto();
 void init_iota();
@@ -157,3 +160,8 @@ int create_transaction(char* username, char* password, char* dest_address, uint6
 
 
 #endif //IOTA_SIMPLEWALLET_IOTA_SIMPLEWALLET_H
+
+
+#ifdef __cplusplus
+}
+#endif
