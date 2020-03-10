@@ -163,25 +163,17 @@ char* send_transaction(char* seed, const char* dest_address, const char* change_
 
   }
 
-  //---end for loop---
 
-
-  /* reminder address (optional) */
+  /* change address */
   flex_trit_t trit_change_addr[NUM_FLEX_TRITS_ADDRESS];
   flex_trits_from_trytes(
     trit_change_addr, NUM_TRITS_ADDRESS,
     (const tryte_t *)change_address,
     NUM_TRYTES_ADDRESS, NUM_TRYTES_ADDRESS);
 
-  //TODO: store all data in db  and have a separate thread to send it
-
-  //ret_code = iota_client_send_transfer(serv, trit_seed, security, depth, mwm, false, transfers, trit_change_addr, NULL,
-   //                                    &input_list, bundle);
-
   ret_code = iota_client_prepare_transfers(serv, trit_seed, security, transfers, trit_change_addr, &input_list, true, 0, bundle);
   sodium_memzero(trit_seed, NUM_FLEX_TRITS_ADDRESS);
 
-bundle_dump(bundle);
   hash8019_array_p raw_tx = hash8019_array_new();
   flex_trit_t serialized_value[FLEX_TRIT_SIZE_8019];
   iota_transaction_t* tx = NULL;
@@ -205,29 +197,10 @@ bundle_dump(bundle);
   hash8019_array_to_json_array(raw_tx, tx_array, "trytes");
   char* ret_val = cJSON_PrintUnformatted(tx_array);
   cJSON_Delete(tx_array);
-  //printf(" prepare transfers, tx returned: \n%s\n", cJSON_Print(tx_array));
-
-  //TODO: store tx_array as trytes in db in this entry's <outgoing_transaction>
-
-  //ret_code = iota_client_send_trytes(serv, raw_tx, depth, mwm, reference, local_pow, out_tx_objs);
-
   hash_array_free(raw_tx);
 
   inputs_clear(&input_list);
-/*
-  if (ret_code == RC_OK) {
-    flex_trit_t const *bundle_hash = bundle_transactions_bundle_hash(bundle);
-    log_wallet_info("Send was successful! <%s>", "");
-    //flex_trit_print(bundle_hash, NUM_TRITS_HASH);
-  } else {
-    log_wallet_error("Sending failed with %s\n", error_2_string(ret_code));
-    bundle_transactions_free(&bundle);
-    transfer_message_free(&tf);
-    transfer_array_free(transfers);
-    iota_client_core_destroy(&serv);
-    return -1;
-  }
-  */
+
   ///////////////////
   bundle_transactions_free(&bundle);
   transfer_message_free(&tf);

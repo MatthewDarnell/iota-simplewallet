@@ -144,7 +144,7 @@ int create_transaction(char* username, char* password, char* dest_address, uint6
 
     cJSON* address_json_generated = generate_new_addresses(seed, offset, 1+offset);
     char* generated_address = cJSON_GetObjectItem(
-                                           cJSON_GetObjectItem(address_json_generated, 0),
+                                           cJSON_GetArrayItem(address_json_generated, 0),
                                            "address"
                               )->valuestring;
 

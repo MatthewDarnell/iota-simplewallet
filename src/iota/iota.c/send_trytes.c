@@ -9,7 +9,7 @@
 
 int send_trytes(char* out_bundle, int out_bundle_max_len, char* out_hash, int out_hash_max_len, uint64_t serial, const char* trytes) {
   retcode_t ret_code = RC_OK;
-  flex_trit_t trits_8019[FLEX_TRIT_SIZE_8019];
+  flex_trit_t trits_8019[FLEX_TRIT_SIZE_8019 + 1];
 
   uint32_t depth = 3;
   uint8_t mwm = 14;
@@ -23,16 +23,35 @@ int send_trytes(char* out_bundle, int out_bundle_max_len, char* out_hash, int ou
     return -1;
   }
 
-  if (flex_trits_from_trytes(trits_8019, NUM_TRITS_SERIALIZED_TRANSACTION, (tryte_t*)trytes,
-                             NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION) == 0) {
-    log_wallet_error("Error: converting flex_trit failed.\n", "");
+  cJSON* json_trytes = cJSON_Parse(trytes);
+  if(!json_trytes) {
+    log_wallet_error("Invalid Trytes %s\n", trytes);
     transaction_array_free(out_tx_objs);
     iota_client_core_destroy(&serv);
     hash_array_free(raw_trytes);
     return -1;
   }
 
-  hash_array_push(raw_trytes, trits_8019);
+  if(!cJSON_HasObjectItem(json_trytes, "trytes")) {
+    log_wallet_error("Invalid Trytes %s\n", trytes);
+    cJSON_Delete(json_trytes);
+    transaction_array_free(out_tx_objs);
+    iota_client_core_destroy(&serv);
+    hash_array_free(raw_trytes);
+    return -1;
+  }
+  cJSON* trytes_array = cJSON_GetObjectItem(json_trytes, "trytes");
+  cJSON* tryte_obj = NULL;
+
+  cJSON_ArrayForEach(tryte_obj, trytes_array) {
+    memset(trits_8019, 0, FLEX_TRIT_SIZE_8019 + 1);
+    if (flex_trits_from_trytes(trits_8019, NUM_TRITS_SERIALIZED_TRANSACTION, (tryte_t*)cJSON_GetStringValue(tryte_obj),
+                               NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION) == 0) {
+      log_wallet_error("Converting flex_trit failed. %s\n", cJSON_Print(tryte_obj));
+      continue;
+    }
+    hash_array_push(raw_trytes, trits_8019);
+  }
 
   int ret_val = 0;
   if ((ret_code = iota_client_send_trytes(serv, raw_trytes, depth, mwm, NULL, false,

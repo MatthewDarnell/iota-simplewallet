@@ -289,7 +289,7 @@ cJSON* get_addresses_for_spending(sqlite3* db, const char* username) {
 
   char* query = "SELECT address, balance, offset"
                 " FROM ("
-                " SELECT address, balance, offset"
+                " SELECT address, balance, offset, spent_from"
                 " FROM address"
                 " WHERE CAST(balance AS INTEGER) > 0"
                 " AND account=?"
