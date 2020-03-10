@@ -22,84 +22,77 @@ int get_account_inputs(const char* username, const char* seed) {
     return 0;
   }
 
-  cJSON* inputs = get_inputs(seed);
-  cJSON* input = NULL;
-
-  uint64_t latest_key_index = 0;
-  cJSON_ArrayForEach(input, inputs) {
-    uint64_t key_index = strtoull(cJSON_GetObjectItem(input, "keyIndex")->valuestring, NULL, 10);
-    if(latest_key_index <= key_index) {
-      latest_key_index = key_index;
-    }
-  }
-
-
-  uint8_t input_lut[latest_key_index];
-  memset(input_lut, 0, latest_key_index);
-
-  cJSON_ArrayForEach(input, inputs) {
-    uint64_t key_index = strtoull(cJSON_GetObjectItem(input, "keyIndex")->valuestring, NULL, 10);
-    input_lut[key_index] = 1;
-  }
-
-
-  cJSON* new_addresses = generate_new_addresses(seed, 0, latest_key_index);
-  if(!new_addresses) {
-    pthread_mutex_unlock(&mutex);
-    log_wallet_error("Failed to sync account!", "")
-    return -1;
-  }
-
-
-  cJSON* address = NULL;
-
-  int i = 0;
-  cJSON_ArrayForEach(address, new_addresses) {
-    const char* addr = cJSON_GetObjectItem(address, "address")->valuestring;
-    uint32_t index = cJSON_GetObjectItem(address, "index")->valueint;
-    if(create_address(db, addr, index, username) < 0) {
-      log_wallet_error("Error storing address %s %d in database!", addr, index);
-    }
-    if(input_lut[i] == 1) {
-      log_wallet_info("Adding address %s @ key index %d\n", addr, i);
-      cJSON_ArrayForEach(input, inputs) {
-        uint64_t key_index = strtoull(cJSON_GetObjectItem(input, "keyIndex")->valuestring, NULL, 10);
-        if(index == key_index) {
-          char* balance = cJSON_GetObjectItem(input, "balance")->valuestring;
-          set_address_balance(db, addr, balance);
-          break;
-        }
-      }
-    }
-    i++;
-  }
-
-  cJSON_Delete(new_addresses);
-
-  //Get Inputs does not always seem to find all inputs. After getinputs is called, we are going
-  //to manually check address balance for the first <minAddressesToCheckWhenSyncing> addresses,
+  //Get Inputs does not always seem to find all inputs.
+  //Manually check address balance for the first <minAddressesToCheckWhenSyncing> addresses,
   //as long as <minAddressesToCheckWhenSyncing> is greater than the highest key index found by getinputs
   char* str_minAddressesToCheckWhenSyncing = get_config("minAddressesToCheckWhenSyncing");
-  if(str_minAddressesToCheckWhenSyncing) {
-    int minAddressesToCheckWhenSyncing = strtol(str_minAddressesToCheckWhenSyncing, NULL, 10);
-    if(minAddressesToCheckWhenSyncing > latest_key_index) {
-      cJSON* addresses = generate_new_addresses(seed, 0, minAddressesToCheckWhenSyncing);
-      if(addresses) {
-        cJSON_ArrayForEach(address, addresses) {
-          const char* addr = cJSON_GetObjectItem(address, "address")->valuestring;
-          uint32_t index = cJSON_GetObjectItem(address, "index")->valueint;
-          create_address(db, addr, index, username);  //will fail on duplicate addresses, just ignore
-        }
-        get_address_balance(&addresses, 1);
-        cJSON_ArrayForEach(address, addresses) {
-          const char* addr = cJSON_GetObjectItem(address, "address")->valuestring;
-          const char* balance = cJSON_GetObjectItem(address, "balance")->valuestring;
-          set_address_balance(db, addr, balance);
-        }
-        cJSON_Delete(address);
+  if(!str_minAddressesToCheckWhenSyncing) {
+    log_wallet_error("%s cannot find minAddressesToCheckWhenSyncing", __func__);
+    pthread_mutex_unlock(&mutex);
+    return 0;
+  }
+
+  uint64_t minAddressesToCheckWhenSyncing = strtoull(str_minAddressesToCheckWhenSyncing, NULL, 10);
+  free(str_minAddressesToCheckWhenSyncing);
+
+  uint64_t start_index = 0;
+  int found_balance = 0;
+  uint64_t temp_balance = 0;
+  cJSON* address = NULL;
+
+  while(1) {
+    found_balance = 0;
+#ifdef WIN32
+    log_wallet_debug("Syncing Account. Checking addresses %I64u through %I64u\n", start_index, minAddressesToCheckWhenSyncing)
+#else
+    log_wallet_debug("Syncing Account. Checking addresses %llu through %llu\n", start_index, minAddressesToCheckWhenSyncing)
+#endif
+    cJSON* addresses = generate_new_addresses(seed, start_index, minAddressesToCheckWhenSyncing);
+    if(!addresses) {
+#ifdef WIN32
+      log_wallet_error("Could not find addresses starting at index.(%I64u)", start_index);
+#else
+      log_wallet_error("Could not find addresses starting at index.(%llu)", start_index);
+#endif
+      break;
+    }
+
+    get_address_balance(&addresses, 1, 0);
+
+    cJSON_ArrayForEach(address, addresses) {
+      if(!cJSON_HasObjectItem(address, "balance")) {
+        continue;
+      }
+      temp_balance = strtoull(cJSON_GetObjectItem(address, "balance")->valuestring, NULL, 10);
+      if(temp_balance > 0) {  //At least 1 address in this batch has a non-zero balance
+        log_wallet_debug("Found an address with a balance of %lld\n", temp_balance);
+        start_index = minAddressesToCheckWhenSyncing;
+        minAddressesToCheckWhenSyncing *= 2;
+        found_balance = 1;
+        break;
       }
     }
-    free(str_minAddressesToCheckWhenSyncing);
+
+    if(found_balance == 0) {  //No more addresses found with a balance in the last <minAddressesToCheckWhenSyncing> checked. Let's break out
+      break;
+    }
+
+
+    cJSON_ArrayForEach(address, addresses) {  //At least one of these addresses has a balance. Let's save these addresses
+      const char* addr = cJSON_GetObjectItem(address, "address")->valuestring;
+      uint32_t index = cJSON_GetObjectItem(address, "index")->valueint;
+      create_address(db, addr, index, username);  //will fail on duplicate addresses, just ignore
+      if(cJSON_HasObjectItem(address, "balance")) {
+        char* balance = cJSON_GetObjectItem(address, "balance")->valuestring;
+        temp_balance = strtoull(balance, NULL, 10);
+        if(temp_balance > 0) {
+          set_address_balance(db, addr, balance);
+        }
+      }
+    }
+
+    cJSON_Delete(addresses);
+
   }
 
 

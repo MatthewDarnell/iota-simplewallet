@@ -9,7 +9,7 @@
 #include "../../config/logger.h"
 #include "../api.h"
 
-void get_address_balance(cJSON** addresses, uint64_t min_iota) {
+void get_address_balance(cJSON** addresses, uint64_t min_iota, int remove_low_balance_addrs) {
   iota_client_service_t* serv = get_iota_client();
   get_balances_req_t *balance_req = get_balances_req_new();
   get_balances_res_t *balance_res = get_balances_res_new();
@@ -59,25 +59,28 @@ void get_address_balance(cJSON** addresses, uint64_t min_iota) {
     cJSON_AddStringToObject(address, "balance", str_balance);
   }
 
-  i = 0;
-  while(1) {
-    if(i >=  cJSON_GetArraySize(*addresses)) {
-      break;
-    }
-    cJSON* obj = cJSON_GetArrayItem(*addresses, i);
-    if(!cJSON_HasObjectItem(obj, "balance")) {
-      cJSON_DeleteItemFromArray(*addresses, i);
-      i--;
-    } else {
-      const char* balance = cJSON_GetObjectItem(obj, "balance")->valuestring;
-      uint64_t d_balance = strtoull(balance, NULL, 10);
-      if(d_balance < min_iota) {
+  if(remove_low_balance_addrs > 0) {
+    i = 0;
+    while(1) {
+      if(i >=  cJSON_GetArraySize(*addresses)) {
+        break;
+      }
+      cJSON* obj = cJSON_GetArrayItem(*addresses, i);
+      if(!cJSON_HasObjectItem(obj, "balance")) {
         cJSON_DeleteItemFromArray(*addresses, i);
         i--;
+      } else {
+        const char* balance = cJSON_GetObjectItem(obj, "balance")->valuestring;
+        uint64_t d_balance = strtoull(balance, NULL, 10);
+        if(d_balance < min_iota) {
+          cJSON_DeleteItemFromArray(*addresses, i);
+          i--;
+        }
       }
+      i++;
     }
-    i++;
   }
+
 
 
   get_balances_req_free(&balance_req);

@@ -39,7 +39,7 @@ void thread_deposit_detector(void* args) {
     }
 
     int ret_val = 0;
-    get_address_balance(&address_array, 1);
+    get_address_balance(&address_array, 1, 1);
 
     if(cJSON_GetArraySize(address_array) < 1) {
       cJSON_Delete(address_array);
@@ -55,9 +55,15 @@ void thread_deposit_detector(void* args) {
       set_address_balance(db, address, balance);
     }
 
+    int input_len = cJSON_GetArraySize(address_array);
+
+    if(input_len < 1) {
+      continue;
+    }
+
     get_transaction_inputs_to_address(&address_array);
 
-    int input_len = cJSON_GetArraySize(address_array);
+    input_len = cJSON_GetArraySize(address_array);
 
     if(input_len < 1) { //No transactions found
       continue;

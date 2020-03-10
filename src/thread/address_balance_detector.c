@@ -35,7 +35,7 @@ void thread_address_balance_detector(void* args) {
     cJSON *all_address_array = get_all_addresses(db);
     if(all_address_array) {
       if(cJSON_GetArraySize(all_address_array) > 0) {
-        get_address_balance(&all_address_array, 1);
+        get_address_balance(&all_address_array, 1, 1);
         if(cJSON_GetArraySize(all_address_array) > 0) {
           cJSON_ArrayForEach(addr_obj, all_address_array) {
             const char* address = cJSON_GetObjectItem(addr_obj, "address")->valuestring;

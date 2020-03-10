@@ -33,12 +33,14 @@ void thread_spent_from_detector(void* args) {
     cJSON *json_address = NULL;
     cJSON *unspents = get_unspent_addresses(db);
     if (unspents) {
-      were_addresses_spent_from(&unspents);
-      cJSON_ArrayForEach(json_address, unspents) {
-        int spent = cJSON_GetObjectItem(json_address, "spent_from")->valueint;
-        if (spent > 0) {
-          char *addr = cJSON_GetObjectItem(json_address, "address")->valuestring;
-          mark_address_spent_from(db, addr);
+      if(cJSON_GetArraySize(unspents) > 0) {
+        were_addresses_spent_from(&unspents);
+        cJSON_ArrayForEach(json_address, unspents) {
+          int spent = cJSON_GetObjectItem(json_address, "spent_from")->valueint;
+          if (spent > 0) {
+            char *addr = cJSON_GetObjectItem(json_address, "address")->valuestring;
+            mark_address_spent_from(db, addr);
+          }
         }
       }
       cJSON_Delete(unspents);
