@@ -48,6 +48,7 @@ cJSON* get_unspent_addresses(sqlite3* db) {
   char* query = "SELECT address, balance, offset"
                 " FROM address"
                 " WHERE spent_from=0"
+                " AND used=0"
                 " ORDER BY offset ASC"
   ;
   rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
@@ -84,6 +85,7 @@ cJSON* get_unspent_addresses_by_username(sqlite3* db, const char* username) {
                 " FROM address"
                 " WHERE account=?"
                 " AND spent_from=0"
+                " AND used=0"
                 " ORDER BY offset ASC"
   ;
   rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
@@ -144,7 +146,8 @@ cJSON* get_address_by_address(sqlite3* db, const char* address) {
     cJSON_AddStringToObject(json, "account", (char*)sqlite3_column_text(stmt, 4 ));
     cJSON_AddNumberToObject(json, "is_change", sqlite3_column_int(stmt, 5 ));
     cJSON_AddNumberToObject(json, "spent_from", sqlite3_column_int(stmt, 6 ));
-    cJSON_AddStringToObject(json, "created_at", (char*)sqlite3_column_text(stmt, 7));
+    cJSON_AddNumberToObject(json, "used", sqlite3_column_int(stmt, 7 ));
+    cJSON_AddStringToObject(json, "created_at", (char*)sqlite3_column_text(stmt, 8));
   }
 
   sqlite3_finalize(stmt);
@@ -156,7 +159,7 @@ cJSON* get_next_fresh_address(sqlite3* db, const char* username) {
   sqlite3_stmt* stmt;
   int rc;
 
-  char* query = "SELECT address FROM address WHERE spent_from=0 AND is_change=0 AND account=? ORDER BY offset ASC LIMIT 1";
+  char* query = "SELECT address FROM address WHERE spent_from=0 AND is_change=0 AND used=0 AND account=? ORDER BY offset ASC LIMIT 1";
   rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
 
   if (rc != SQLITE_OK) {
@@ -184,7 +187,7 @@ cJSON* get_next_change_address(sqlite3* db, const char* username) {
   int rc;
 
   char* query = "SELECT address FROM address"
-                " WHERE is_change=1 AND spent_from=0 AND account=?"
+                " WHERE is_change=1 AND spent_from=0 AND used=0 AND account=?"
                 " AND address NOT IN"
                 " (SELECT change_address AS address FROM outgoing_transaction)"
                 " ORDER BY offset ASC LIMIT 1";
@@ -214,9 +217,7 @@ cJSON* get_all_addresses(sqlite3* db) {
   int rc;
 
   char* query = "SELECT *"
-                " FROM address"
-                " WHERE is_change=0"
-  ;
+                " FROM address";
   rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
 
   if (rc != SQLITE_OK) {
@@ -252,7 +253,7 @@ cJSON* get_deposit_addresses(sqlite3* db) {
 
   char* query = "SELECT *"
                 " FROM address"
-                " WHERE is_change=0 AND spent_from=0"
+                " WHERE is_change=0 AND spent_from=0 AND used=0"
   ;
   rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
 
@@ -293,6 +294,7 @@ cJSON* get_addresses_for_spending(sqlite3* db, const char* username) {
                 " FROM address"
                 " WHERE CAST(balance AS INTEGER) > 0"
                 " AND account=?"
+                " AND used=0"
                 " ORDER BY CAST(balance AS INTEGER) ASC"
                 ")"
                 " ORDER BY spent_from DESC";
@@ -379,6 +381,7 @@ int32_t get_num_change_addresses(sqlite3* db, const char* username) {
                 " WHERE account=? AND"
                 " is_change=1 AND"
                 " spent_from=0 AND"
+                " used=0 AND"
                 " a.address NOT IN "
                 " (SELECT change_address AS address FROM outgoing_transaction)"
   ;
@@ -410,7 +413,8 @@ int32_t get_num_fresh_addresses(sqlite3* db, const char* username) {
                 " FROM address "
                 " WHERE account=? AND"
                 " is_change=0 AND"
-                "  spent_from=0"
+                "  spent_from=0 AND"
+                " used=0"
                 ;
   rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
 
@@ -482,6 +486,33 @@ int mark_address_spent_from(sqlite3* db, const char* address) {
     return -1;
   } else {
     log_wallet_debug("Marking address %s as a spent from", address);
+  }
+  sqlite3_finalize(stmt);
+  return 0;
+}
+int mark_address_used(sqlite3* db, const char* address) {
+  enforce_max_length(strlen(address))
+  sqlite3_stmt* stmt;
+  int rc;
+
+  char* query = "UPDATE address SET used=1 WHERE address=?";
+  rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
+
+  if (rc != SQLITE_OK) {
+    log_wallet_error("%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
+    return -1;
+  }
+
+  sqlite3_bind_text(stmt, 1, address, -1, NULL);
+  rc = sqlite3_step(stmt);
+
+  if (rc != SQLITE_DONE) {
+    log_wallet_error("%s execution failed: %s", __func__, sqlite3_errmsg(db));
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return -1;
+  } else {
+    log_wallet_debug("Marking address %s as used", address);
   }
   sqlite3_finalize(stmt);
   return 0;

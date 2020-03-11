@@ -38,9 +38,10 @@ int main(int argc, char *argv[]) {
 
  /*
 
+  TODO: Call generate_addresses on every create_transaction to ensure sufficient change addresses
+
   TODO: filter out known txs in deposit detector before calling get inclusion
 
-  TODO: dont expose db handles to user api
 
       TODO: add callback mechanism for events to UI
 
@@ -58,7 +59,7 @@ int main(int argc, char *argv[]) {
 
       TODO threads:
         incoming transaction detector X
-        outgoing transaction sender
+        outgoing transaction sender X
         sent transaction promoter
 
 

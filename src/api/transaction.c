@@ -137,6 +137,11 @@ int create_transaction(char* username, char* password, char* dest_address, uint6
 
   cJSON_ArrayForEach(obj, cJSON_GetObjectItem(inputs, "inputs")) {
     char* address = cJSON_GetObjectItem(obj, "address")->valuestring;
+
+    if(strcasecmp(address, dest_address) == 0) {  //If the user sends to himself, do not use the destination address as an input
+      continue;
+    }
+
     char* balance = cJSON_GetObjectItem(obj, "balance")->valuestring;
     uint64_t tmp_balance = strtoull(balance, NULL, 10);
     int offset = cJSON_GetObjectItem(obj, "offset")->valueint;
@@ -205,6 +210,7 @@ int create_transaction(char* username, char* password, char* dest_address, uint6
     cJSON_ArrayForEach(obj, inputs_to_use) {
       char* address = cJSON_GetObjectItem(obj, "address")->valuestring;
       mark_address_spent_from(db, address);
+      mark_address_used(db, address);
     }
   }
 

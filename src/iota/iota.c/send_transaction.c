@@ -148,8 +148,6 @@ char* send_transaction(char* seed, const char* dest_address, const char* change_
     next_input.key_index = offset;
     next_input.security = 2;
 
-    printf("Sending with inputted Address.(%s)\n", address);
-
     flex_trits_from_trytes(
       next_input.address, NUM_TRITS_ADDRESS,
       (const tryte_t *)address,
@@ -187,7 +185,6 @@ char* send_transaction(char* seed, const char* dest_address, const char* change_
     inputs_clear(&input_list);
     return NULL;
   }
-  bundle_dump(bundle);
 
   hash8019_array_p raw_tx = hash8019_array_new();
   flex_trit_t serialized_value[FLEX_TRIT_SIZE_8019];

@@ -20,5 +20,6 @@ int32_t get_num_change_addresses(sqlite3* db, const char* username);
 int32_t get_num_fresh_addresses(sqlite3* db, const char* username);
 int32_t get_latest_offset(sqlite3* db, const char* username);
 int mark_address_spent_from(sqlite3* db, const char* address);
+int mark_address_used(sqlite3* db, const char* address);
 int mark_address_is_change_address(sqlite3* db, const char* address);
 #endif //IOTA_SIMPLEWALLET_ADDRESS_H
