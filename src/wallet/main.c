@@ -38,6 +38,8 @@ int main(int argc, char *argv[]) {
 
  /*
 
+  TODO: Add api call for exporting seed and/or account state to file
+
   TODO: Call generate_addresses on every create_transaction to ensure sufficient change addresses
 
   TODO: filter out known txs in deposit detector before calling get inclusion

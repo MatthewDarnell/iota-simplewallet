@@ -45,16 +45,7 @@ void thread_deposit_detector(void* args) {
       cJSON_Delete(address_array);
       continue;
     }
-
-    cJSON* addr_obj = NULL;
-
-    //Found at least 1 address with a balance. Update our balances in db
-    cJSON_ArrayForEach(addr_obj, address_array) {
-      const char* address = cJSON_GetObjectItem(addr_obj, "address")->valuestring;
-      const char* balance = cJSON_GetObjectItem(addr_obj, "balance")->valuestring;
-      set_address_balance(db, address, balance);
-    }
-
+    
     int input_len = cJSON_GetArraySize(address_array);
 
     if(input_len < 1) {
