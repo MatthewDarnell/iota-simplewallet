@@ -194,7 +194,7 @@ int set_config(const char* key, const char* value, int8_t save) {
   if(cJSON_HasObjectItem(config_obj, key)) {
     cJSON_DeleteItemFromObject(config_obj, key);
   }
-  log_wallet_debug("Setting config %s to %s", key, value);
+
   cJSON_AddStringToObject(
     config_obj,
     key,

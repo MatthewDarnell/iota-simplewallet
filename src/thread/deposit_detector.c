@@ -78,7 +78,7 @@ void thread_deposit_detector(void* args) {
         char* hash = cJSON_GetObjectItem(transaction, "hash")->valuestring;
         cJSON* tx = get_incoming_transaction_hash(db, hash);
         if(tx) {
-          log_wallet_debug("Removing known transaction: %s", hash);
+          //log_wallet_debug("Removing known transaction: %s", hash);
           cJSON_DeleteItemFromArray(transaction_array, j);
           j--;
         }

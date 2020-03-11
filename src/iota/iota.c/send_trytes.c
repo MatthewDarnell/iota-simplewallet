@@ -7,9 +7,27 @@
 #include "../../config/logger.h"
 #include "../api.h"
 
+static retcode_t json_array_to_hash8019_array(cJSON const* const obj, char const* const obj_name, hash8019_array_p array) {
+  flex_trit_t hash[FLEX_TRIT_SIZE_8019] = { 0 };
+  cJSON* json_item = cJSON_GetObjectItemCaseSensitive(obj, obj_name);
+  if (cJSON_IsArray(json_item)) {
+    cJSON* current_obj = NULL;
+    cJSON_ArrayForEach(current_obj, json_item) {
+      if (current_obj->valuestring != NULL) {
+        flex_trits_from_trytes(hash, NUM_TRITS_SERIALIZED_TRANSACTION, (tryte_t const*)current_obj->valuestring,
+                               NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION);
+        hash_array_push(array, hash);
+      }
+    }
+  } else {
+    log_wallet_error("[%s:%d] %s not array\n", __func__, __LINE__, STR_CCLIENT_JSON_PARSE);
+    return RC_CCLIENT_JSON_PARSE;
+  }
+  return RC_OK;
+}
+
 int send_trytes(char* out_bundle, int out_bundle_max_len, char* out_hash, int out_hash_max_len, uint64_t serial, const char* trytes) {
   retcode_t ret_code = RC_OK;
-  flex_trit_t trits_8019[FLEX_TRIT_SIZE_8019 + 1];
 
   uint32_t depth = 3;
   uint8_t mwm = 14;
@@ -40,61 +58,53 @@ int send_trytes(char* out_bundle, int out_bundle_max_len, char* out_hash, int ou
     hash_array_free(raw_trytes);
     return -1;
   }
-  cJSON* trytes_array = cJSON_GetObjectItem(json_trytes, "trytes");
-  cJSON* tryte_obj = NULL;
 
-  cJSON_ArrayForEach(tryte_obj, trytes_array) {
-    memset(trits_8019, 0, FLEX_TRIT_SIZE_8019 + 1);
-    if (flex_trits_from_trytes(trits_8019, NUM_TRITS_SERIALIZED_TRANSACTION, (tryte_t*)cJSON_GetStringValue(tryte_obj),
-                               NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION) == 0) {
-      log_wallet_error("Converting flex_trit failed. %s\n", cJSON_Print(tryte_obj));
-      continue;
-    }
-    hash_array_push(raw_trytes, trits_8019);
-  }
+  hash8019_array_p array = hash8019_array_new();
+
+   if(RC_OK != json_array_to_hash8019_array(json_trytes, "trytes", array)) {
+     log_wallet_error("error converting trytes\n", "")
+   }
+
+  cJSON_Delete(json_trytes);
 
   int ret_val = 0;
-  if ((ret_code = iota_client_send_trytes(serv, raw_trytes, depth, mwm, NULL, false,
+  if ((ret_code = iota_client_send_trytes(serv, array, depth, mwm, NULL, false,
                                           out_tx_objs)) == RC_OK) {
     log_wallet_info("Transaction has been sent\n", "");
-    iota_transaction_t *tx_obj = NULL;
 
     tryte_t hash[NUM_TRYTES_HASH + 1] = { 0 };
     tryte_t bundle[NUM_TRYTES_BUNDLE + 1] = { 0 };
 
-    TX_OBJS_FOREACH(out_tx_objs, tx_obj) {
-      memset(hash, 0, NUM_TRYTES_HASH + 1);
-      memset(bundle, 0, NUM_TRYTES_BUNDLE + 1);
+    iota_transaction_t* tx = transaction_array_at(out_tx_objs, 0);
+    memset(hash, 0, NUM_TRYTES_HASH + 1);
+    memset(bundle, 0, NUM_TRYTES_BUNDLE + 1);
 
-      flex_trit_t* trit_hash = transaction_hash(tx_obj);
-      flex_trit_t* trit_bundle = transaction_hash(tx_obj);
+    flex_trit_t* trit_hash = transaction_hash(tx);
+    flex_trit_t* trit_bundle = transaction_bundle(tx);
 
-      flex_trits_to_trytes(
-        hash, NUM_TRYTES_HASH,
-        trit_hash,
-        NUM_TRITS_HASH, NUM_TRITS_HASH);
+    flex_trits_to_trytes(
+      hash, NUM_TRYTES_HASH,
+      trit_hash,
+      NUM_TRITS_HASH, NUM_TRITS_HASH);
 
-      flex_trits_to_trytes(
-        bundle, NUM_TRYTES_BUNDLE,
-        trit_bundle,
-        NUM_TRITS_BUNDLE, NUM_TRITS_BUNDLE);
+    flex_trits_to_trytes(
+      bundle, NUM_TRYTES_BUNDLE,
+      trit_bundle,
+      NUM_TRITS_BUNDLE, NUM_TRITS_BUNDLE);
 
-      int bundle_len_to_copy = strlen((char*)bundle) > out_bundle_max_len ? out_bundle_max_len : strlen((char*)bundle);
-      int hash_len_to_copy = strlen((char*)hash) > out_hash_max_len ? out_hash_max_len : strlen((char*)hash);
+    size_t bundle_len_to_copy = strlen((char*)bundle);
+    size_t hash_len_to_copy = strlen((char*)hash);
 
-      memset(out_bundle, 0, (size_t)out_bundle_max_len);
-      memset(out_hash, 0, (size_t)out_hash_max_len);
+    memset(out_bundle, 0, out_bundle_max_len);
+    memset(out_hash, 0, out_hash_max_len);
 
-      memcpy(out_bundle, (char*)bundle, bundle_len_to_copy);
-      memcpy(out_hash, (char*)hash, hash_len_to_copy);
+    memcpy(out_bundle, (char*)bundle, bundle_len_to_copy);
+    memcpy(out_hash, (char*)hash, hash_len_to_copy);
 
-    }
   } else {
     log_wallet_error("Error Sending Trytes: %s\n", error_2_string(ret_code));
     ret_val = -1;
   }
-
-
 
   transaction_array_free(out_tx_objs);
   hash_array_free(raw_trytes);

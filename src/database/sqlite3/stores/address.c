@@ -156,7 +156,7 @@ cJSON* get_next_fresh_address(sqlite3* db, const char* username) {
   sqlite3_stmt* stmt;
   int rc;
 
-  char* query = "SELECT address FROM address WHERE is_change=0 AND account=? ORDER BY offset ASC LIMIT 1";
+  char* query = "SELECT address FROM address WHERE spent_from=0 AND is_change=0 AND account=? ORDER BY offset ASC LIMIT 1";
   rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
 
   if (rc != SQLITE_OK) {
@@ -184,7 +184,7 @@ cJSON* get_next_change_address(sqlite3* db, const char* username) {
   int rc;
 
   char* query = "SELECT address FROM address"
-                " WHERE is_change=1 AND account=?"
+                " WHERE is_change=1 AND spent_from=0 AND account=?"
                 " AND address NOT IN"
                 " (SELECT change_address AS address FROM outgoing_transaction)"
                 " ORDER BY offset ASC LIMIT 1";

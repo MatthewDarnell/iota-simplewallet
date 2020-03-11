@@ -38,6 +38,7 @@ void get_transaction_inputs_to_address(cJSON** addresses) {
       (const tryte_t *)address,
       NUM_TRYTES_HASH, NUM_TRYTES_HASH)) {
       log_wallet_error( "Unable to convert address %s to trytes\n", address);
+      free(address);
       find_transactions_req_free(&find_tran);
       transaction_array_free(out_tx_objs);
       iota_client_core_destroy(&serv);
@@ -124,11 +125,6 @@ void get_transaction_inputs_to_address(cJSON** addresses) {
       bundle, NUM_TRYTES_BUNDLE,
       trit_bundle,
       NUM_TRITS_BUNDLE, NUM_TRITS_BUNDLE);
-
-
-    log_wallet_info("hash: %s\n", (char*)hash);
-    log_wallet_info("bundle: %s\n", (char*)bundle);
-    log_wallet_info("address: %s\n", (char*)address);
 
     cJSON* obj = cJSON_CreateObject();
     cJSON_AddStringToObject(obj, "hash", (const char*)hash);

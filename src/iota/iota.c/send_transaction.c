@@ -18,7 +18,7 @@
 static retcode_t hash8019_array_to_json_array(hash8019_array_p array, cJSON* const json_root, char const* const obj_name) {
   size_t array_count = 0;
   cJSON* array_obj = NULL;
-  tryte_t trytes_out[NUM_TRYTES_SERIALIZED_TRANSACTION + 1] = {};
+  tryte_t trytes_out[NUM_TRYTES_SERIALIZED_TRANSACTION] = { 0 };
   size_t trits_count = 0;
   flex_trit_t* elt = NULL;
 
@@ -33,7 +33,7 @@ static retcode_t hash8019_array_to_json_array(hash8019_array_p array, cJSON* con
     HASH_ARRAY_FOREACH(array, elt) {
       trits_count = flex_trits_to_trytes(trytes_out, NUM_TRYTES_SERIALIZED_TRANSACTION, elt,
                                          NUM_TRITS_SERIALIZED_TRANSACTION, NUM_TRITS_SERIALIZED_TRANSACTION);
-      trytes_out[NUM_TRYTES_SERIALIZED_TRANSACTION] = '\0';
+      //trytes_out[NUM_TRYTES_SERIALIZED_TRANSACTION] = '\0';
       if (trits_count != 0) {
         cJSON_AddItemToArray(array_obj, cJSON_CreateString((char const*)trytes_out));
       } else {
@@ -122,13 +122,11 @@ char* send_transaction(char* seed, const char* dest_address, const char* change_
   flex_trits_from_trytes(tf.address, NUM_TRITS_ADDRESS, (tryte_t*)dest_address, NUM_TRYTES_ADDRESS, NUM_TRYTES_ADDRESS);
 
   // tag
-  char* tag = get_config("sendTag");
-  flex_trits_from_trytes(tf.tag, NUM_TRITS_TAG, (const tryte_t *)tag, NUM_TRYTES_TAG,
+  flex_trits_from_trytes(tf.tag, NUM_TRITS_TAG, (const tryte_t *)"IOTACWALLET9999999999999999", NUM_TRYTES_TAG,
                          NUM_TRYTES_TAG);
-  free(tag);
 
   // value
-  tf.value = value; // send 5i to receiver
+  tf.value = value; // send i to receiver
   transfer_array_add(transfers, &tf);
 
 
@@ -149,6 +147,8 @@ char* send_transaction(char* seed, const char* dest_address, const char* change_
     next_input.balance = d_balance;
     next_input.key_index = offset;
     next_input.security = 2;
+
+    printf("Sending with inputted Address.(%s)\n", address);
 
     flex_trits_from_trytes(
       next_input.address, NUM_TRITS_ADDRESS,
@@ -171,15 +171,15 @@ char* send_transaction(char* seed, const char* dest_address, const char* change_
     (const tryte_t *)change_address,
     NUM_TRYTES_ADDRESS, NUM_TRYTES_ADDRESS);
 
-  ret_code = iota_client_prepare_transfers(serv, trit_seed, security, transfers, trit_change_addr, &input_list, true, 0, bundle);
+  if(sum_inputs == value) {
+    ret_code = iota_client_prepare_transfers(serv, trit_seed, security, transfers, NULL, &input_list, true, 0, bundle);
+  } else {
+    ret_code = iota_client_prepare_transfers(serv, trit_seed, security, transfers, trit_change_addr, &input_list, true, 0, bundle);
+  }
   sodium_memzero(trit_seed, NUM_FLEX_TRITS_ADDRESS);
 
-  hash8019_array_p raw_tx = hash8019_array_new();
-  flex_trit_t serialized_value[FLEX_TRIT_SIZE_8019];
-  iota_transaction_t* tx = NULL;
   if (ret_code != RC_OK) {
     log_wallet_error("Unable to prepare transfers %s", error_2_string(ret_code));
-    hash_array_free(raw_tx);
     bundle_transactions_free(&bundle);
     transfer_message_free(&tf);
     transfer_array_free(transfers);
@@ -187,14 +187,22 @@ char* send_transaction(char* seed, const char* dest_address, const char* change_
     inputs_clear(&input_list);
     return NULL;
   }
+  bundle_dump(bundle);
+
+  hash8019_array_p raw_tx = hash8019_array_new();
+  flex_trit_t serialized_value[FLEX_TRIT_SIZE_8019];
+  iota_transaction_t* tx = NULL;
+
   BUNDLE_FOREACH(bundle, tx) {
     // tx trytes must be in order, from last to 0.
     transaction_serialize_on_flex_trits(tx, serialized_value);
     utarray_insert(raw_tx, serialized_value, 0);
   }
 
+
   cJSON* tx_array = cJSON_CreateObject();
   hash8019_array_to_json_array(raw_tx, tx_array, "trytes");
+
   char* ret_val = cJSON_PrintUnformatted(tx_array);
   cJSON_Delete(tx_array);
   hash_array_free(raw_tx);

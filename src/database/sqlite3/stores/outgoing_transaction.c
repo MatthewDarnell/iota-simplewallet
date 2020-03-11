@@ -161,7 +161,7 @@ int mark_outgoing_transaction_sent(sqlite3* db, int serial, const char* bundle, 
     sqlite3_finalize(stmt);
     return -1;
   } else {
-    log_wallet_debug("Marked Outgoing Transaction (%d) as sent. (hash=<%s>) (bundle=<%s>)\n", hash, bundle);
+    log_wallet_debug("Marked Outgoing Transaction (%d) as sent. (hash=<%s>) (bundle=<%s>)\n", serial, hash, bundle);
   }
   sqlite3_finalize(stmt);
   return 0;
