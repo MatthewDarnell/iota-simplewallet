@@ -12,7 +12,7 @@
 #include <pthread.h>
 #include <cjson/cJSON.h>
 #include "../database/sqlite3/db.h"
-#include "../config/logger.h"
+#include "../iota-simplewallet.h"
 #include "../database/sqlite3/stores/address.h"
 #include "../database/sqlite3/stores/incoming_transaction.h"
 #include "../database/helpers/store_iota_inputs.h"
@@ -45,7 +45,7 @@ void thread_deposit_detector(void* args) {
       cJSON_Delete(address_array);
       continue;
     }
-    
+
     int input_len = cJSON_GetArraySize(address_array);
 
     if(input_len < 1) {

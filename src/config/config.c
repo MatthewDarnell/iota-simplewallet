@@ -5,8 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <cjson/cJSON.h>
-#include "config.h"
-#include "logger.h"
+#include "../iota-simplewallet.h"
 
 cJSON *config = NULL;
 const char *default_config = "{"
@@ -21,7 +20,14 @@ const char *default_config = "{"
                         "\"port\": \"443\""
                         "}"
                         "],"
-                        "\"sendTag\": \"IOTA9C9WALLET\""
+                        "\"sendTag\": \"IOTA9C9WALLET\","
+                        "\"events\": ["
+                        "\"node_updated\","
+                        "\"balance_changed\","
+                        "\"transaction_received\","
+                        "\"transaction_sent\","
+                        "\"sent_transaction_confirmed\""
+                        "]"
                         "}";
 const char* default_path = "wallet.conf";
 

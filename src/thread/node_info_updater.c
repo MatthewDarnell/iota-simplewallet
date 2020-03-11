@@ -11,9 +11,8 @@
 
 #include <pthread.h>
 #include <cjson/cJSON.h>
-#include "../config/config.h"
-#include "../config/logger.h"
 #include "../iota/api.h"
+#include "../iota-simplewallet.h"
 #include "node_info_updater.h"
 
 
@@ -36,6 +35,6 @@ void thread_node_info_updater(void* args) {
     Sleep(30 * 1000);
 
   }
-  log_wallet_info("Shutting Node Info Updater Thread", "");
+  log_wallet_info("Shutting Down Node Info Updater Thread", "");
   pthread_exit(0);
 }

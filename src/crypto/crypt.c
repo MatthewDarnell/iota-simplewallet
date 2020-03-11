@@ -4,7 +4,7 @@
 
 #include <string.h>
 #include <sodium.h>
-#include "../config/logger.h"
+#include "../iota-simplewallet.h"
 #include "crypt.h"
 
 int init_crypto() {

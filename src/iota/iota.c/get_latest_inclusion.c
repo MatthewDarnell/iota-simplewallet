@@ -5,7 +5,7 @@
 #include <cclient/service.h>
 #include <cclient/api/core/core_api.h>
 #include <cclient/api/extended/extended_api.h>
-#include "../../config/logger.h"
+#include "../../iota-simplewallet.h"
 #include "../api.h"
 
 void get_latest_inclusion(cJSON** addresses_with_transactions, int include_unconfirmed) {

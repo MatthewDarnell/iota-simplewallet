@@ -4,8 +4,7 @@
 
 #include <sqlite3.h>
 #include <pthread.h>
-#include "../../config/config.h"
-#include "../../config/logger.h"
+#include "../../iota-simplewallet.h"
 #include "../../iota/api.h"
 #include "../sqlite3/db.h"
 #include "../sqlite3/stores/account.h"

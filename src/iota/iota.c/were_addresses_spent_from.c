@@ -5,8 +5,7 @@
 #include <stdio.h>
 #include <cclient/api/core/core_api.h>
 #include <common/trinary/flex_trit.h>
-#include "../../config/config.h"
-#include "../../config/logger.h"
+#include "../../iota-simplewallet.h"
 #include "../api.h"
 
 void were_addresses_spent_from(cJSON** addresses) {

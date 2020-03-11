@@ -7,8 +7,7 @@
 #include <string.h>
 #include <time.h>
 #include <stdlib.h>
-#include "config.h"
-#include "logger.h"
+#include "../iota-simplewallet.h"
 
 void _log(enum LOG_LEVEL lvl, const char* format, ...) {
   char* logger_file = get_config("logFile");

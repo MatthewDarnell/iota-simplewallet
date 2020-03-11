@@ -4,7 +4,7 @@
 
 #include <cclient/api/core/core_api.h>
 #include <cclient/api/extended/extended_api.h>
-#include "../../config/logger.h"
+#include "../../iota-simplewallet.h"
 #include "../api.h"
 
 static retcode_t json_array_to_hash8019_array(cJSON const* const obj, char const* const obj_name, hash8019_array_p array) {

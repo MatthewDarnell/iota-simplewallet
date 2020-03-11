@@ -4,8 +4,8 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "../../config/logger.h"
 #include "../sqlite3/stores/incoming_transaction.h"
+#include "../../iota-simplewallet.h"
 #include "store_iota_inputs.h"
 
 int store_inputs(sqlite3* db, char* str_inputs) {

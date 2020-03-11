@@ -5,7 +5,7 @@
 #include <cjson/cJSON.h>
 #include <cclient/api/extended/get_inputs.h>
 #include "../api.h"
-#include "../../config/logger.h"
+#include "../../iota-simplewallet.h"
 cJSON* get_inputs(const char* seed) {
   iota_client_service_t *serv = get_iota_client();
   if (!serv) {

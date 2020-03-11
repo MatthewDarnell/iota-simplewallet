@@ -10,8 +10,7 @@
 #include <common/model/transfer.h>
 #include <common/model/bundle.h>
 #include <cclient/api/extended/extended_api.h>
-#include "../../config/config.h"
-#include "../../config/logger.h"
+#include "../../iota-simplewallet.h"
 #include "../api.h"
 
 //was including serialization/json/helpers.h for this function, but it includes local "cJSON.h" and that was failing

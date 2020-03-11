@@ -6,8 +6,7 @@
 #include <sodium.h>
 #include <cclient/api/extended/extended_api.h>
 #include "../api.h"
-#include "../../config/logger.h"
-#include "../../config/config.h"
+#include "../../iota-simplewallet.h"
 
 cJSON* get_node_info() {
   iota_client_service_t* serv = get_iota_client();

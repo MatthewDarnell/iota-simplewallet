@@ -12,7 +12,7 @@
 #include <pthread.h>
 #include <cjson/cJSON.h>
 #include "../database/sqlite3/db.h"
-#include "../config/logger.h"
+#include "../iota-simplewallet.h"
 #include "../database/sqlite3/stores/outgoing_transaction.h"
 #include "../iota/api.h"
 

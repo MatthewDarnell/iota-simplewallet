@@ -5,7 +5,7 @@
 #include <common/trinary/tryte.h>
 #include <cclient/api/core/core_api.h>
 #include  <cclient/api/extended/extended_api.h>
-#include "../../config/logger.h"
+#include "../../iota-simplewallet.h"
 #include "../api.h"
 
 cJSON* generate_new_addresses(const char* seed, int index, int num_addresses) {

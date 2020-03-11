@@ -3,9 +3,8 @@
 //
 #include <stdio.h>
 #include <stdlib.h>
-#include "../../config/config.h"
-#include "../../config/logger.h"
 #include "tables.h"
+#include "../../iota-simplewallet.h"
 #include "db.h"
 int init_db() {
   sqlite3 *connection = NULL;

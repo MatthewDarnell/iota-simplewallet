@@ -5,8 +5,7 @@
 #include <stdio.h>
 #include <cclient/api/core/core_api.h>
 #include <common/trinary/flex_trit.h>
-#include "../../config/config.h"
-#include "../../config/logger.h"
+#include "../../iota-simplewallet.h"
 #include "../api.h"
 
 void get_address_balance(cJSON** addresses, uint64_t min_iota, int remove_low_balance_addrs) {

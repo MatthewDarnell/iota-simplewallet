@@ -4,9 +4,8 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "logger.h"
+#include "../iota-simplewallet.h"
 #include "http.h"
-#include "config.h"
 
 
 struct memory_struct {

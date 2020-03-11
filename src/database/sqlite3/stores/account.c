@@ -3,8 +3,7 @@
 //
 #include <stdio.h>
 #include <string.h>
-#include <inttypes.h>
-#include "../../../config/logger.h"
+#include "../../../iota-simplewallet.h"
 #include "account.h"
 
 #define enforce_max_length(len) if(len > 1024) return -1;

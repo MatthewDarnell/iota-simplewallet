@@ -6,7 +6,7 @@
 #include <cclient/api/core/logger.h>
 #include <cclient/api/extended/logger.h>
 #include <cclient/serialization/json/logger.h>
-#include "../../config/logger.h"
+#include "../../iota-simplewallet.h"
 #include "../api.h"
 
 void init_iota() {

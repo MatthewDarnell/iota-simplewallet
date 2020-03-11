@@ -4,8 +4,7 @@
 
 #include <cjson/cJSON.h>
 #include <cclient/api/core/core_api.h>
-#include "../../config/logger.h"
-#include "../../config/config.h"
+#include "../../iota-simplewallet.h"
 #include "../api.h"
 
 char *host = NULL,

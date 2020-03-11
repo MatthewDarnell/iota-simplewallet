@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <sqlite3.h>
 #include <cjson/cJSON.h>
-#include "../config/config.h"
 #include "../database/sqlite3/db.h"
 #include "../database/sqlite3/stores/address.h"
 #include "../iota-simplewallet.h"

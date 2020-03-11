@@ -12,9 +12,9 @@
 #include <pthread.h>
 #include <cjson/cJSON.h>
 #include "../database/sqlite3/db.h"
-#include "../config/logger.h"
 #include "../database/sqlite3/stores/address.h"
 #include "../iota/api.h"
+#include "../iota-simplewallet.h"
 
 void thread_address_balance_detector(void* args) {
 

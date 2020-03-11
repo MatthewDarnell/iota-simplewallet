@@ -12,10 +12,10 @@
 #include <pthread.h>
 #include <cjson/cJSON.h>
 #include "../database/sqlite3/db.h"
-#include "../config/logger.h"
 #include "../database/sqlite3/stores/address.h"
 #include "../database/sqlite3/stores/outgoing_transaction.h"
 #include "../iota/api.h"
+#include "../iota-simplewallet.h"
 
 void thread_send_transaction(void* args) {
   log_wallet_info("Starting Send Transaction Thread", "");

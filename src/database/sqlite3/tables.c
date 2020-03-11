@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <sqlite3.h>
-#include "../../config/logger.h"
+#include "../../iota-simplewallet.h"
 //db should already be opened
 int create_tables(sqlite3* db) {
   char *zErrMsg = 0;

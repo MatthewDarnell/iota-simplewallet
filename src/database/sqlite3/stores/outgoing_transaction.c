@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "../../../config/logger.h"
+#include "../../../iota-simplewallet.h"
 #include "outgoing_transaction.h"
 
 #define enforce_max_length(len) if(len > 1024) return -1;

@@ -2,11 +2,9 @@
 // Created by matth on 2/19/2020.
 //
 #include <cclient/api/core/core_api.h>
-#include <sodium.h>
 #include <cclient/api/extended/extended_api.h>
 #include "../api.h"
-#include "../../config/logger.h"
-#include "../../config/config.h"
+#include "../../iota-simplewallet.h"
 
 void get_transaction_inputs_to_address(cJSON** addresses) {
   iota_client_service_t* serv = NULL;
