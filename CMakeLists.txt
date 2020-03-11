@@ -80,13 +80,15 @@ file(GLOB iota_simplewallet_SRC
         src/iota/iota.c/send_transaction.c
         src/iota/iota.c/send_trytes.c
 
-
         src/iota/api.h
+
         src/thread/address_balance_detector.c
         src/thread/deposit_detector.c
         src/thread/node_info_updater.c
         src/thread/send_transaction.c
+        src/thread/sent_transaction_confirmer.c
         src/thread/spent_from_detector.c
+
         src/thread/helper/start.c
         deps/sqlite3.c
         deps/cJSON.c

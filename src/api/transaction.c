@@ -24,7 +24,6 @@ char* get_incoming_transaction_by_hash(char* hash) {
   cJSON_Delete(json);
   return ret_val;
 }
-
 char* get_incoming_transactions(char* username, int offset, int num) {
   sqlite3* db = get_db_handle();
   cJSON* json = NULL;
@@ -48,6 +47,44 @@ char* get_incoming_transactions(char* username, int offset, int num) {
   cJSON_Delete(json);
   return ret_val;
 }
+
+
+char* get_outgoing_transaction_by_hash(char* hash) {
+  sqlite3* db = get_db_handle();
+  cJSON* json = get_outgoing_transaction_hash(db, hash);
+  close_db_handle(db);
+  if(!json) {
+    return NULL;
+  }
+  char* ret_val = cJSON_Print(json);
+  cJSON_Delete(json);
+  return ret_val;
+}
+char* get_outgoing_transactions(char* username, int offset, int num) {
+  sqlite3* db = get_db_handle();
+  cJSON* json = NULL;
+  if(username) {
+    json = get_all_outgoing_transactions(db, username, offset, num);
+  } else {
+    char* u = get_config("mainAccount");
+    if(!u) {
+      log_wallet_error("%s Unable to get mainAccount\n", __func__);
+      return NULL;
+    }
+    json = get_all_outgoing_transactions(db, u, offset, num);
+    free(u);
+  }
+
+  close_db_handle(db);
+  if(!json) {
+    return NULL;
+  }
+  char* ret_val = cJSON_Print(json);
+  cJSON_Delete(json);
+  return ret_val;
+}
+
+
 
 int create_transaction(char* username, char* password, char* dest_address, uint64_t value) {
   char* u = NULL;

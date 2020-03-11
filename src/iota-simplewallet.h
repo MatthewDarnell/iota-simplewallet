@@ -159,6 +159,17 @@ char* get_incoming_transaction_by_hash(char* hash);
 //@num: the max count of transactions to return
 char* get_incoming_transactions(char* username, int offset, int num);
 
+//Get a sent transaction
+//@hash: transaction hash
+char* get_outgoing_transaction_by_hash(char* hash);
+
+//Get sent transactions
+//@username: NULL to use main account
+//@offset: the 0-based offset at which to start looking
+//@num: the max count of transactions to return
+char* get_outgoing_transactions(char* username, int offset, int num);
+
+
 //Creates a new transaction to send
 //@username: NULL to use main account
 //@password: the password of the account

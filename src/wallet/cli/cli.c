@@ -79,6 +79,8 @@ int parse_command(char* buf, int* quit_flag) {
                     "\t\tsend_transaction <password> <destination_address> <amount>\n"
                     "\t\tget_all_transactions <offset> <limit>\n"
                     "\t\tget_transaction <hash>\n"
+                    "\t\tget_all_sent_transactions <offset> <limit>\n"
+                    "\t\tget_sent_transaction <hash>\n"
                     "\tMisc:\n"
                     "\t\thelp\n"
                     "\t\tget_node_status\n"
@@ -122,6 +124,22 @@ int parse_command(char* buf, int* quit_flag) {
       log_wallet_info("%s\n", txs);
       free(txs);
     }
+  } else if(strcasecmp(command, "get_all_sent_transactions") == 0) {
+
+    char* str_offset = strtok_r(NULL, " ", &saveptr);
+    char* str_limit = strtok_r(NULL, " ", &saveptr);
+
+    if(!str_limit || !str_offset) {
+      fprintf(stderr, "Usage: get_all_sent_transactions <offset> <limit>\n");
+      log_wallet_error("Usage: get_all_sent_transactions <offset> <limit>\n", "");
+    } else {
+      int offset = atoi(str_offset);
+      int limit = atoi(str_limit);
+      char* txs = get_outgoing_transactions(NULL, offset, limit);
+      printf("%s\n", txs);
+      log_wallet_info("%s\n", txs);
+      free(txs);
+    }
   } else if(strcasecmp(command, "send_transaction") == 0) {
     password = strtok_r(NULL, " ", &saveptr);
     if(!password) {
@@ -140,8 +158,13 @@ int parse_command(char* buf, int* quit_flag) {
     printf("%s\n", tx);
     log_wallet_info("%s\n", tx);
     free(tx);
-  }
-  else if(strcasecmp(command, "create_account") == 0) {
+  } else if(strcasecmp(command, "get_sent_transaction") == 0) {
+    char* hash = strtok_r(NULL, " ", &saveptr);
+    char* tx = get_outgoing_transaction_by_hash(hash);
+    printf("%s\n", tx);
+    log_wallet_info("%s\n", tx);
+    free(tx);
+  } else if(strcasecmp(command, "create_account") == 0) {
     username = strtok_r(NULL, " ", &saveptr);
     password = strtok_r(NULL, " ", &saveptr);
     if(!username || !password) {
