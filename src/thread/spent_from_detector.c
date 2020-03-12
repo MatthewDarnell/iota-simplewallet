@@ -22,11 +22,17 @@ void thread_spent_from_detector(void* args) {
 
   sqlite3* db = get_db_handle();
 
+  int i;
   while(1) {
-    if (*quit_flag != 0) {
+    for(i=0; i < 50; i++) {
+      Sleep(100);
+      if(*quit_flag != 0) {
+        break;
+      }
+    }
+    if(*quit_flag != 0) {
       break;
     }
-    Sleep(5 * 1000);
 
     //Update any addresses which have been spent from
     cJSON *json_address = NULL;

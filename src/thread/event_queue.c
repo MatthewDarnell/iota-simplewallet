@@ -19,7 +19,12 @@
 
 UT_array* loaded_events = NULL;
 
+static int* quit_flag;
+
 void push_new_event(char* event, char* value) {
+  if(*quit_flag != 0) {
+    return;
+  }
   if(!loaded_events) {
     log_wallet_debug(" Trying to push event before setup", "");
     return;
@@ -41,7 +46,7 @@ void thread_event_queue(void* args) {
 
   char**  p = NULL;
 
-  int* quit_flag = (int*)args;
+  quit_flag = (int*)args;
 
   while(1) {
     if (*quit_flag != 0) {

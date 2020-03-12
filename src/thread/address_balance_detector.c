@@ -28,12 +28,17 @@ void thread_address_balance_detector(void* args) {
   sqlite3* db = get_db_handle();
 
   accounts = get_all_accounts(db);
-
+  int i;
   while(1) {
+    for(i=0; i < 50; i++) {
+      Sleep(100);
+      if(*quit_flag != 0) {
+        break;
+      }
+    }
     if(*quit_flag != 0) {
       break;
     }
-    Sleep(5 * 1000);
 
 
     //See if any balance_changed events need to be fired

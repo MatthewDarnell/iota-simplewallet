@@ -24,11 +24,17 @@ void thread_sent_transaction_confirmer(void* args) {
 
   sqlite3* db = get_db_handle();
 
+  int i;
   while(1) {
-    if (*quit_flag != 0) {
+    for(i=0; i < 50; i++) {
+      Sleep(100);
+      if(*quit_flag != 0) {
+        break;
+      }
+    }
+    if(*quit_flag != 0) {
       break;
     }
-    Sleep(5 * 1000);
 
     cJSON* unconfirmed_outgoing_transactions = get_all_unconfirmed_outgoing_transactions(db);
 

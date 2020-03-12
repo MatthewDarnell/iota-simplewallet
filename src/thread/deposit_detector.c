@@ -24,11 +24,17 @@ void thread_deposit_detector(void* args) {
 
   sqlite3* db = get_db_handle();
 
+  int i;
   while(1) {
+    for(i=0; i < 50; i++) {
+      Sleep(100);
+      if(*quit_flag != 0) {
+        break;
+      }
+    }
     if(*quit_flag != 0) {
       break;
     }
-    Sleep(5 * 1000);
 
     cJSON *address_array = get_deposit_addresses(db);
     if (!address_array) {

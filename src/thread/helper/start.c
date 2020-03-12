@@ -17,13 +17,13 @@ pthread_t threads[7];
 
 
 void start_threads() {
-  pthread_create(&(threads[6]), NULL, (void*)&thread_event_queue, (void*)&quit_flag);
-  pthread_create(&(threads[0]), NULL, (void*)&thread_node_info_updater, (void*)&quit_flag);
-  pthread_create(&(threads[1]), NULL, (void*)&thread_deposit_detector, (void*)&quit_flag);
-  pthread_create(&(threads[2]), NULL, (void*)&thread_send_transaction, (void*)&quit_flag);
-  pthread_create(&(threads[3]), NULL, (void*)&thread_spent_from_detector, (void*)&quit_flag);
-  pthread_create(&(threads[4]), NULL, (void*)&thread_address_balance_detector, (void*)&quit_flag);
-  pthread_create(&(threads[5]), NULL, (void*)&thread_sent_transaction_confirmer, (void*)&quit_flag);
+  pthread_create(&(threads[0]), NULL, (void*)&thread_event_queue, (void*)&quit_flag);
+  pthread_create(&(threads[1]), NULL, (void*)&thread_node_info_updater, (void*)&quit_flag);
+  pthread_create(&(threads[2]), NULL, (void*)&thread_deposit_detector, (void*)&quit_flag);
+  pthread_create(&(threads[3]), NULL, (void*)&thread_send_transaction, (void*)&quit_flag);
+  pthread_create(&(threads[4]), NULL, (void*)&thread_spent_from_detector, (void*)&quit_flag);
+  pthread_create(&(threads[5]), NULL, (void*)&thread_address_balance_detector, (void*)&quit_flag);
+  pthread_create(&(threads[6]), NULL, (void*)&thread_sent_transaction_confirmer, (void*)&quit_flag);
 }
 
 void join_threads() {

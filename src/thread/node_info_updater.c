@@ -21,8 +21,15 @@ void thread_node_info_updater(void* args) {
   log_wallet_info("Starting Node Info Updater Thread", "");
   int* quit_flag = (int*)args;
 
+  int i;
   while(1) {
-    if (*quit_flag != 0) {
+    for(i=0; i < 30; i++) {
+      Sleep(1000);
+      if(*quit_flag != 0) {
+        break;
+      }
+    }
+    if(*quit_flag != 0) {
       break;
     }
 
@@ -34,7 +41,6 @@ void thread_node_info_updater(void* args) {
       free(str_info);
       cJSON_Delete(info);
     }
-    Sleep(30 * 1000);
 
   }
   log_wallet_info("Shutting Down Node Info Updater Thread", "");
