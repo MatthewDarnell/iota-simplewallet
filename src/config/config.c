@@ -4,14 +4,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 #include <cjson/cJSON.h>
 #include "../iota-simplewallet.h"
-
+pthread_mutex_t config_file_mutex = PTHREAD_MUTEX_INITIALIZER;
 cJSON *config = NULL;
 const char *default_config = "{"
                         "\"database\": \"iota-simplewallet.db\","
                         "\"minAddressPool\": \"5\","
-                        "\"minAddressesToCheckWhenSyncing\": \"100\","
+                        "\"minAddressesToCheckWhenSyncing\": \"25\","
                         "\"logFile\": \"iota-simplewallet.log\","
                         "\"nodes\": ["
                         "{"
@@ -51,21 +52,26 @@ int __fill_missing_configs_with_defaults(cJSON** object) {  //object exists with
 //Check whether a file exists and is not 0 length
 //@return 0 if yes, < 0 if no
 int __does_file_exist(const char* path) {
+  pthread_mutex_lock(&config_file_mutex);
   FILE *iFile = fopen(path, "rb");
   if(!iFile) {
+    pthread_mutex_unlock(&config_file_mutex);
     return -1;
   }
   long length;
   fseek(iFile, 0, SEEK_END);
   length = ftell(iFile);
   fclose(iFile);
+  pthread_mutex_unlock(&config_file_mutex);
   return (length > 1) ? 0 : -2;
 }
 
 //Read a file into a cJSON struct
 cJSON* __read_file(const char* path) {
+  pthread_mutex_lock(&config_file_mutex);
   FILE* iFile = fopen(path, "rb");
   if(!iFile) {
+    pthread_mutex_unlock(&config_file_mutex);
     fprintf(stderr, "Unable to open configuration file <%s>\n", path);
     return NULL;
   }
@@ -76,12 +82,14 @@ cJSON* __read_file(const char* path) {
 
   char* buffer = (char*) calloc(sizeof(char), length+1);
   if(!buffer) {
+    pthread_mutex_unlock(&config_file_mutex);
     fprintf(stderr, "Unable to allocate memory for config file <%s>\n", path);
     return NULL;
   }
 
   size_t read_bytes = fread(buffer, 1, length, iFile);
   fclose(iFile);
+  pthread_mutex_unlock(&config_file_mutex);
   if(read_bytes != length) {
     fprintf(stderr, "Unable to read config file <%s>\n", path);
     return NULL;
@@ -98,13 +106,16 @@ cJSON* __read_file(const char* path) {
 }
 
 int __write_to_file_and_create(const char* path, const char* data) {
+  pthread_mutex_lock(&config_file_mutex);
   FILE *oFile = fopen(path, "wb+");
   if(!oFile) {
+    pthread_mutex_unlock(&config_file_mutex);
     fprintf(stderr, "Error creating config file %s --- Bailing out!\n", path);
     exit(1);
   }
   fprintf(oFile, "%s", data);
   fclose(oFile);
+  pthread_mutex_unlock(&config_file_mutex);
   return 0;
 }
 
@@ -214,14 +225,19 @@ int set_config(const char* key, const char* value, int8_t save) {
     char* buffer = cJSON_Print(
       cJSON_GetObjectItem(config, "config")
       );
+
+    pthread_mutex_lock(&config_file_mutex);
+
     FILE *oFile = fopen(path, "wb");
     if (oFile == NULL){
+      pthread_mutex_unlock(&config_file_mutex);
       fprintf(stderr, "Error opening file for writing configuration.\n");
       return 1;
     }
     fprintf(oFile, "%s", buffer);
     free(buffer);
     fclose(oFile);
+    pthread_mutex_unlock(&config_file_mutex);
   }
   return  0;
 }

@@ -78,11 +78,9 @@ void thread_deposit_detector(void* args) {
           cJSON_Delete(tx);
         }
       }
-
-
     }
 
-    get_latest_inclusion(&address_array, false);
+    get_latest_inclusion(&address_array, 1);
     char* array_str = cJSON_PrintUnformatted(address_array);
     cJSON_Delete(address_array);
 

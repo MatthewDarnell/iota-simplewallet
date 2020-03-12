@@ -6,21 +6,27 @@
 #include <stdarg.h>
 #include <string.h>
 #include <time.h>
+#include <pthread.h>
 #include <stdlib.h>
 #include "../iota-simplewallet.h"
+
+pthread_mutex_t logger_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void _log(enum LOG_LEVEL lvl, const char* format, ...) {
   char* logger_file = get_config("logFile");
   if(!logger_file) {
     return;
   }
+  pthread_mutex_lock(&logger_mutex);
+
   FILE *oFile = fopen(logger_file, "ab+");
   free(logger_file);
   if(!oFile) {
+    pthread_mutex_unlock(&logger_mutex);
     fprintf(stderr, "Unable to open logger file!\n");
     return;
-  } else {
   }
+
   time_t rawtime;
   struct tm * timeinfo;
   time ( &rawtime );
@@ -61,4 +67,6 @@ void _log(enum LOG_LEVEL lvl, const char* format, ...) {
   snprintf(out_buffer, 1024, "%s --- %s\n", prefix_buffer, stream_buffer);
   fwrite(out_buffer, sizeof(char), strlen(out_buffer), oFile);
   fclose(oFile);
+  pthread_mutex_unlock(&logger_mutex);
+
 }

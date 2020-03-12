@@ -83,7 +83,8 @@ char* get_accounts() {
   } else {
     char *ret_val = cJSON_Print(json);
     cJSON_Delete(json);
-    return ret_val;  }
+    return ret_val;
+  }
 }
 
 int verify_login(const char* username, char* password, int zero_password) {
