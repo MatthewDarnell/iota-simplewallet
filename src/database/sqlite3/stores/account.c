@@ -79,6 +79,7 @@ cJSON* get_all_accounts(sqlite3* db) {
   sqlite3_finalize(stmt);
   return json;
 }
+
 int is_account_synced(sqlite3* db, const char* username) {
   enforce_max_length(strlen(username))
   sqlite3_stmt* stmt;

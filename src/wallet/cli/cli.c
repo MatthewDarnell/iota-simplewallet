@@ -81,6 +81,8 @@ int parse_command(char* buf, int* quit_flag) {
                     "\t\tget_transaction <hash>\n"
                     "\t\tget_all_sent_transactions <offset> <limit>\n"
                     "\t\tget_sent_transaction <hash>\n"
+                    "\tEvents:\n"
+                    "\t\tget_all_events\n"
                     "\tMisc:\n"
                     "\t\thelp\n"
                     "\t\tget_node_status\n"
@@ -164,7 +166,19 @@ int parse_command(char* buf, int* quit_flag) {
     printf("%s\n", tx);
     log_wallet_info("%s\n", tx);
     free(tx);
-  } else if(strcasecmp(command, "create_account") == 0) {
+  }
+
+
+  //Events
+  else if(strcasecmp(command, "get_all_events") == 0) {
+    char* events = get_valid_events();
+    printf("%s\n", events);
+    log_wallet_info("%s\n", events);
+    free(events);
+  }
+
+
+  else if(strcasecmp(command, "create_account") == 0) {
     username = strtok_r(NULL, " ", &saveptr);
     password = strtok_r(NULL, " ", &saveptr);
     if(!username || !password) {

@@ -56,22 +56,31 @@ file(GLOB iota_c_src
 file(GLOB iota_simplewallet_SRC
         src/api/account.c
         src/api/address.c
+        src/api/event.c
         src/api/info.c
         src/api/transaction.c
+
         src/config/config.c
         src/config/logger.c
+
         src/crypto/crypt.c
         src/crypto/password.c
         src/crypto/random.c
+
         src/database/sqlite3/db.c
         src/database/sqlite3/tables.c
+
         src/database/helpers/generate_address.c
         src/database/helpers/get_inputs.c
         src/database/helpers/store_iota_inputs.c
+
         src/database/sqlite3/stores/account.c
         src/database/sqlite3/stores/address.c
         src/database/sqlite3/stores/incoming_transaction.c
         src/database/sqlite3/stores/outgoing_transaction.c
+
+        src/event/event_store.c
+
         src/iota/common/core_client.c
         src/iota/common/generate_address.c
         src/iota/common/generate_seed.c
@@ -84,12 +93,14 @@ file(GLOB iota_simplewallet_SRC
 
         src/thread/address_balance_detector.c
         src/thread/deposit_detector.c
+        src/thread/event_queue.c
         src/thread/node_info_updater.c
         src/thread/send_transaction.c
         src/thread/sent_transaction_confirmer.c
         src/thread/spent_from_detector.c
 
         src/thread/helper/start.c
+
         deps/sqlite3.c
         deps/cJSON.c
         )

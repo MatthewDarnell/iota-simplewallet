@@ -6,6 +6,7 @@
 #include <string.h>
 #include "../sqlite3/stores/incoming_transaction.h"
 #include "../../iota-simplewallet.h"
+#include "../../thread/event_queue.h"
 #include "store_iota_inputs.h"
 
 int store_inputs(sqlite3* db, char* str_inputs) {
@@ -70,8 +71,11 @@ int store_inputs(sqlite3* db, char* str_inputs) {
 
       int d_confirmed = (strcasecmp(confirmed, "true") == 0) ? 1 : 0;
 
-      create_incoming_transaction(db, address, d_amount, bundle, hash, timestamp, d_confirmed);
-
+      if(0 == create_incoming_transaction(db, address, d_amount, bundle, hash, timestamp, d_confirmed)) {
+        char* string = cJSON_PrintUnformatted(transaction);
+        push_new_event("transaction_received", string);
+        free(string);
+      }
     }
   }
   cJSON_Delete(inputs);

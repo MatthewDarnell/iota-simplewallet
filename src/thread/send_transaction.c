@@ -16,6 +16,7 @@
 #include "../database/sqlite3/stores/outgoing_transaction.h"
 #include "../iota/api.h"
 #include "../iota-simplewallet.h"
+#include "event_queue.h"
 
 void thread_send_transaction(void* args) {
   log_wallet_info("Starting Send Transaction Thread", "");
@@ -46,6 +47,12 @@ void thread_send_transaction(void* args) {
       const char* trytes = cJSON_GetObjectItem(tx, "trytes")->valuestring;
       if(send_trytes(bundle, 127, hash, 127, serial, trytes) == 0) {
         mark_outgoing_transaction_sent(db, serial, bundle, hash);
+        cJSON_DeleteItemFromObject(tx, "trytes");
+        cJSON_AddStringToObject(tx, "hash", hash);
+        cJSON_AddStringToObject(tx, "bundle", bundle);
+        char* string = cJSON_PrintUnformatted(tx);
+        push_new_event("transaction_sent",string);
+        free(string);
       }
     }
 

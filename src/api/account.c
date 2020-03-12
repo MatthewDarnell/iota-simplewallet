@@ -31,6 +31,12 @@ char* get_main_account() {
   if(!account) {
     return NULL;
   }
+
+  cJSON_DeleteItemFromObject(account, "serial");
+  cJSON_DeleteItemFromObject(account, "seed_ciphertext");
+  cJSON_DeleteItemFromObject(account, "salt");
+  cJSON_DeleteItemFromObject(account, "nonce");
+
   char* ret_val = cJSON_PrintUnformatted(account);
   cJSON_Delete(account);
   return ret_val;

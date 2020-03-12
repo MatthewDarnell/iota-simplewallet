@@ -34,36 +34,34 @@ static void read_cli(void* args) {
 }
 
 
+void* node_updated_callback(char* value) {
+  printf("%s fired!!! Got <%s>\n", __func__, value);
+  return NULL;
+}
+
+void* balance_changed_callback(char* value) {
+  printf("%s fired!!! Got <%s>\n", __func__, value);
+  return NULL;
+}
+
+void* transaction_received_callback(char* value) {
+  printf("%s fired!!! Got <%s>\n", __func__, value);
+  return NULL;
+}
+
+void* transaction_sent_callback(char* value) {
+  printf("%s fired!!! Got <%s>\n", __func__, value);
+  return NULL;
+}
+
+void* sent_transaction_confirmed_callback(char* value) {
+  printf("%s fired!!! Got <%s>\n", __func__, value);
+  return NULL;
+}
 int main(int argc, char *argv[]) {
 
  /*
-
   TODO: Add api call for exporting seed and/or account state to file
-
-  TODO: Call generate_addresses on every create_transaction to ensure sufficient change addresses
-
-  TODO: filter out known txs in deposit detector before calling get inclusion
-
-
-      TODO: add callback mechanism for events to UI
-
-      TODO: api
-          GetNewAddress(username, password) --->
-              1. Verify Login (this will  auto-gen more fresh addresses)
-              2. Get Next Clean Address
-              3. Return Address
-          GetAddresses(username) --->
-            1. Get all Addresses for this username
-            2. Return Addresses
-          GetTransactions(address) -->
-              1. Fetch Incoming Transactions to and Outgoing Transactions from address
-              2. Return Transactions
-
-      TODO threads:
-        incoming transaction detector X
-        outgoing transaction sender X
-        sent transaction promoter
-
 
   */
 
@@ -76,6 +74,7 @@ int main(int argc, char *argv[]) {
   init_db();
   init_crypto();
   init_iota();
+  init_events();
 
 
 
@@ -84,6 +83,12 @@ int main(int argc, char *argv[]) {
   log_wallet_info("IOTA Wallet Started. Enter <quit> to shutdown.\n", "");
   printf("IOTA Wallet Started. Enter <quit> to shutdown.\n");
 
+
+  register_callback("node_updated", &node_updated_callback);
+  register_callback("balance_changed", &balance_changed_callback);
+  register_callback("transaction_received", &transaction_received_callback);
+  register_callback("transaction_sent", &transaction_sent_callback);
+  register_callback("sent_transaction_confirmed", &sent_transaction_confirmed_callback);
 
   start_threads();
 
@@ -97,6 +102,7 @@ int main(int argc, char *argv[]) {
   shutdown_iota();
 
   shutdown_config();
+  shutdown_events();
 
   return 0;
 }

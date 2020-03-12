@@ -15,6 +15,7 @@
 #include "../iota-simplewallet.h"
 #include "../database/sqlite3/stores/outgoing_transaction.h"
 #include "../iota/api.h"
+#include "event_queue.h"
 
 
 void thread_sent_transaction_confirmer(void* args) {
@@ -48,14 +49,12 @@ void thread_sent_transaction_confirmer(void* args) {
         char* hash = cJSON_GetObjectItem(tx, "hash")->valuestring;
         char* bundle = cJSON_GetObjectItem(tx, "bundle")->valuestring;
         mark_outgoing_transaction_confirmed(db, serial, (const char*)bundle, (const char*)hash);
+        cJSON_DeleteItemFromObject(tx, "trytes");
+        char* string = cJSON_PrintUnformatted(tx);
+        push_new_event("sent_transaction_confirmed", string);
+        free(string);
       }
     }
-
-
-
-
-
-
     cJSON_Delete(unconfirmed_outgoing_transactions);
   }
   log_wallet_info("Shutting Down Sent Transaction Confirmer Thread", "");

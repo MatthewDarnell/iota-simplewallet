@@ -13,6 +13,7 @@
 #include <cjson/cJSON.h>
 #include "../iota/api.h"
 #include "../iota-simplewallet.h"
+#include "event_queue.h"
 #include "node_info_updater.h"
 
 
@@ -28,6 +29,7 @@ void thread_node_info_updater(void* args) {
     cJSON* info = get_node_info();
     if(info) {
       char* str_info = cJSON_PrintUnformatted(info);
+      push_new_event("node_updated", str_info);
       set_config("info", str_info, 0);
       free(str_info);
       cJSON_Delete(info);

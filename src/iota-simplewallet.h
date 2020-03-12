@@ -179,6 +179,17 @@ char* get_outgoing_transactions(char* username, int offset, int num);
 int create_transaction(char* username, char* password, char* dest_address, uint64_t value);
 
 
+/*
+ *
+ *   Event functions
+ *
+*/
+int init_events();
+void shutdown_events();
+char* get_valid_events();
+int register_callback(const char* event, void* (*cb)(char*));
+
+
 
 #endif //IOTA_SIMPLEWALLET_IOTA_SIMPLEWALLET_H
 
