@@ -97,7 +97,9 @@ void thread_address_balance_detector(void* args) {
           cJSON_ArrayForEach(addr_obj, all_address_array) {
             const char* address = cJSON_GetObjectItem(addr_obj, "address")->valuestring;
             const char* balance = cJSON_GetObjectItem(addr_obj, "balance")->valuestring;
-            set_address_balance(db, address, balance);
+            if(set_address_balance(db, address, balance) < 0) {
+              log_wallet_error("%s unable to set address balance for %s %s", __func__, address, balance);
+            }
           }
         }
       }

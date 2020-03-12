@@ -14,14 +14,16 @@ endif()
 
 include(ExternalProject)
 include_directories(${CMAKE_SOURCE_DIR}/deps/include)
+include_directories(${CMAKE_SOURCE_DIR}/deps/include/keccak)
 link_directories(${CMAKE_SOURCE_DIR}/deps/lib)
 link_directories(${CMAKE_SOURCE_DIR}/deps/bin)
 
+
 if(WIN32)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -g -Wall -O3 -DFLEX_TRIT_ENCODING_3_TRITS_PER_BYTE")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -g -Wall -O3 -DFLEX_TRIT_ENCODING_3_TRITS_PER_BYTE -DSQLITE_THREADSAFE=1")
     set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--export-all-symbols -Wl,--whole-archive")
 else()
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -O3 -DFLEX_TRIT_ENCODING_3_TRITS_PER_BYTE")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -O3 -DFLEX_TRIT_ENCODING_3_TRITS_PER_BYTE -DSQLITE_THREADSAFE=1")
 endif()
 include(${CMAKE_SOURCE_DIR}/src/cmake/iota.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/src/cmake/sqlite3.cmake)

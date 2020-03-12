@@ -69,15 +69,13 @@ int parse_command(char* buf, int* quit_flag) {
                     "\tAccounts:\n"
                     "\t\tcreate_account <username> <password>\n"
                     "\t\timport_account <username> <password> <seed>\n"
-                    "\t\tlogin <password>\n"
-                    "\t\tswitch_account <username> -- sets <username> as the default account. Pass null to other functions to use the default account.\n"
-                    "\t\tget_main_account -- returns main account that is currently set.\n"
+                    "\t\tlogin <username> <password>\n"
                     "\t\tget_all_accounts\n"
                     "\tAddresses:\n"
-                    "\t\tget_new_address\n"
+                    "\t\tget_new_address <username>\n"
                     "\tTransactions:\n"
-                    "\t\tsend_transaction <password> <destination_address> <amount>\n"
-                    "\t\tget_all_transactions <offset> <limit>\n"
+                    "\t\tsend_transaction <username> <password> <destination_address> <amount>\n"
+                    "\t\tget_all_transactions <username> <offset> <limit>\n"
                     "\t\tget_transaction <hash>\n"
                     "\t\tget_all_sent_transactions <offset> <limit>\n"
                     "\t\tget_sent_transaction <hash>\n"
@@ -101,57 +99,66 @@ int parse_command(char* buf, int* quit_flag) {
     log_wallet_info("%s\n", status);
     free(status);
   } else if(strcasecmp(command, "get_new_address") == 0) {
-    char* address = NULL;
-    address = get_new_address(NULL);
-    if(!address) {
-      log_wallet_error("Unable to get a new address", "");
+    username = strtok_r(NULL, " ", &saveptr);
+    if(!username) {
+      fprintf(stderr, "Usage: get_new_address <username>\n");
+      log_wallet_error("Usage: get_new_address <username>\n", "");
     } else {
-      printf("%s\n", address);
-      log_wallet_info("%s\n", address);
-      free(address);
+      char* address = NULL;
+      address = get_new_address(username);
+      if(!address) {
+        log_wallet_error("Unable to get a new address", "");
+      } else {
+        printf("%s\n", address);
+        log_wallet_info("%s\n", address);
+        free(address);
+      }
     }
   } else if(strcasecmp(command, "get_all_transactions") == 0) {
 
+    username = strtok_r(NULL, " ", &saveptr);
     char* str_offset = strtok_r(NULL, " ", &saveptr);
     char* str_limit = strtok_r(NULL, " ", &saveptr);
 
-    if(!str_limit || !str_offset) {
-      fprintf(stderr, "Usage: get_all_transactions <offset> <limit>\n");
-      log_wallet_error("Usage: get_all_transactions <offset> <limit>\n", "");
+    if(!username || !str_limit || !str_offset) {
+      fprintf(stderr, "Usage: get_all_transactions <username> <offset> <limit>\n");
+      log_wallet_error("Usage: get_all_transactions <username> <offset> <limit>\n", "");
     } else {
       int offset = atoi(str_offset);
       int limit = atoi(str_limit);
-      char* txs = get_incoming_transactions(NULL, offset, limit);
+      char* txs = get_incoming_transactions(username, offset, limit);
       printf("%s\n", txs);
       log_wallet_info("%s\n", txs);
       free(txs);
     }
   } else if(strcasecmp(command, "get_all_sent_transactions") == 0) {
 
+    username = strtok_r(NULL, " ", &saveptr);
     char* str_offset = strtok_r(NULL, " ", &saveptr);
     char* str_limit = strtok_r(NULL, " ", &saveptr);
 
-    if(!str_limit || !str_offset) {
-      fprintf(stderr, "Usage: get_all_sent_transactions <offset> <limit>\n");
-      log_wallet_error("Usage: get_all_sent_transactions <offset> <limit>\n", "");
+    if(!username || !str_limit || !str_offset) {
+      fprintf(stderr, "Usage: get_all_sent_transactions <username> <offset> <limit>\n");
+      log_wallet_error("Usage: get_all_sent_transactions <username> <offset> <limit>\n", "");
     } else {
       int offset = atoi(str_offset);
       int limit = atoi(str_limit);
-      char* txs = get_outgoing_transactions(NULL, offset, limit);
+      char* txs = get_outgoing_transactions(username, offset, limit);
       printf("%s\n", txs);
       log_wallet_info("%s\n", txs);
       free(txs);
     }
   } else if(strcasecmp(command, "send_transaction") == 0) {
+    username = strtok_r(NULL, " ", &saveptr);
     password = strtok_r(NULL, " ", &saveptr);
-    if(!password) {
-      fprintf(stderr, "Invalid usage: send_transaction <password>\n");
-      log_wallet_error("Invalid usage: send_transaction <password>\n", "");
+    if(!username || !password) {
+      fprintf(stderr, "Invalid usage: send_transaction <username> <password> <destination_address> <amount>\n");
+      log_wallet_error("Invalid usage: send_transaction <username> <password> <destination_address> <amount>\n", "");
       return -1;
     }
     char* destination = strtok_r(NULL, " ", &saveptr);
     uint64_t amount = strtoull(strtok_r(NULL, " ", &saveptr), NULL, 10);
-    int res = create_transaction(NULL, password, destination, amount);
+    int res = create_transaction(username, password, destination, amount);
     printf("%s\n", res == 0 ? "OK" : "NOT OK");
     log_wallet_info("%s\n", res == 0 ? "OK" : "NOT OK");
   } else if(strcasecmp(command, "get_transaction") == 0) {
@@ -210,38 +217,20 @@ int parse_command(char* buf, int* quit_flag) {
       log_wallet_error("Error Creating User\n", "");
     }
   } else if(strcasecmp(command, "login") == 0) {
+    username = strtok_r(NULL, " ", &saveptr);
     password = strtok_r(NULL, " ", &saveptr);
-    if(!password) {
-      fprintf(stderr, "Invalid usage:  login <password>\n");
-      log_wallet_error("Invalid usage:  login <password>\n", "");
+    if(!username || !password) {
+      fprintf(stderr, "Invalid usage:  login <username> <password>\n");
+      log_wallet_error("Invalid usage:  login <username> <password>\n", "");
       return -1;
     }
-    if(0 == verify_login(NULL, password, 1)) {
+    if(0 == verify_login(username, password, 1)) {
       printf("OK\n");
       log_wallet_info("Successfully Logged In User\n", "");
     } else {
       printf("ERROR\n");
       log_wallet_error("Error logging in\n", "");
     }
-  } else if(strcasecmp(command, "switch_account") == 0) {
-    username = strtok_r(NULL, " ", &saveptr);
-    if(!username) {
-      fprintf(stderr, "Invalid usage: switch_account <username>\n");
-      log_wallet_error("Invalid usage: switch_account <username>\n", "");
-      return -1;
-    }
-    if(0 == switch_account(username)) {
-      printf("OK\n");
-      log_wallet_info("Successfully Switched Account to User: %s\n", username);
-    } else {
-      printf("ERROR\n");
-      log_wallet_error("Error Switching Account in\n", "");
-    }
-  }  else if(strcasecmp(command, "get_main_account") == 0) {
-    char* acc = get_main_account();
-    printf("%s\n", acc);
-    log_wallet_info("%s\n", acc);
-    free(acc);
   }
 
   else {

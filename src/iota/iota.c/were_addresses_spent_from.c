@@ -8,14 +8,14 @@
 #include "../../iota-simplewallet.h"
 #include "../api.h"
 
-void were_addresses_spent_from(cJSON** addresses) {
+int were_addresses_spent_from(cJSON** addresses) {
   iota_client_service_t *serv = get_iota_client();
   were_addresses_spent_from_req_t *addr_spent_req = were_addresses_spent_from_req_new();
   were_addresses_spent_from_res_t *addr_spent_res = were_addresses_spent_from_res_new();
 
   if (!serv || !addr_spent_req || !addr_spent_res) {
     log_wallet_error( "%s oom\n", __func__);
-    return;
+    return -1;
   }
 
   flex_trit_t trits_243[FLEX_TRIT_SIZE_243];
@@ -27,9 +27,11 @@ void were_addresses_spent_from(cJSON** addresses) {
     flex_trits_from_trytes(trits_243, NUM_TRITS_HASH, (tryte_t*)addr, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
     if (were_addresses_spent_from_req_add(addr_spent_req, trits_243) != RC_OK) {
       log_wallet_error("%s: adding address failed. (%s)\n", __func__, addr);
+      return -1;
     }
   }
 
+  int ret_val = 0;
   if ((ret_code = iota_client_were_addresses_spent_from(serv, addr_spent_req, addr_spent_res)) == RC_OK) {
     for (size_t i = 0; i < were_addresses_spent_from_res_states_count(addr_spent_res); i++) {
       cJSON* obj = cJSON_GetArrayItem(*addresses, i);
@@ -41,10 +43,11 @@ void were_addresses_spent_from(cJSON** addresses) {
     }
   } else {
     log_wallet_error("%s: %s\n", __func__, error_2_string(ret_code));
+    ret_val = -1;
   }
 
   were_addresses_spent_from_req_free(&addr_spent_req);
   were_addresses_spent_from_res_free(&addr_spent_res);
   iota_client_core_destroy(&serv);
-
+  return ret_val;
 }

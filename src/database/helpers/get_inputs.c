@@ -32,6 +32,7 @@ int get_account_inputs(const char* username, const char* seed) {
   }
 
   uint64_t minAddressesToCheckWhenSyncing = strtoull(str_minAddressesToCheckWhenSyncing, NULL, 10);
+  uint64_t nextAddressesToCheck = minAddressesToCheckWhenSyncing;
   free(str_minAddressesToCheckWhenSyncing);
 
   uint64_t start_index = 0;
@@ -44,9 +45,9 @@ int get_account_inputs(const char* username, const char* seed) {
 #ifdef WIN32
     log_wallet_debug("Syncing Account. Checking addresses %I64u through %I64u\n", start_index, minAddressesToCheckWhenSyncing)
 #else
-    log_wallet_debug("Syncing Account. Checking addresses %llu through %llu\n", start_index, minAddressesToCheckWhenSyncing)
+    log_wallet_debug("Syncing Account. Checking addresses %llu through %llu\n", start_index, nextAddressesToCheck)
 #endif
-    cJSON* addresses = generate_new_addresses(seed, start_index, minAddressesToCheckWhenSyncing);
+    cJSON* addresses = generate_new_addresses(seed, start_index, nextAddressesToCheck);
     if(!addresses) {
 #ifdef WIN32
       log_wallet_error("Could not find addresses starting at index.(%I64u)", start_index);
@@ -65,8 +66,8 @@ int get_account_inputs(const char* username, const char* seed) {
       temp_balance = strtoull(cJSON_GetObjectItem(address, "balance")->valuestring, NULL, 10);
       if(temp_balance > 0) {  //At least 1 address in this batch has a non-zero balance
         log_wallet_debug("Found an address with a balance of %lld\n", temp_balance);
-        start_index = minAddressesToCheckWhenSyncing;
-        minAddressesToCheckWhenSyncing *= 2;
+        start_index = nextAddressesToCheck;
+        nextAddressesToCheck += minAddressesToCheckWhenSyncing;
         found_balance = 1;
         break;
       }
@@ -85,7 +86,9 @@ int get_account_inputs(const char* username, const char* seed) {
         char* balance = cJSON_GetObjectItem(address, "balance")->valuestring;
         temp_balance = strtoull(balance, NULL, 10);
         if(temp_balance > 0) {
-          set_address_balance(db, addr, balance);
+          if(set_address_balance(db, addr, balance) < 0) {
+            log_wallet_error("%s unable to set address balance for %s %s", __func__, addr, balance);
+          }
         }
       }
     }
@@ -97,12 +100,19 @@ int get_account_inputs(const char* username, const char* seed) {
 
   //Find if any addresses have been spent
   cJSON* unspents = get_unspent_addresses_by_username(db, username);
-  were_addresses_spent_from(&unspents);
+  if(0 != were_addresses_spent_from(&unspents)) {
+    close_db_handle(db);
+    pthread_mutex_unlock(&mutex);
+    return 0;
+  }
+
   cJSON_ArrayForEach(address, unspents) {
     int spent = cJSON_GetObjectItem(address, "spent_from")->valueint;
     char* addr = cJSON_GetObjectItem(address, "address")->valuestring;
     if(spent > 0) {
-      mark_address_spent_from(db, addr);
+      if(mark_address_spent_from(db, addr) < 0) {
+        log_wallet_error("%s unable to mark address spent from -- %s", __func__, addr);
+      }
     }
   }
 

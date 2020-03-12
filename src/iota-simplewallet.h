@@ -96,13 +96,6 @@ int set_config(const char* key, const char* value, int8_t save);
  *
 */
 
-//Set the main account to use this @username
-int switch_account(const char* username);
-
-//Get a json string of the currently set main account
-char* get_main_account();
-
-
 //Create an account, should use one of the following #define functions
 int __create_account(const char* username, char* password, const char* imported_seed);
 

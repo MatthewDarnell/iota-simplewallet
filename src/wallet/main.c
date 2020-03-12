@@ -49,6 +49,11 @@ void* transaction_received_callback(char* value) {
   return NULL;
 }
 
+void* transaction_received_confirmed_callback(char* value) {
+  printf("%s fired!!! Got <%s>\n", __func__, value);
+  return NULL;
+}
+
 void* transaction_sent_callback(char* value) {
   printf("%s fired!!! Got <%s>\n", __func__, value);
   return NULL;
@@ -84,9 +89,10 @@ int main(int argc, char *argv[]) {
   printf("IOTA Wallet Started. Enter <quit> to shutdown.\n");
 
 
-  register_callback("node_updated", &node_updated_callback);
+  //register_callback("node_updated", &node_updated_callback);
   register_callback("balance_changed", &balance_changed_callback);
   register_callback("transaction_received", &transaction_received_callback);
+  register_callback("transaction_received_confirmed", &transaction_received_confirmed_callback);
   register_callback("transaction_sent", &transaction_sent_callback);
   register_callback("sent_transaction_confirmed", &sent_transaction_confirmed_callback);
 

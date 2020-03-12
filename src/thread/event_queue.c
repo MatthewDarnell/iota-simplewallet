@@ -51,8 +51,10 @@ void thread_event_queue(void* args) {
     Sleep(100);
 
     while ((p = (char**)utarray_next(loaded_events,p))) {
+      if(!*p) {
+        continue;
+      }
       cJSON* event = NULL;
-      log_wallet_debug("%s\n",*p);
       event = cJSON_Parse(*p);
       if(!event) {
         continue;

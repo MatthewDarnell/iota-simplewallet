@@ -26,19 +26,7 @@ char* get_incoming_transaction_by_hash(char* hash) {
 }
 char* get_incoming_transactions(char* username, int offset, int num) {
   sqlite3* db = get_db_handle();
-  cJSON* json = NULL;
-  if(username) {
-    json = get_all_incoming_transactions(db, username, offset, num);
-  } else {
-    char* u = get_config("mainAccount");
-    if(!u) {
-      log_wallet_error("%s Unable to get mainAccount\n", __func__);
-      return NULL;
-    }
-    json = get_all_incoming_transactions(db, u, offset, num);
-    free(u);
-  }
-
+  cJSON* json = get_all_incoming_transactions(db, username, offset, num);
   close_db_handle(db);
   if(!json) {
     return NULL;
@@ -62,19 +50,7 @@ char* get_outgoing_transaction_by_hash(char* hash) {
 }
 char* get_outgoing_transactions(char* username, int offset, int num) {
   sqlite3* db = get_db_handle();
-  cJSON* json = NULL;
-  if(username) {
-    json = get_all_outgoing_transactions(db, username, offset, num);
-  } else {
-    char* u = get_config("mainAccount");
-    if(!u) {
-      log_wallet_error("%s Unable to get mainAccount\n", __func__);
-      return NULL;
-    }
-    json = get_all_outgoing_transactions(db, u, offset, num);
-    free(u);
-  }
-
+  cJSON* json = get_all_outgoing_transactions(db, username, offset, num);
   close_db_handle(db);
   if(!json) {
     return NULL;
@@ -87,53 +63,29 @@ char* get_outgoing_transactions(char* username, int offset, int num) {
 
 
 int create_transaction(char* username, char* password, char* dest_address, uint64_t value) {
-  char* u = NULL;
-  int free_user = 0;
-
-  if(username) {
-    u = username;
-  } else {
-    u = get_config("mainAccount");
-    if(!u) {
-      log_wallet_error("%s Unable to get mainAccount\n", __func__);
-      return -1;
-    }
-    free_user = 1;
-  }
-
-
-  int verified = verify_login(u, password, 0);
+  int verified = verify_login(username, password, 0);
   if(verified != 0) {
     log_wallet_error("Invalid Password, cannot create transaction", "");
-    if(free_user == 1) {
-      free(u);
-    }
     return -1;
   }
   sqlite3* db = get_db_handle();
 
   //Get change address
-  cJSON* change_address_json = get_next_change_address(db, u);
+  cJSON* change_address_json = get_next_change_address(db, username);
   if(!change_address_json) {
     close_db_handle(db);
     log_wallet_error("Could not get change address for spending", "");
-    if(free_user == 1) {
-      free(u);
-    }
     return -1;
   }
 
   char* change_address = cJSON_GetObjectItem(change_address_json, "address")->valuestring;
 
   //Get minimal set of inputs to use for spending
-  cJSON* inputs = get_addresses_for_spending(db, u);
+  cJSON* inputs = get_addresses_for_spending(db, username);
   if(!inputs) {
     close_db_handle(db);
     cJSON_Delete(change_address_json);
     log_wallet_error("No Inputs for spending transaction", "");
-    if(free_user == 1) {
-      free(u);
-    }
     return -1;
   }
   int num_inputs = cJSON_GetArraySize(
@@ -148,9 +100,6 @@ int create_transaction(char* username, char* password, char* dest_address, uint6
     cJSON_Delete(change_address_json);
     cJSON_Delete(inputs);
     log_wallet_error("Insufficient Funds for Creating Transaction. (Balance: %s) (Input Count: %d)\n", str_balance, num_inputs);
-    if(free_user == 1) {
-      free(u);
-    }
     return -1;
   }
 
@@ -161,13 +110,10 @@ int create_transaction(char* username, char* password, char* dest_address, uint6
 
 
   char seed[128] = { 0 };
-  if(decrypt_seed(seed, 127, u, password) < 0) {
+  if(decrypt_seed(seed, 127, username, password) < 0) {
     cJSON_Delete(change_address_json);
     close_db_handle(db);
     log_wallet_error("Error creating transaction, could not decrypt seed", "")
-    if(free_user == 1) {
-      free(u);
-    }
     return -1;
   }
 
@@ -224,9 +170,6 @@ int create_transaction(char* username, char* password, char* dest_address, uint6
     cJSON_Delete(change_address_json);
     cJSON_Delete(inputs_to_use);
     close_db_handle(db);
-    if(free_user == 1) {
-      free(u);
-    }
     return -1;
   }
 
@@ -246,7 +189,9 @@ int create_transaction(char* username, char* password, char* dest_address, uint6
   if(create == 0) { //Success
     cJSON_ArrayForEach(obj, inputs_to_use) {
       char* address = cJSON_GetObjectItem(obj, "address")->valuestring;
-      mark_address_spent_from(db, address);
+      if(mark_address_spent_from(db, address) < 0) {
+        log_wallet_error("%s unable to mark address spent from -- %s", __func__, address);
+      }
       mark_address_used(db, address);
     }
   }
@@ -255,8 +200,5 @@ int create_transaction(char* username, char* password, char* dest_address, uint6
 
   cJSON_Delete(change_address_json);
   close_db_handle(db);
-  if(free_user == 1) {
-    free(u);
-  }
   return create;
 }

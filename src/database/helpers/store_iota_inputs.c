@@ -76,6 +76,13 @@ int store_inputs(sqlite3* db, char* str_inputs) {
         push_new_event("transaction_received", string);
         free(string);
       }
+      if(d_confirmed > 0) {
+        if(0 == mark_incoming_transaction_confirmed(db, hash)) {
+          char* string = cJSON_PrintUnformatted(transaction);
+          push_new_event("transaction_received_confirmed", string);
+          free(string);
+        }
+      }
     }
   }
   cJSON_Delete(inputs);

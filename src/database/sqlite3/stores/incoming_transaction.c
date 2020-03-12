@@ -215,3 +215,32 @@ cJSON* get_unspents_by_username(sqlite3* db, const char* username) {
   sqlite3_finalize(stmt);
   return json;
 }
+
+int mark_incoming_transaction_confirmed(sqlite3* db, const char* hash) {
+  enforce_max_length( + strlen(hash))
+  sqlite3_stmt* stmt;
+  int rc;
+
+  char* query = "UPDATE incoming_transaction SET confirmed=1 WHERE hash=?";
+  rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
+
+  if (rc != SQLITE_OK) {
+    log_wallet_error( "%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
+    return -1;
+  }
+
+  sqlite3_bind_text(stmt, 1, hash, -1, NULL);
+
+  rc = sqlite3_step(stmt);
+
+  if (rc != SQLITE_DONE) {
+    log_wallet_error("%s execution failed: %s", __func__, sqlite3_errmsg(db));
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return -1;
+  } else {
+    log_wallet_debug("Confirming Incoming Transaction. (hash=<%s>)", hash);
+  }
+  sqlite3_finalize(stmt);
+  return 0;
+}

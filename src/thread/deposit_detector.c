@@ -60,21 +60,26 @@ void thread_deposit_detector(void* args) {
       continue;
     }
 
+    cJSON* obj;
+    int j = 0;
 
-    cJSON* obj, *transaction;
     cJSON_ArrayForEach(obj, address_array) {
       cJSON* transaction_array = cJSON_GetObjectItem(obj, "transactions");
-      int j = 0;
-      cJSON_ArrayForEach(transaction, transaction_array) {
+      for(j=0; j < cJSON_GetArraySize(transaction_array); j++) {
+        cJSON* transaction = cJSON_GetArrayItem(transaction_array, j);
         char* hash = cJSON_GetObjectItem(transaction, "hash")->valuestring;
         cJSON* tx = get_incoming_transaction_hash(db, hash);
         if(tx) {
-          //log_wallet_debug("Removing known transaction: %s", hash);
-          cJSON_DeleteItemFromArray(transaction_array, j);
-          j--;
+          int old_confirmed = cJSON_GetObjectItem(tx, "confirmed")->valueint;
+          if(old_confirmed > 0) { //This is a known transaction which is already confirmed
+            cJSON_DeleteItemFromArray(transaction_array, j);
+            j--;
+          }
+          cJSON_Delete(tx);
         }
-        j++;
       }
+
+
     }
 
     get_latest_inclusion(&address_array, false);

@@ -11,19 +11,7 @@
 
 char* get_new_address(char* username) {
   sqlite3* db = get_db_handle();
-  cJSON* json = NULL;
-  if(username) {
-    json = get_next_fresh_address(db, username);
-  } else {
-    char* u = get_config("mainAccount");
-    if(!u) {
-      log_wallet_error("%s Unable to get mainAccount\n", __func__);
-      return NULL;
-    }
-    json = get_next_fresh_address(db, u);
-    free(u);
-  }
-
+  cJSON* json = get_next_fresh_address(db, username);
   close_db_handle(db);
   if(!json) {
     return NULL;

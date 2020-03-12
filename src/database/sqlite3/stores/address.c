@@ -58,8 +58,14 @@ cJSON* get_unspent_addresses(sqlite3* db) {
     return NULL;
   }
 
-  rc = sqlite3_step(stmt);
-
+  int count = 0;
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    if(count > 5) {
+      break;
+    }
+    count++;
+    sqlite3_sleep(100);
+  }
   cJSON *json = cJSON_CreateArray();
 
 
@@ -97,8 +103,14 @@ cJSON* get_unspent_addresses_by_username(sqlite3* db, const char* username) {
 
   sqlite3_bind_text(stmt, 1, username, -1, NULL);
 
-  rc = sqlite3_step(stmt);
-
+  int count = 0;
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    if(count > 5) {
+      break;
+    }
+    count++;
+    sqlite3_sleep(100);
+  }
   cJSON *json = cJSON_CreateArray();
 
 
@@ -133,8 +145,14 @@ cJSON* get_address_by_address(sqlite3* db, const char* address) {
   }
 
   sqlite3_bind_text(stmt, 1, address, -1, NULL);
-  rc = sqlite3_step(stmt);
-
+  int count = 0;
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    if(count > 5) {
+      break;
+    }
+    count++;
+    sqlite3_sleep(100);
+  }
   cJSON *json = NULL;
   if (rc == SQLITE_ROW) {
     json =  cJSON_CreateObject();
@@ -168,8 +186,14 @@ cJSON* get_next_fresh_address(sqlite3* db, const char* username) {
   }
 
   sqlite3_bind_text(stmt, 1, username, -1, NULL);
-  rc = sqlite3_step(stmt);
-
+  int count = 0;
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    if(count > 5) {
+      break;
+    }
+    count++;
+    sqlite3_sleep(100);
+  }
   cJSON *json = NULL;
   if (rc == SQLITE_ROW) {
     json =  cJSON_CreateObject();
@@ -199,8 +223,14 @@ cJSON* get_next_change_address(sqlite3* db, const char* username) {
   }
 
   sqlite3_bind_text(stmt, 1, username, -1, NULL);
-  rc = sqlite3_step(stmt);
-
+  int count = 0;
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    if(count > 5) {
+      break;
+    }
+    count++;
+    sqlite3_sleep(100);
+  }
   cJSON *json = NULL;
   if (rc == SQLITE_ROW) {
     json =  cJSON_CreateObject();
@@ -225,8 +255,14 @@ cJSON* get_all_addresses(sqlite3* db) {
     return NULL;
   }
 
-  rc = sqlite3_step(stmt);
-
+  int count = 0;
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    if(count > 5) {
+      break;
+    }
+    count++;
+    sqlite3_sleep(100);
+  }
   cJSON *json = cJSON_CreateArray();
 
   while(rc == SQLITE_ROW) {
@@ -262,8 +298,14 @@ cJSON* get_deposit_addresses(sqlite3* db) {
     return NULL;
   }
 
-  rc = sqlite3_step(stmt);
-
+  int count = 0;
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    if(count > 5) {
+      break;
+    }
+    count++;
+    sqlite3_sleep(100);
+  }
   cJSON *json = cJSON_CreateArray();
 
   while(rc == SQLITE_ROW) {
@@ -307,8 +349,14 @@ cJSON* get_addresses_for_spending(sqlite3* db, const char* username) {
 
   sqlite3_bind_text(stmt, 1, username, -1, NULL);
 
-  rc = sqlite3_step(stmt);
-
+  int count = 0;
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    if(count > 5) {
+      break;
+    }
+    count++;
+    sqlite3_sleep(100);
+  }
   cJSON *json = cJSON_CreateObject();
   cJSON* inputs = cJSON_CreateArray();
 
@@ -357,7 +405,14 @@ int32_t set_address_balance(sqlite3* db, const char* address, const char* balanc
   sqlite3_bind_text(stmt, 1, balance, -1, NULL);
   sqlite3_bind_text(stmt, 2, address, -1, NULL);
   sqlite3_bind_text(stmt, 3, balance, -1, NULL);
-  rc = sqlite3_step(stmt);
+  int count = 0;
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    if(count > 5) {
+      break;
+    }
+    count++;
+    sqlite3_sleep(100);
+  }
 
   if (rc != SQLITE_DONE) {
     log_wallet_error("%s execution failed: %s", __func__, sqlite3_errmsg(db));
@@ -393,8 +448,14 @@ int32_t get_num_change_addresses(sqlite3* db, const char* username) {
   }
 
   sqlite3_bind_text(stmt, 1, username, -1, NULL);
-  rc = sqlite3_step(stmt);
-
+  int count = 0;
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    if(count > 5) {
+      break;
+    }
+    count++;
+    sqlite3_sleep(100);
+  }
   int num = -1;
   if (rc == SQLITE_ROW) {
     num = sqlite3_column_int(stmt, 0);
@@ -424,8 +485,14 @@ int32_t get_num_fresh_addresses(sqlite3* db, const char* username) {
   }
 
   sqlite3_bind_text(stmt, 1, username, -1, NULL);
-  rc = sqlite3_step(stmt);
-
+  int count = 0;
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    if(count > 5) {
+      break;
+    }
+    count++;
+    sqlite3_sleep(100);
+  }
   int num = -1;
   if (rc == SQLITE_ROW) {
     num = sqlite3_column_int(stmt, 0);
@@ -450,7 +517,14 @@ int32_t get_latest_offset(sqlite3* db, const char* username) {
   }
 
   sqlite3_bind_text(stmt, 1, username, -1, NULL);
-  rc = sqlite3_step(stmt);
+  int count = 0;
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    if(count > 5) {
+      break;
+    }
+    count++;
+    sqlite3_sleep(100);
+  }
 
   int offset = -1;
   if (rc == SQLITE_ROW) {
@@ -477,7 +551,14 @@ int mark_address_spent_from(sqlite3* db, const char* address) {
   }
 
   sqlite3_bind_text(stmt, 1, address, -1, NULL);
-  rc = sqlite3_step(stmt);
+  int count = 0;
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    if(count > 5) {
+      break;
+    }
+    count++;
+    sqlite3_sleep(100);
+  }
 
   if (rc != SQLITE_DONE) {
     log_wallet_error("%s execution failed: %s", __func__, sqlite3_errmsg(db));
@@ -504,7 +585,14 @@ int mark_address_used(sqlite3* db, const char* address) {
   }
 
   sqlite3_bind_text(stmt, 1, address, -1, NULL);
-  rc = sqlite3_step(stmt);
+  int count = 0;
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    if(count > 5) {
+      break;
+    }
+    count++;
+    sqlite3_sleep(100);
+  }
 
   if (rc != SQLITE_DONE) {
     log_wallet_error("%s execution failed: %s", __func__, sqlite3_errmsg(db));
@@ -532,7 +620,14 @@ int mark_address_is_change_address(sqlite3* db, const char* address) {
   }
 
   sqlite3_bind_text(stmt, 1, address, -1, NULL);
-  rc = sqlite3_step(stmt);
+  int count = 0;
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    if(count > 5) {
+      break;
+    }
+    count++;
+    sqlite3_sleep(100);
+  }
 
   if (rc != SQLITE_DONE) {
     log_wallet_error("%s execution failed: %s", __func__, sqlite3_errmsg(db));

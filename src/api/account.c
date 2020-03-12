@@ -14,36 +14,6 @@
 #include "../iota/api.h"
 #include "../iota-simplewallet.h"
 
-int switch_account(const char* username) {
-  set_config("mainAccount", username, 1);
-  return 0;
-}
-
-char* get_main_account() {
-  char* username = get_config("mainAccount");
-  if(!username) {
-    return NULL;
-  }
-  sqlite3* db = get_db_handle();
-  cJSON* account = get_account_by_username(db, username);
-  free(username);
-  close_db_handle(db);
-  if(!account) {
-    return NULL;
-  }
-
-  cJSON_DeleteItemFromObject(account, "serial");
-  cJSON_DeleteItemFromObject(account, "seed_ciphertext");
-  cJSON_DeleteItemFromObject(account, "salt");
-  cJSON_DeleteItemFromObject(account, "nonce");
-
-  char* ret_val = cJSON_PrintUnformatted(account);
-  cJSON_Delete(account);
-  return ret_val;
-}
-
-
-
 int __create_account(const char* username, char* password, const char* imported_seed) {
   //Generate a secure password to derive encryption key
   sqlite3* db = get_db_handle();
@@ -119,30 +89,11 @@ char* get_accounts() {
 int verify_login(const char* username, char* password, int zero_password) {
   sqlite3* db = get_db_handle();
   cJSON* user = NULL;
-  char* u = NULL;
-  int free_user = 0;
-
-  if(username) {
-    u = (char*)username;
-    user = get_account_by_username(db, username);
-  } else {
-    u = get_config("mainAccount");
-    if(!u) {
-      log_wallet_error("%s Unable to get mainAccount\n", __func__);
-      return -1;
-    }
-    free_user = 1;
-    user = get_account_by_username(db, u);
-  }
-
-
+  user = get_account_by_username(db, username);
 
   close_db_handle(db);
   if(!user) {
-    log_wallet_error("User %s does not exist", u);
-    if(free_user == 1) {
-      free(u);
-    }
+    log_wallet_error("User %s does not exist", username);
     return -1;
   }
 
@@ -176,8 +127,8 @@ int verify_login(const char* username, char* password, int zero_password) {
   );
 
   if(decrypt_result == 0) {
-    get_account_inputs(u, (const char*)p); //Do we need to sync this account to find inputs
-    generate_address(u, (const char*)p); //Seed is decrypted, let's see if we need to generate any more addresses
+    get_account_inputs(username, (const char*)p); //Do we need to sync this account to find inputs
+    generate_address(username, (const char*)p); //Seed is decrypted, let's see if we need to generate any more addresses
   }
   sodium_memzero(p, 128);
 
@@ -190,15 +141,9 @@ int verify_login(const char* username, char* password, int zero_password) {
 
   if(decrypt_result < 0 ) {
     log_wallet_error("Invalid password, unable to login", "")
-    if(free_user == 1) {
-      free(u);
-    }
     return -1;
   }
   log_wallet_info("Logged in successfully", "")
-  if(free_user == 1) {
-    free(u);
-  }
   return 0;
 }
 

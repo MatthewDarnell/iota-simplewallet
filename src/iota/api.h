@@ -25,7 +25,7 @@ void get_transaction_inputs_to_address(cJSON** addresses);
 char* send_transaction(char* seed, const char* dest_address, const char* change_address, uint64_t value, cJSON* inputs);
 int send_trytes(char* out_bundle, int out_bundle_max_len, char* out_hash, int out_hash_max_len, uint64_t serial, const char* trytes);
 
-void were_addresses_spent_from(cJSON** addresses);
+int were_addresses_spent_from(cJSON** addresses);
 
 
 cJSON* get_node_info();
