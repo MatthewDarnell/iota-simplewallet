@@ -9,7 +9,6 @@ extern "C" {
 #ifndef IOTA_SIMPLEWALLET_IOTA_SIMPLEWALLET_H
 #define IOTA_SIMPLEWALLET_IOTA_SIMPLEWALLET_H
 #include <stdint.h>
-#include <sqlite3.h>
 
 /*
  *
