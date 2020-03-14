@@ -69,6 +69,7 @@ int parse_command(char* buf, int* quit_flag) {
                     "\tAccounts:\n"
                     "\t\tcreate_account <username> <password>\n"
                     "\t\timport_account <username> <password> <seed>\n"
+                    "\t\texport_account_state <username> <password> <path> --- Write a synced account state to a file\n"
                     "\t\tlogin <username> <password>\n"
                     "\t\tget_all_accounts\n"
                     "\tAddresses:\n"
@@ -89,6 +90,18 @@ int parse_command(char* buf, int* quit_flag) {
                     "\n----------\n\n";
     log_wallet_info("%s", h);
     printf("%s", h);
+  } else if(strcasecmp(command, "export_account_state") == 0) {
+    username = strtok_r(NULL, " ", &saveptr);
+    password = strtok_r(NULL, " ", &saveptr);
+    char* path = strtok_r(NULL, " ", &saveptr);
+    if(!username || !password || !path) {
+      fprintf(stderr, "Usage: export_account_state <username> <password> <path>\n");
+      log_wallet_error("Usage: export_account_state <username> <password> <path>\n", "");
+    } else {
+      int state_written = export_account_state(username, password, path);
+      printf("%s\n", state_written == 0 ? "OK" : "NOT OK");
+      log_wallet_info("%s\n", state_written == 0 ? "OK" : "NOT OK");
+    }
   } else if(strcasecmp(command, "get_all_accounts") == 0) {
     char* accounts = get_accounts();
     printf("%s\n", accounts);
@@ -99,23 +112,6 @@ int parse_command(char* buf, int* quit_flag) {
     printf("%s\n", status);
     log_wallet_info("%s\n", status);
     free(status);
-  } else if(strcasecmp(command, "set_node") == 0) {
-    char* host = strtok_r(NULL, " ", &saveptr);
-    char* str_port = strtok_r(NULL, " ", &saveptr);
-    if(!host || !str_port) {
-        fprintf(stderr, "Usage: set_node <host> <port>\t--- <host> should be in the form https://host.com\n");
-        log_wallet_error("Usage: set_node <host> <port>\t--- <host> should be in the form https://host.com", "");
-    } else {
-      int port = strtol(str_port, NULL, 10);
-      if(!port) {
-        fprintf(stderr, "Invalid Port %s\n", str_port);
-        log_wallet_error("Invalid Port %s\n", str_port);
-      } else {
-        int ret_val = set_node(host, port);
-        printf("%s\n", ret_val == 0 ? "OK": "NOT OK");
-        log_wallet_info("%s\n", ret_val == 0 ? "OK": "NOT OK");
-      }
-    }
   } else if(strcasecmp(command, "get_new_address") == 0) {
     username = strtok_r(NULL, " ", &saveptr);
     if(!username) {
@@ -248,6 +244,23 @@ int parse_command(char* buf, int* quit_flag) {
     } else {
       printf("ERROR\n");
       log_wallet_error("Error logging in\n", "");
+    }
+  }  else if(strcasecmp(command, "set_node") == 0) {
+    char* host = strtok_r(NULL, " ", &saveptr);
+    char* str_port = strtok_r(NULL, " ", &saveptr);
+    if(!host || !str_port) {
+      fprintf(stderr, "Usage: set_node <host> <port>\t--- <host> should be in the form https://host.com\n");
+      log_wallet_error("Usage: set_node <host> <port>\t--- <host> should be in the form https://host.com", "");
+    } else {
+      int port = strtol(str_port, NULL, 10);
+      if(!port) {
+        fprintf(stderr, "Invalid Port %s\n", str_port);
+        log_wallet_error("Invalid Port %s\n", str_port);
+      } else {
+        int ret_val = set_node(host, port);
+        printf("%s\n", ret_val == 0 ? "OK": "NOT OK");
+        log_wallet_info("%s\n", ret_val == 0 ? "OK": "NOT OK");
+      }
     }
   }
 

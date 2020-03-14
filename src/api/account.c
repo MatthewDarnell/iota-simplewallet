@@ -2,19 +2,25 @@
 // Created by matth on 3/8/2020.
 //
 
-#include <stdlib.h>
 #include <string.h>
 #include <sodium.h>
 #include <sqlite3.h>
+#include <cjson/cJSON.h>
+#include <pthread.h>
 #include "../crypto/crypt.h"
 #include "../database/helpers/get_inputs.h"
 #include "../database/sqlite3/stores/account.h"
+#include "../database/sqlite3/stores/address.h"
 #include "../database/helpers/generate_address.h"
 #include "../database/sqlite3/db.h"
 #include "../iota/api.h"
 #include "../iota-simplewallet.h"
-
+pthread_mutex_t account_state_file_mutex = PTHREAD_MUTEX_INITIALIZER;
 int __create_account(const char* username, char* password, const char* imported_seed) {
+  if(!username || !password) {
+    log_wallet_error("%s invalid parameters", __func__);
+    return -1;
+  }
   //Generate a secure password to derive encryption key
   sqlite3* db = get_db_handle();
 
@@ -88,6 +94,10 @@ char* get_accounts() {
 }
 
 int verify_login(const char* username, char* password, int zero_password) {
+  if(!username || !password) {
+    log_wallet_error("%s invalid parameters", __func__);
+    return -1;
+  }
   sqlite3* db = get_db_handle();
   cJSON* user = NULL;
   user = get_account_by_username(db, username);
@@ -149,6 +159,10 @@ int verify_login(const char* username, char* password, int zero_password) {
 }
 
 int decrypt_seed(char* out, int out_max_len, const char* username, char* password) {
+  if(!username || !password) {
+    log_wallet_error("%s invalid parameters", __func__);
+    return -1;
+  }
   sqlite3* db = get_db_handle();
   cJSON* user = get_account_by_username(db, username);
   close_db_handle(db);
@@ -201,5 +215,66 @@ int decrypt_seed(char* out, int out_max_len, const char* username, char* passwor
   sodium_memzero(p, 128);
   sodium_memzero(password, strlen(password));
 
+  return 0;
+}
+
+int export_account_state(const char* username, char* password, const char* path) {
+  if(verify_login(username, password, 0) < 0) {
+    log_wallet_error("%s Invalid Login Credentials", __func__);
+    return -1;
+  }
+  sqlite3* db = get_db_handle();
+  cJSON* account = get_account_by_username(db, username);
+  if(!account) {
+    log_wallet_error("%s Could not get Account. Does your username exist?", __func__);
+    return -1;
+  }
+
+  int synced = cJSON_GetObjectItem(account, "is_synced")->valueint;
+  if(synced == 0) {
+    cJSON_Delete(account);
+    log_wallet_error("%s account <%s> is not synced. Cannot export account state.", __func__, username);
+    return -1;
+  }
+
+  cJSON* temp_address, *addresses = get_all_addresses_by_username(db, username);
+  cJSON* address_list = cJSON_CreateArray();
+  cJSON_ArrayForEach(temp_address, addresses) {
+    int offset = cJSON_GetObjectItem(temp_address, "offset")->valueint;
+    char* balance = cJSON_GetObjectItem(temp_address, "balance")->valuestring;
+    int spent_from = cJSON_GetObjectItem(temp_address, "spent_from")->valueint;
+    int used = cJSON_GetObjectItem(temp_address, "used")->valueint;
+
+    uint64_t d_balance = strtoull(balance, NULL, 10);
+
+    if(spent_from || used || d_balance > 0) {
+      cJSON* obj = cJSON_CreateObject();
+      cJSON_AddNumberToObject(obj, "offset", offset);
+      cJSON_AddNumberToObject(obj, "spent_from", spent_from);
+      cJSON_AddNumberToObject(obj, "used", used);
+      cJSON_AddStringToObject(obj, "balance", balance);
+      cJSON_AddItemToArray(address_list, obj);
+    }
+  }
+
+  close_db_handle(db);
+
+  cJSON_AddItemToObject(account, "addresses", address_list);
+  char* state = cJSON_Print(account);
+  cJSON_Delete(account);
+
+
+  pthread_mutex_lock(&account_state_file_mutex);
+  FILE* i_file = fopen(path, "wb+");
+  if(!i_file) {
+    pthread_mutex_unlock(&account_state_file_mutex);
+    log_wallet_error("%s unable to open file for writing account %s", __func__, path);
+    return -1;
+  }
+  fprintf(i_file, "%s", state);
+  fclose(i_file);
+  pthread_mutex_unlock(&account_state_file_mutex);
+  free(state);
+  log_wallet_info("%s writing file <%s> was successful", __func__, path);
   return 0;
 }

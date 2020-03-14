@@ -10,6 +10,10 @@
 #include "../iota-simplewallet.h"
 
 char* get_new_address(char* username) {
+  if(!username) {
+    log_wallet_error("%s invalid parameters", __func__);
+    return NULL;
+  }
   sqlite3* db = get_db_handle();
   cJSON* json = get_next_fresh_address(db, username);
   close_db_handle(db);

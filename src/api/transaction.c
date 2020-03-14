@@ -14,6 +14,10 @@
 #include "../iota-simplewallet.h"
 
 char* get_incoming_transaction_by_hash(char* hash) {
+  if(!hash) {
+    log_wallet_error("%s invalid parameters", __func__);
+    return NULL;
+  }
   sqlite3* db = get_db_handle();
   cJSON* json = get_incoming_transaction_hash(db, hash);
   close_db_handle(db);
@@ -25,8 +29,17 @@ char* get_incoming_transaction_by_hash(char* hash) {
   return ret_val;
 }
 char* get_incoming_transactions(char* username, int offset, int num) {
+  if(!username) {
+    log_wallet_error("%s invalid parameters", __func__);
+    return NULL;
+  }
   sqlite3* db = get_db_handle();
-  cJSON* json = get_all_incoming_transactions(db, username, offset, num);
+  cJSON* json = get_all_incoming_transactions(
+                                              db,
+                                              username,
+                                              offset >= 0 ? offset : 0,
+                                              num >= 0 ? num : -1
+                );
   close_db_handle(db);
   if(!json) {
     return NULL;
@@ -38,6 +51,10 @@ char* get_incoming_transactions(char* username, int offset, int num) {
 
 
 char* get_outgoing_transaction_by_hash(char* hash) {
+  if(!hash) {
+    log_wallet_error("%s invalid parameters", __func__);
+    return NULL;
+  }
   sqlite3* db = get_db_handle();
   cJSON* json = get_outgoing_transaction_hash(db, hash);
   close_db_handle(db);
@@ -49,8 +66,17 @@ char* get_outgoing_transaction_by_hash(char* hash) {
   return ret_val;
 }
 char* get_outgoing_transactions(char* username, int offset, int num) {
+  if(!username) {
+    log_wallet_error("%s invalid parameters", __func__);
+    return NULL;
+  }
   sqlite3* db = get_db_handle();
-  cJSON* json = get_all_outgoing_transactions(db, username, offset, num);
+  cJSON* json = get_all_outgoing_transactions(
+                                              db,
+                                              username,
+                                              offset >= 0 ? offset : 0,
+                                              num >= 0 ? num : -1
+                );
   close_db_handle(db);
   if(!json) {
     return NULL;
@@ -60,9 +86,11 @@ char* get_outgoing_transactions(char* username, int offset, int num) {
   return ret_val;
 }
 
-
-
 int create_transaction(char* username, char* password, char* dest_address, uint64_t value) {
+  if(!username || !password || !dest_address || value < 1) {
+    log_wallet_error("%s invalid parameters", __func__);
+    return -1;
+  }
   int verified = verify_login(username, password, 0);
   if(verified != 0) {
     log_wallet_error("Invalid Password, cannot create transaction", "");

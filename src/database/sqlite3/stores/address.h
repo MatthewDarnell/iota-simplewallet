@@ -8,6 +8,7 @@
 #include <cjson/cJSON.h>
 int create_address(sqlite3* db, const char* address, uint32_t offset, const char* username);
 cJSON* get_unspent_addresses(sqlite3* db);
+cJSON* get_all_addresses_by_username(sqlite3* db, const char* username);
 cJSON* get_unspent_addresses_by_username(sqlite3* db, const char* username);
 cJSON* get_address_by_address(sqlite3* db, const char* address);
 cJSON* get_next_fresh_address(sqlite3* db, const char* username);

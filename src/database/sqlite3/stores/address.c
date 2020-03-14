@@ -83,6 +83,56 @@ cJSON* get_unspent_addresses(sqlite3* db) {
   sqlite3_finalize(stmt);
   return json;
 }
+
+cJSON* get_all_addresses_by_username(sqlite3* db, const char* username) {
+  sqlite3_stmt* stmt;
+  int rc;
+
+  char* query = "SELECT address, balance, offset, is_change, spent_from, used"
+                " FROM address"
+                " WHERE account=?"
+                " ORDER BY offset ASC"
+  ;
+  rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
+
+  if (rc != SQLITE_OK) {
+    log_wallet_error("%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
+    return NULL;
+  }
+
+  sqlite3_bind_text(stmt, 1, username, -1, NULL);
+
+  int count = 0;
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    if(count > 5) {
+      break;
+    }
+    count++;
+    sqlite3_sleep(100);
+  }
+  cJSON *json = cJSON_CreateArray();
+
+
+
+  while(rc == SQLITE_ROW) {
+    cJSON *row =  cJSON_CreateObject();
+    cJSON_AddStringToObject(row, "address", (char*)sqlite3_column_text(stmt, 0 ));
+    const char* balance = (const char*)sqlite3_column_text(stmt, 1);
+    cJSON_AddStringToObject(row, "balance", balance);
+    cJSON_AddNumberToObject(row, "offset", sqlite3_column_int(stmt, 2 ));
+    cJSON_AddNumberToObject(row, "is_change", sqlite3_column_int(stmt, 3 ));
+    cJSON_AddNumberToObject(row, "spent_from", sqlite3_column_int(stmt, 4 ));
+    cJSON_AddNumberToObject(row, "used", sqlite3_column_int(stmt, 5 ));
+    cJSON_AddItemToArray(json, row);
+    rc = sqlite3_step(stmt);
+  }
+
+  sqlite3_finalize(stmt);
+  return json;
+}
+
+
+
 cJSON* get_unspent_addresses_by_username(sqlite3* db, const char* username) {
   sqlite3_stmt* stmt;
   int rc;

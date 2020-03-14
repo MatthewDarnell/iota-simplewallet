@@ -119,17 +119,18 @@ int __create_account(const char* username, char* password, const char* imported_
 char* get_accounts();
 
 //Verify that the username and password are valid
-//@username: NULL to use main account
 //@zero_password: if > 0, This will mem-zero the decrypted password and seed after verifying the password is correct
 int verify_login(const char* username, char* password, int zero_password);
 
 //Decrypt a users' seed
 //@out: the char[] in which to place the decrypted seed
 //@out_max_le: the max length of @out
-//@username: NULL to use main account
 //@password: the users' password
 int decrypt_seed(char* out, int out_max_len, const char* username, char* password);
 
+//Export a synced users' account state
+//@path: the output file to write
+int export_account_state(const char* username, char* password, const char* path);
 
 /*
  *

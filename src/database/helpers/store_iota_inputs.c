@@ -71,18 +71,26 @@ int store_inputs(sqlite3* db, char* str_inputs) {
 
       int d_confirmed = (strcasecmp(confirmed, "true") == 0) ? 1 : 0;
 
-      if(0 == create_incoming_transaction(db, address, d_amount, bundle, hash, timestamp, d_confirmed)) {
+      int create_ret_val = 0;
+      if(0 == (create_ret_val = create_incoming_transaction(db, address, d_amount, bundle, hash, timestamp, d_confirmed))) {
         char* string = cJSON_PrintUnformatted(transaction);
         push_new_event("transaction_received", string);
         free(string);
       }
-      if(d_confirmed > 0) {
-        if(0 == mark_incoming_transaction_confirmed(db, hash)) {
-          char* string = cJSON_PrintUnformatted(transaction);
-          push_new_event("transaction_received_confirmed", string);
-          free(string);
+      if(create_ret_val > -2) { //Transaction INSERT didn't fail due to db locked issue, in which case we will come back to this tx next thread loop.
+                                // May have failed to to unique constraint, in which case let's still mark confirmed.
+                                // (create_incoming_transaction returns -2 if db locked causes a failure, otherwise -1 if unique constraint tripped)
+        if(d_confirmed > 0) {
+          if(0 == mark_incoming_transaction_confirmed(db, hash)) {
+            cJSON_DeleteItemFromObject(transaction, "confirmed");
+            cJSON_AddNumberToObject(transaction, "confirmed", 1);
+            char* string = cJSON_PrintUnformatted(transaction);
+            push_new_event("transaction_received_confirmed", string);
+            free(string);
+          }
         }
       }
+
     }
   }
   cJSON_Delete(inputs);
