@@ -184,7 +184,7 @@ cJSON* get_all_outgoing_transactions(sqlite3* db, const char* username, uint32_t
     cJSON_AddNumberToObject(row, "sent", sqlite3_column_int(stmt, 4 ));
     cJSON_AddStringToObject(row, "bundle", (char*)sqlite3_column_text(stmt, 5 ));
     cJSON_AddStringToObject(row, "hash", (char*)sqlite3_column_text(stmt, 6 ));
-    cJSON_AddStringToObject(row, "time", (char*)sqlite3_column_text(stmt, 7j));
+    cJSON_AddStringToObject(row, "time", (char*)sqlite3_column_text(stmt, 7));
 
     cJSON_AddItemToArray(json, row);
     rc = sqlite3_step(stmt);
