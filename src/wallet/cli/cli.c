@@ -84,6 +84,7 @@ int parse_command(char* buf, int* quit_flag) {
                     "\tMisc:\n"
                     "\t\thelp\n"
                     "\t\tget_node_status\n"
+                    "\t\tset_node <host> <port>\n"
                     "\t\tquit\n"
                     "\n----------\n\n";
     log_wallet_info("%s", h);
@@ -98,6 +99,23 @@ int parse_command(char* buf, int* quit_flag) {
     printf("%s\n", status);
     log_wallet_info("%s\n", status);
     free(status);
+  } else if(strcasecmp(command, "set_node") == 0) {
+    char* host = strtok_r(NULL, " ", &saveptr);
+    char* str_port = strtok_r(NULL, " ", &saveptr);
+    if(!host || !str_port) {
+        fprintf(stderr, "Usage: set_node <host> <port>\t--- <host> should be in the form https://host.com\n");
+        log_wallet_error("Usage: set_node <host> <port>\t--- <host> should be in the form https://host.com", "");
+    } else {
+      int port = strtol(str_port, NULL, 10);
+      if(!port) {
+        fprintf(stderr, "Invalid Port %s\n", str_port);
+        log_wallet_error("Invalid Port %s\n", str_port);
+      } else {
+        int ret_val = set_node(host, port);
+        printf("%s\n", ret_val == 0 ? "OK": "NOT OK");
+        log_wallet_info("%s\n", ret_val == 0 ? "OK": "NOT OK");
+      }
+    }
   } else if(strcasecmp(command, "get_new_address") == 0) {
     username = strtok_r(NULL, " ", &saveptr);
     if(!username) {

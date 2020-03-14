@@ -29,6 +29,7 @@ int were_addresses_spent_from(cJSON** addresses);
 
 
 cJSON* get_node_info();
+cJSON* get_node();
 
 void init_iota();
 void shutdown_iota();

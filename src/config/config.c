@@ -206,6 +206,7 @@ char* get_config(const char *key) {
 //Set  Configuration Value
 //@save 1: save to file, otherwise only set  in-memory
 int set_config(const char* key, const char* value, int8_t save) {
+  pthread_mutex_lock(&config_file_mutex);
   if(!config) return -1;
   if(!cJSON_HasObjectItem(config, "config")) return -1;
   cJSON *config_obj = cJSON_GetObjectItem(config, "config");
@@ -226,7 +227,6 @@ int set_config(const char* key, const char* value, int8_t save) {
       cJSON_GetObjectItem(config, "config")
       );
 
-    pthread_mutex_lock(&config_file_mutex);
 
     FILE *oFile = fopen(path, "wb");
     if (oFile == NULL){

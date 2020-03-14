@@ -15,13 +15,17 @@ extern "C" {
  *   Initialization/Shutdown Functions
  *
 */
+int init_iota_simplewallet();
+int shutdown_iota_simplewallet();
 
+//deprecated
 int init_db();
 int init_crypto();
 void init_iota();
-
 void shutdown_iota();
 void shutdown_config();
+
+
 
 
 
@@ -63,6 +67,9 @@ void _log(enum LOG_LEVEL, const char* format, ...);
 
 //Get current node info
 char* get_node_status();
+
+//Sets the node to use
+int set_node(char* host, int port);
 
 
 /*

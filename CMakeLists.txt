@@ -60,6 +60,7 @@ file(GLOB iota_simplewallet_SRC
         src/api/address.c
         src/api/event.c
         src/api/info.c
+        src/api/init.c
         src/api/transaction.c
 
         src/config/config.c

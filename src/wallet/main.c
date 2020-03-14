@@ -76,9 +76,7 @@ int main(int argc, char *argv[]) {
     parse_cli(argc, argv);
   }
 
-  init_db();
-  init_crypto();
-  init_iota();
+  init_iota_simplewallet();
   init_events();
 
 
@@ -105,9 +103,7 @@ int main(int argc, char *argv[]) {
   pthread_join(t, NULL);
   join_threads();
 
-  shutdown_iota();
-
-  shutdown_config();
+  shutdown_iota_simplewallet();
   shutdown_events();
 
   return 0;
