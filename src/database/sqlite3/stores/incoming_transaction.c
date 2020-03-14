@@ -231,7 +231,14 @@ int mark_incoming_transaction_confirmed(sqlite3* db, const char* hash) {
 
   sqlite3_bind_text(stmt, 1, hash, -1, NULL);
 
-  rc = sqlite3_step(stmt);
+  int count = 0;
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    if(count > 5) {
+      break;
+    }
+    count++;
+    sqlite3_sleep(100);
+  }
 
   int ret_val = 0;
 
