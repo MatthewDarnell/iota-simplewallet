@@ -62,6 +62,10 @@ int send_trytes(char* out_bundle, int out_bundle_max_len, char* out_hash, int ou
   hash8019_array_p array = hash8019_array_new();
 
    if(RC_OK != json_array_to_hash8019_array(json_trytes, "trytes", array)) {
+     transaction_array_free(out_tx_objs);
+     hash_array_free(array);
+     hash_array_free(raw_trytes);
+     iota_client_core_destroy(&serv);
      log_wallet_error("error converting trytes\n", "")
    }
 
@@ -107,6 +111,7 @@ int send_trytes(char* out_bundle, int out_bundle_max_len, char* out_hash, int ou
   }
 
   transaction_array_free(out_tx_objs);
+  hash_array_free(array);
   hash_array_free(raw_trytes);
   iota_client_core_destroy(&serv);
   return ret_val;
