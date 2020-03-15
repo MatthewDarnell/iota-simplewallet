@@ -17,6 +17,7 @@ int get_account_inputs(const char* username, const char* seed) {
 
   int is_synced = is_account_synced(db, username);
   if(is_synced) {
+    close_db_handle(db);
     pthread_mutex_unlock(&mutex);
     return 0;
   }
@@ -27,6 +28,7 @@ int get_account_inputs(const char* username, const char* seed) {
   char* str_minAddressesToCheckWhenSyncing = get_config("minAddressesToCheckWhenSyncing");
   if(!str_minAddressesToCheckWhenSyncing) {
     log_wallet_error("%s cannot find minAddressesToCheckWhenSyncing", __func__);
+    close_db_handle(db);
     pthread_mutex_unlock(&mutex);
     return 0;
   }
@@ -102,6 +104,7 @@ int get_account_inputs(const char* username, const char* seed) {
   cJSON* unspents = get_unspent_addresses_by_username(db, username);
   if(0 != were_addresses_spent_from(&unspents)) {
     close_db_handle(db);
+    cJSON_Delete(unspents);
     pthread_mutex_unlock(&mutex);
     return 0;
   }
@@ -116,7 +119,7 @@ int get_account_inputs(const char* username, const char* seed) {
     }
   }
 
-
+  cJSON_Delete(unspents);
 
   mark_account_synced(db, username);
   close_db_handle(db);
