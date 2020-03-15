@@ -55,6 +55,7 @@ void thread_deposit_detector(void* args) {
     int input_len = cJSON_GetArraySize(address_array);
 
     if(input_len < 1) {
+      cJSON_Delete(address_array);
       continue;
     }
 
@@ -63,8 +64,11 @@ void thread_deposit_detector(void* args) {
     input_len = cJSON_GetArraySize(address_array);
 
     if(input_len < 1) { //No transactions found
+      cJSON_Delete(address_array);
       continue;
     }
+
+
 
     cJSON* obj;
     int j = 0;
@@ -86,8 +90,10 @@ void thread_deposit_detector(void* args) {
       }
     }
 
+
     get_latest_inclusion(&address_array, 1);
     char* array_str = cJSON_PrintUnformatted(address_array);
+
     cJSON_Delete(address_array);
 
     if((ret_val = store_inputs(db, array_str)) < 0) {
