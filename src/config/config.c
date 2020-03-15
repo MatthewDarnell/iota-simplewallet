@@ -207,8 +207,14 @@ char* get_config(const char *key) {
 //@save 1: save to file, otherwise only set  in-memory
 int set_config(const char* key, const char* value, int8_t save) {
   pthread_mutex_lock(&config_file_mutex);
-  if(!config) return -1;
-  if(!cJSON_HasObjectItem(config, "config")) return -1;
+  if(!config) {
+    pthread_mutex_unlock(&config_file_mutex);
+    return -1;
+  }
+  if(!cJSON_HasObjectItem(config, "config")) {
+    pthread_mutex_unlock(&config_file_mutex);
+    return -1;
+  }
   cJSON *config_obj = cJSON_GetObjectItem(config, "config");
   if(cJSON_HasObjectItem(config_obj, key)) {
     cJSON_DeleteItemFromObject(config_obj, key);
@@ -227,7 +233,6 @@ int set_config(const char* key, const char* value, int8_t save) {
       cJSON_GetObjectItem(config, "config")
       );
 
-
     FILE *oFile = fopen(path, "wb");
     if (oFile == NULL){
       pthread_mutex_unlock(&config_file_mutex);
@@ -237,7 +242,7 @@ int set_config(const char* key, const char* value, int8_t save) {
     fprintf(oFile, "%s", buffer);
     free(buffer);
     fclose(oFile);
-    pthread_mutex_unlock(&config_file_mutex);
   }
+  pthread_mutex_unlock(&config_file_mutex);
   return  0;
 }
