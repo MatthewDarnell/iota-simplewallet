@@ -18,6 +18,7 @@ int generate_address(const char* username, const char* seed) {
   //get latest key index
   int32_t latest_offset = get_latest_offset(db, username);
   if(latest_offset < 0) {
+    close_db_handle(db);
     pthread_mutex_unlock(&mutex);
     log_wallet_error("Could not get latest offset", "");
     return -1;
@@ -28,6 +29,7 @@ int generate_address(const char* username, const char* seed) {
   int32_t num_unused_change_addresses = get_num_change_addresses(db, username);
 
   if(num_unused_addresses < 0 || num_unused_change_addresses < 0) {
+    close_db_handle(db);
     pthread_mutex_unlock(&mutex);
     log_wallet_error("Could not get number of fresh addresses for user <%s>", username);
     return -1;
@@ -36,6 +38,7 @@ int generate_address(const char* username, const char* seed) {
 
   char* min_addresses = get_config("minAddressPool");
   if(!min_addresses) {
+    close_db_handle(db);
     pthread_mutex_unlock(&mutex);
     log_wallet_error("Could not get config minAddressPool user <%s>", username);
     return -1;
@@ -48,6 +51,7 @@ int generate_address(const char* username, const char* seed) {
   int32_t num_change_addresses_to_create = min_address_pool - num_unused_change_addresses;
 
   if(num_addresses_to_create <= 0 && num_change_addresses_to_create <= 0) {
+    close_db_handle(db);
     pthread_mutex_unlock(&mutex);
     log_wallet_debug("Have sufficient amount of fresh addresses. (%d) (minimum to have is %d)", num_unused_addresses, min_address_pool);
     return 0;
@@ -60,6 +64,7 @@ int generate_address(const char* username, const char* seed) {
 
       cJSON* new_addresses = generate_new_addresses(seed, latest_offset, num_addresses_to_create + latest_offset);
       if(!new_addresses) {
+        close_db_handle(db);
         pthread_mutex_unlock(&mutex);
         log_wallet_error("Failed to create addresses!", "")
         return -1;
@@ -86,6 +91,7 @@ int generate_address(const char* username, const char* seed) {
       latest_offset++;
       cJSON* new_change_addresses = generate_new_addresses(seed, latest_offset, num_change_addresses_to_create + latest_offset);
       if(!new_change_addresses) {
+        close_db_handle(db);
         pthread_mutex_unlock(&mutex);
         log_wallet_error("Failed to create change addresses!", "")
         return -1;
@@ -110,7 +116,6 @@ int generate_address(const char* username, const char* seed) {
     }
 
   }
-
 
   close_db_handle(db);
   pthread_mutex_unlock(&mutex);

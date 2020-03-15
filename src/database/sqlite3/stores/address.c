@@ -113,7 +113,6 @@ cJSON* get_all_addresses_by_username(sqlite3* db, const char* username) {
   cJSON *json = cJSON_CreateArray();
 
 
-
   while(rc == SQLITE_ROW) {
     cJSON *row =  cJSON_CreateObject();
     cJSON_AddStringToObject(row, "address", (char*)sqlite3_column_text(stmt, 0 ));
@@ -124,7 +123,15 @@ cJSON* get_all_addresses_by_username(sqlite3* db, const char* username) {
     cJSON_AddNumberToObject(row, "spent_from", sqlite3_column_int(stmt, 4 ));
     cJSON_AddNumberToObject(row, "used", sqlite3_column_int(stmt, 5 ));
     cJSON_AddItemToArray(json, row);
-    rc = sqlite3_step(stmt);
+
+    count = 0;
+    while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+      if(count > 5) {
+        break;
+      }
+      count++;
+      sqlite3_sleep(100);
+    }
   }
 
   sqlite3_finalize(stmt);
