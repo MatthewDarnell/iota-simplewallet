@@ -22,6 +22,9 @@ UT_array* loaded_events = NULL;
 static int* quit_flag;
 
 void push_new_event(char* event, char* value) {
+  if(!quit_flag) {  //Not initialized yet
+    return;
+  }
   if(*quit_flag != 0) {
     return;
   }

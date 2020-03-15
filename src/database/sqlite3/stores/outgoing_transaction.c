@@ -26,7 +26,14 @@ int create_outgoing_transaction(sqlite3* db, const char* dest_address, const cha
   sqlite3_bind_int64(stmt, 3, (int64_t)amount);
   sqlite3_bind_text(stmt, 4, trytes, -1, NULL);
 
-  rc = sqlite3_step(stmt);
+  int count = 0;
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    if(count > 5) {
+      break;
+    }
+    count++;
+    sqlite3_sleep(100);
+  }
 
   if (rc != SQLITE_DONE) {
     log_wallet_error("%s execution failed: %s", __func__, sqlite3_errmsg(db));
@@ -58,7 +65,15 @@ cJSON* get_outgoing_transaction_by_serial(sqlite3* db, int serial) {
   }
 
   sqlite3_bind_int(stmt, 1, serial);
-  rc = sqlite3_step(stmt);
+
+  int count = 0;
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    if(count > 5) {
+      break;
+    }
+    count++;
+    sqlite3_sleep(100);
+  }
 
   cJSON *json = NULL;
   if (rc == SQLITE_ROW) {
@@ -105,7 +120,15 @@ cJSON* get_outgoing_transaction_hash(sqlite3* db, char* hash) {
   }
 
   sqlite3_bind_text(stmt, 1, hash, -1, NULL);
-  rc = sqlite3_step(stmt);
+
+  int count = 0;
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    if(count > 5) {
+      break;
+    }
+    count++;
+    sqlite3_sleep(100);
+  }
 
   cJSON *json = NULL;
   if (rc == SQLITE_ROW) {
@@ -161,7 +184,14 @@ cJSON* get_all_outgoing_transactions(sqlite3* db, const char* username, uint32_t
   sqlite3_bind_int(stmt, 2, limit);
   sqlite3_bind_int(stmt, 3, offset);
 
-  rc = sqlite3_step(stmt);
+  int count = 0;
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    if(count > 5) {
+      break;
+    }
+    count++;
+    sqlite3_sleep(100);
+  }
 
   cJSON *json = cJSON_CreateArray();
 
@@ -206,7 +236,14 @@ cJSON* get_all_unsent_outgoing_transactions(sqlite3* db) {
     return NULL;
   }
 
-  rc = sqlite3_step(stmt);
+  int count = 0;
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    if(count > 5) {
+      break;
+    }
+    count++;
+    sqlite3_sleep(100);
+  }
 
   cJSON *json = cJSON_CreateArray();
 
@@ -253,7 +290,14 @@ cJSON* get_all_unconfirmed_outgoing_transactions(sqlite3* db) {
     return NULL;
   }
 
-  rc = sqlite3_step(stmt);
+  int count = 0;
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    if(count > 5) {
+      break;
+    }
+    count++;
+    sqlite3_sleep(100);
+  }
 
   cJSON *json = cJSON_CreateArray();
 
@@ -306,7 +350,14 @@ int mark_outgoing_transaction_confirmed(sqlite3* db, int serial, const char* bun
   sqlite3_bind_text(stmt, 2, bundle, -1, NULL);
   sqlite3_bind_text(stmt, 3, hash, -1, NULL);
 
-  rc = sqlite3_step(stmt);
+  int count = 0;
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    if(count > 5) {
+      break;
+    }
+    count++;
+    sqlite3_sleep(100);
+  }
 
   if (rc != SQLITE_DONE) {
     log_wallet_error("%s execution failed: %s", __func__, sqlite3_errmsg(db));
@@ -338,7 +389,14 @@ int mark_outgoing_transaction_sent(sqlite3* db, int serial, const char* bundle, 
   sqlite3_bind_int(stmt, 3, serial);
 
 
-  rc = sqlite3_step(stmt);
+  int count = 0;
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    if(count > 5) {
+      break;
+    }
+    count++;
+    sqlite3_sleep(100);
+  }
 
   if (rc != SQLITE_DONE) {
     log_wallet_error("%s execution failed: %s", __func__, sqlite3_errmsg(db));

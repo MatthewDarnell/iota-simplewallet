@@ -68,7 +68,14 @@ cJSON* get_incoming_transaction_by_address(sqlite3* db, const char* address) {
   }
 
   sqlite3_bind_text(stmt, 1, address, -1, NULL);
-  rc = sqlite3_step(stmt);
+  int count = 0;
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    if(count > 5) {
+      break;
+    }
+    count++;
+    sqlite3_sleep(100);
+  }
 
   cJSON *json = NULL;
   if (rc == SQLITE_ROW) {
@@ -113,7 +120,15 @@ cJSON* get_incoming_transaction_hash(sqlite3* db, const char* hash) {
   }
 
   sqlite3_bind_text(stmt, 1, hash, -1, NULL);
-  rc = sqlite3_step(stmt);
+
+  int count = 0;
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    if(count > 5) {
+      break;
+    }
+    count++;
+    sqlite3_sleep(100);
+  }
 
   cJSON *json = NULL;
   if (rc == SQLITE_ROW) {
@@ -166,7 +181,15 @@ cJSON* get_all_incoming_transactions(sqlite3* db, const char* username, uint32_t
   sqlite3_bind_text(stmt, 1, username, -1, NULL);
   sqlite3_bind_int(stmt, 2, limit);
   sqlite3_bind_int(stmt, 3, offset);
-  rc = sqlite3_step(stmt);
+
+  int count = 0;
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    if(count > 5) {
+      break;
+    }
+    count++;
+    sqlite3_sleep(100);
+  }
 
   cJSON *json = cJSON_CreateArray();
 
@@ -205,7 +228,14 @@ cJSON* get_unspents_by_username(sqlite3* db, const char* username) {
   }
   sqlite3_bind_text(stmt, 1, username, -1, NULL);
 
-  rc = sqlite3_step(stmt);
+  int count = 0;
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    if(count > 5) {
+      break;
+    }
+    count++;
+    sqlite3_sleep(100);
+  }
 
   cJSON *json = cJSON_CreateArray();
 
@@ -215,7 +245,14 @@ cJSON* get_unspents_by_username(sqlite3* db, const char* username) {
     cJSON_AddStringToObject(row, "address", (char*)sqlite3_column_text(stmt, 1));
     cJSON_AddStringToObject(row, "hash", (char*)sqlite3_column_text(stmt, 2 ));
     cJSON_AddItemToArray(json, row);
-    rc = sqlite3_step(stmt);
+    count = 0;
+    while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+      if(count > 5) {
+        break;
+      }
+      count++;
+      sqlite3_sleep(100);
+    }
   }
 
   sqlite3_finalize(stmt);

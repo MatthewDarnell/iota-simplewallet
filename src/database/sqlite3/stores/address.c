@@ -369,7 +369,14 @@ cJSON* get_deposit_addresses(sqlite3* db) {
     cJSON_AddNumberToObject(row, "spent_from", sqlite3_column_int(stmt, 6 ));
     cJSON_AddStringToObject(row, "created_at", (char*)sqlite3_column_text(stmt, 7));
     cJSON_AddItemToArray(json, row);
-    rc = sqlite3_step(stmt);
+    count = 0;
+    while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+      if(count > 5) {
+        break;
+      }
+      count++;
+      sqlite3_sleep(100);
+    }
   }
 
   sqlite3_finalize(stmt);

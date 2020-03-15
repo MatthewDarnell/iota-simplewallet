@@ -39,13 +39,14 @@ int __fill_missing_configs_with_defaults(cJSON** object) {  //object exists with
   cJSON* temp_key = NULL;
   int num_overwrites = 0;
   cJSON_ArrayForEach(temp_key, default_json) {
-        if(!cJSON_HasObjectItem(*object, temp_key->string)) {
-      cJSON* temp_value = cJSON_GetObjectItem(default_json, temp_key->string);
+    if(!cJSON_HasObjectItem(*object, temp_key->string)) {
+      cJSON* temp_value = cJSON_DetachItemFromObject(default_json, temp_key->string);
       cJSON_AddItemToObject(*object, temp_key->string, temp_value);
       num_overwrites++;
     } else {
     }
   }
+  cJSON_Delete(default_json);
   return num_overwrites;
 }
 

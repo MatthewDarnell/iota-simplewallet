@@ -40,6 +40,7 @@ void thread_send_transaction(void* args) {
     if (!transactions_to_send_array) {
       continue;
     } else if(cJSON_GetArraySize(transactions_to_send_array) < 1) {
+      cJSON_Delete(transactions_to_send_array);
       continue;
     }
 
@@ -61,7 +62,7 @@ void thread_send_transaction(void* args) {
         free(string);
       }
     }
-
+    cJSON_Delete(transactions_to_send_array);
   }
   log_wallet_info("Shutting Send Transaction Detector Thread", "");
   close_db_handle(db);

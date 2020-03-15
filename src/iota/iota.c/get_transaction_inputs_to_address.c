@@ -27,22 +27,24 @@ void get_transaction_inputs_to_address(cJSON** addresses) {
   int i, j;
   for(i = 0; i < cJSON_GetArraySize(*addresses); i++) {
     memset(tmp_hash, 0, FLEX_TRIT_SIZE_243);
-    char* address = strdup(cJSON_GetObjectItem(
+    char* address = cJSON_GetObjectItem(
                             cJSON_GetArrayItem(*addresses, i),
                             "address"
-                          )->valuestring);
-    if(0 == flex_trits_from_trytes(
-      tmp_hash, NUM_TRITS_HASH,
-      (const tryte_t *)address,
-      NUM_TRYTES_HASH, NUM_TRYTES_HASH)) {
-      log_wallet_error( "Unable to convert address %s to trytes\n", address);
-      free(address);
-      find_transactions_req_free(&find_tran);
-      transaction_array_free(out_tx_objs);
-      iota_client_core_destroy(&serv);
-      return;
+                          )->valuestring;
+    if(
+      0 == flex_trits_from_trytes(
+                                    tmp_hash, NUM_TRITS_HASH,
+                                    (const tryte_t *)address,
+                                    NUM_TRYTES_HASH, NUM_TRYTES_HASH
+                                  )
+      )
+    {
+        log_wallet_error( "Unable to convert address %s to trytes\n", address);
+        find_transactions_req_free(&find_tran);
+        transaction_array_free(out_tx_objs);
+        iota_client_core_destroy(&serv);
+        return;
     }
-    free(address);
     retcode_t push;
     if ((push = hash243_queue_push(&find_tran->addresses, tmp_hash)) != RC_OK) {
       log_wallet_error( "Error: push queue %s\n", error_2_string(push));
