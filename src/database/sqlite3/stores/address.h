@@ -7,6 +7,7 @@
 #include <sqlite3.h>
 #include <cjson/cJSON.h>
 int create_address(sqlite3* db, const char* address, uint32_t offset, const char* username);
+int delete_account_addresses(sqlite3* db, const char* username);
 cJSON* get_unspent_addresses(sqlite3* db);
 cJSON* get_all_addresses_by_username(sqlite3* db, const char* username);
 cJSON* get_unspent_addresses_by_username(sqlite3* db, const char* username);

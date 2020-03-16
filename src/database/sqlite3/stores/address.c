@@ -28,7 +28,9 @@ int create_address(sqlite3* db, const char* address, uint32_t offset, const char
   sqlite3_bind_int(stmt, 2, offset);
   sqlite3_bind_text(stmt, 3, username, -1, NULL);
 
-  rc = sqlite3_step(stmt);
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    sqlite3_sleep(100);
+  }
 
   if (rc != SQLITE_DONE) {
     log_wallet_error("%s execution failed: %s", __func__, sqlite3_errmsg(db));
@@ -38,6 +40,36 @@ int create_address(sqlite3* db, const char* address, uint32_t offset, const char
   }
   sqlite3_finalize(stmt);
   log_wallet_debug("Created new address %s for user %s", address, username);
+  return 0;
+}
+
+int delete_account_addresses(sqlite3* db, const char* username) {
+  enforce_max_length(strlen(username))
+  sqlite3_stmt* stmt;
+  int rc;
+
+  char* query = "DELETE FROM address WHERE account=?";
+  rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
+
+  if (rc != SQLITE_OK) {
+    log_wallet_error("%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
+    return -1;
+  }
+
+  sqlite3_bind_text(stmt, 1, username, -1, NULL);
+
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    sqlite3_sleep(100);
+  }
+
+  if (rc != SQLITE_DONE) {
+    log_wallet_error("%s execution failed: %s", __func__, sqlite3_errmsg(db));
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return -1;
+  }
+  log_wallet_info("%s: User.(%s) Addresses Deleted successfully.", __func__, username);
+  sqlite3_finalize(stmt);
   return 0;
 }
 
@@ -469,12 +501,8 @@ int32_t set_address_balance(sqlite3* db, const char* address, const char* balanc
   sqlite3_bind_text(stmt, 1, balance, -1, NULL);
   sqlite3_bind_text(stmt, 2, address, -1, NULL);
   sqlite3_bind_text(stmt, 3, balance, -1, NULL);
-  int count = 0;
+
   while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
-    if(count > 5) {
-      break;
-    }
-    count++;
     sqlite3_sleep(100);
   }
 
@@ -615,12 +643,8 @@ int mark_address_spent_from(sqlite3* db, const char* address) {
   }
 
   sqlite3_bind_text(stmt, 1, address, -1, NULL);
-  int count = 0;
+
   while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
-    if(count > 5) {
-      break;
-    }
-    count++;
     sqlite3_sleep(100);
   }
 
@@ -649,12 +673,8 @@ int mark_address_used(sqlite3* db, const char* address) {
   }
 
   sqlite3_bind_text(stmt, 1, address, -1, NULL);
-  int count = 0;
+
   while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
-    if(count > 5) {
-      break;
-    }
-    count++;
     sqlite3_sleep(100);
   }
 

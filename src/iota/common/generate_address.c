@@ -42,6 +42,9 @@ cJSON* generate_new_addresses(const char* seed, int index, int num_addresses) {
 
   if(ret != RC_OK) {
     log_wallet_error("%s", error_2_string(ret));
+    hash243_queue_free(&addresses);
+    iota_client_core_destroy(&serv);
+    return NULL;
   }
   //trits to trytes
   hash243_queue_entry_t* out_trits = hash243_queue_pop(&addresses);

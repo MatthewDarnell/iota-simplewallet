@@ -114,13 +114,18 @@ int __create_account(const char* username, char* password, const char* imported_
 //@seed an 81 character IOTA seed
 #define import_account(username, password, seed) __create_account(username, password, seed)
 
+//Delete an account
+//This deletes all account data, addresses, and transactions
+int delete_account(const char* username, char* password);
 
 //Get all stored accounts
 char* get_accounts();
 
 //Verify that the username and password are valid
 //@zero_password: if > 0, This will mem-zero the decrypted password and seed after verifying the password is correct
-int verify_login(const char* username, char* password, int zero_password);
+//@generate_inputs: If > 0, the users' account will be checked for having a sufficient pool of unused deposit addresses. Should use #define macro
+int _verify_login(const char* username, char* password, int zero_password, int generate_inputs);
+#define verify_login(username, password, zero_password) _verify_login(username, password, zero_password, 1)
 
 //Decrypt a users' seed
 //@out: the char[] in which to place the decrypted seed
@@ -131,6 +136,11 @@ int decrypt_seed(char* out, int out_max_len, const char* username, char* passwor
 //Export a synced users' account state
 //@path: the output file to write
 int export_account_state(const char* username, char* password, const char* path);
+
+//Import a synced account from file
+//@path: the output file to write
+//Account must not exist already
+int import_account_state(char* password, const char* path);
 
 /*
  *

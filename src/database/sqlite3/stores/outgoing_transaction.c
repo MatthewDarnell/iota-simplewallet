@@ -51,6 +51,43 @@ int create_outgoing_transaction(sqlite3* db, const char* dest_address, const cha
 }
 
 
+int delete_account_outgoing_transaction(sqlite3* db, const char* username) {
+  enforce_max_length(strlen(username))
+  sqlite3_stmt* stmt;
+  int rc;
+
+  char* query = "DELETE FROM outgoing_transaction "
+                " WHERE change_address IN "
+                " ( "
+                " SELECT change_address FROM outgoing_transaction ot"
+                " INNER JOIN address a ON ot.change_address=a.address"
+                " WHERE a.account=? "
+                " )";
+  rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
+
+  if (rc != SQLITE_OK) {
+    log_wallet_error("%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
+    return -1;
+  }
+
+  sqlite3_bind_text(stmt, 1, username, -1, NULL);
+
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    sqlite3_sleep(100);
+  }
+
+  if (rc != SQLITE_DONE) {
+    log_wallet_error("%s execution failed: %s", __func__, sqlite3_errmsg(db));
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return -1;
+  }
+  log_wallet_info("%s: User.(%s) Outgoing Transactions Deleted successfully.", __func__, username);
+  sqlite3_finalize(stmt);
+  return 0;
+}
+
+
 cJSON* get_outgoing_transaction_by_serial(sqlite3* db, int serial) {
   enforce_max_length_null(10)
   sqlite3_stmt* stmt;

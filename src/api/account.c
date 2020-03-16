@@ -11,6 +11,8 @@
 #include "../database/helpers/get_inputs.h"
 #include "../database/sqlite3/stores/account.h"
 #include "../database/sqlite3/stores/address.h"
+#include "../database/sqlite3/stores/incoming_transaction.h"
+#include "../database/sqlite3/stores/outgoing_transaction.h"
 #include "../database/helpers/generate_address.h"
 #include "../database/sqlite3/db.h"
 #include "../iota/api.h"
@@ -59,6 +61,7 @@ int __create_account(const char* username, char* password, const char* imported_
 
   if(encrypt_result < 0) {
     log_wallet_fatal("Failed to Create Account! %d", encrypt_result);
+    return -1;
   }
 
   char b64_cipher[256] = { 0 };
@@ -80,20 +83,7 @@ int __create_account(const char* username, char* password, const char* imported_
   return ret_val;
 }
 
-char* get_accounts() {
-  sqlite3* db = get_db_handle();
-  cJSON* json = get_all_accounts(db);
-  close_db_handle(db);
-  if(!json) {
-    return NULL;
-  } else {
-    char *ret_val = cJSON_Print(json);
-    cJSON_Delete(json);
-    return ret_val;
-  }
-}
-
-int verify_login(const char* username, char* password, int zero_password) {
+int _verify_login(const char* username, char* password, int zero_password, int generate_inputs) {
   if(!username || !password) {
     log_wallet_error("%s invalid parameters", __func__);
     return -1;
@@ -137,7 +127,7 @@ int verify_login(const char* username, char* password, int zero_password) {
     password
   );
 
-  if(decrypt_result == 0) {
+  if(decrypt_result == 0 && generate_inputs > 0) {
     get_account_inputs(username, (const char*)p); //Do we need to sync this account to find inputs
     generate_address(username, (const char*)p); //Seed is decrypted, let's see if we need to generate any more addresses
   }
@@ -157,6 +147,40 @@ int verify_login(const char* username, char* password, int zero_password) {
   log_wallet_info("Logged in successfully", "")
   return 0;
 }
+
+int delete_account(const char* username, char* password) {
+  if(_verify_login(username, password, 0, 0) < 0) {
+    log_wallet_error("%s Invalid Login Credentials", __func__);
+    return -1;
+  }
+  sqlite3* db = get_db_handle();
+  if(0 == delete_account_outgoing_transaction(db, username)) {
+    if(0 == delete_account_incoming_transaction(db, username)) {
+      if(0 == delete_account_addresses(db, username)) {
+        if(0 == _delete_account(db, username)) {
+          close_db_handle(db);
+          return 0;
+        }
+      }
+    }
+  }
+  close_db_handle(db);
+  return -1;
+};
+
+char* get_accounts() {
+  sqlite3* db = get_db_handle();
+  cJSON* json = get_all_accounts(db);
+  close_db_handle(db);
+  if(!json) {
+    return NULL;
+  } else {
+    char *ret_val = cJSON_Print(json);
+    cJSON_Delete(json);
+    return ret_val;
+  }
+}
+
 
 int decrypt_seed(char* out, int out_max_len, const char* username, char* password) {
   if(!username || !password) {
@@ -227,6 +251,7 @@ int export_account_state(const char* username, char* password, const char* path)
   cJSON* account = get_account_by_username(db, username);
   if(!account) {
     log_wallet_error("%s Could not get Account. Does your username exist?", __func__);
+    close_db_handle(db);
     return -1;
   }
 
@@ -234,6 +259,7 @@ int export_account_state(const char* username, char* password, const char* path)
   if(synced == 0) {
     cJSON_Delete(account);
     log_wallet_error("%s account <%s> is not synced. Cannot export account state.", __func__, username);
+    close_db_handle(db);
     return -1;
   }
 
@@ -267,6 +293,7 @@ int export_account_state(const char* username, char* password, const char* path)
   pthread_mutex_lock(&account_state_file_mutex);
   FILE* i_file = fopen(path, "wb+");
   if(!i_file) {
+    free(state);
     pthread_mutex_unlock(&account_state_file_mutex);
     log_wallet_error("%s unable to open file for writing account %s", __func__, path);
     return -1;
@@ -276,5 +303,207 @@ int export_account_state(const char* username, char* password, const char* path)
   pthread_mutex_unlock(&account_state_file_mutex);
   free(state);
   log_wallet_info("%s writing file <%s> was successful", __func__, path);
+  return 0;
+}
+
+int import_account_state(char* password, const char* path) {
+  if(!path) {
+    log_wallet_error("%s No path provided", __func__);
+    return -1;
+  }
+
+  pthread_mutex_lock(&account_state_file_mutex);
+
+  FILE* i_file = fopen(path, "rb+");
+  if(!i_file) {
+    pthread_mutex_unlock(&account_state_file_mutex);
+    log_wallet_error("%s Could not open file %s", __func__, path);
+    return -1;
+  }
+
+  fseek(i_file, 0, SEEK_END);
+  long f_size = ftell(i_file);
+  rewind(i_file);
+  char* buffer = calloc(f_size + 1, sizeof(char));
+
+  if(!buffer) {
+    fclose(i_file);
+    pthread_mutex_unlock(&account_state_file_mutex);
+    log_wallet_error("%s OOM", __func__);
+    return -1;
+  }
+  if(f_size != fread(buffer, sizeof(char), f_size, i_file)) {
+    fclose(i_file);
+    pthread_mutex_unlock(&account_state_file_mutex);
+    free(buffer);
+    log_wallet_error("%s Could not read file", __func__);
+    return -1;
+  }
+  fclose(i_file);
+  pthread_mutex_unlock(&account_state_file_mutex);
+
+  cJSON* json = cJSON_Parse(buffer);
+  free(buffer);
+
+  if(!json) {
+    log_wallet_error("%s could not read file. (Was it altered?)", __func__);
+    return -1;
+  }
+
+
+  //Validate json
+  if(!cJSON_IsObject(json)) {
+    cJSON_Delete(json);
+    log_wallet_error("%s could not read file. (Was it altered?)", __func__);
+    return -1;
+  }
+
+  if(
+    !cJSON_HasObjectItem(json, "username") ||
+    !cJSON_HasObjectItem(json, "seed_ciphertext") ||
+    !cJSON_HasObjectItem(json, "salt") ||
+    !cJSON_HasObjectItem(json, "nonce") ||
+    !cJSON_HasObjectItem(json, "balance") ||
+    !cJSON_HasObjectItem(json, "is_synced") ||
+    !cJSON_HasObjectItem(json, "addresses")
+    ) {
+    cJSON_Delete(json);
+    log_wallet_error("%s could not read file. (Was it altered?)", __func__);
+    return -1;
+  }
+
+  cJSON* addresses = cJSON_GetObjectItem(json, "addresses");
+
+  if(!cJSON_IsArray(addresses)) {
+    cJSON_Delete(json);
+    log_wallet_error("%s could not read file. (Was it altered?)", __func__);
+    return -1;
+  }
+
+  int num_addresses = cJSON_GetArraySize(addresses);
+  cJSON* address = NULL;
+
+  cJSON_ArrayForEach(address, addresses) {
+    if(
+      !cJSON_HasObjectItem(address, "offset") ||
+      !cJSON_HasObjectItem(address, "spent_from") ||
+      !cJSON_HasObjectItem(address, "used") ||
+      !cJSON_HasObjectItem(address, "balance")
+    ) {
+      cJSON_Delete(json);
+      log_wallet_error("%s could not read file. (Was it altered?)", __func__);
+      return -1;
+    }
+
+    if(
+      !cJSON_IsNumber(cJSON_GetObjectItem(address, "offset")) ||
+      !cJSON_IsNumber(cJSON_GetObjectItem(address, "spent_from")) ||
+      !cJSON_IsNumber(cJSON_GetObjectItem(address, "used")) ||
+      !cJSON_IsString(cJSON_GetObjectItem(address, "balance"))
+      ) {
+      cJSON_Delete(json);
+      log_wallet_error("%s could not read file. (Was it altered?)", __func__);
+      return -1;
+    }
+  }
+
+  //Validated
+  sqlite3* db = get_db_handle();
+
+  char* username = cJSON_GetObjectItem(json, "username")->valuestring;
+  char* seed_cipher = cJSON_GetObjectItem(json, "seed_ciphertext")->valuestring;
+  char* nonce = cJSON_GetObjectItem(json, "nonce")->valuestring;
+  char* salt = cJSON_GetObjectItem(json, "salt")->valuestring;
+
+  //Does user already exist?
+  cJSON* existing_user = get_account_by_username(db, username);
+  if(existing_user) {
+    log_wallet_error("%s: Importing user (%s) which already exists\n", __func__, username);
+    cJSON_Delete(existing_user);
+    close_db_handle(db);
+    cJSON_Delete(json);
+    return -1;
+  }
+
+
+
+  if(0 != _create_account(
+    db,
+    username,
+    seed_cipher,
+    salt,
+    nonce
+  )) {
+    close_db_handle(db);
+    cJSON_Delete(json);
+    log_wallet_error("%s Could not create account, db error", __func__);
+    return -1;
+  }
+
+  uint32_t last_offset = 0;
+  int i;
+
+  for(i = 0; i < num_addresses; i++) {
+    address = cJSON_GetArrayItem(addresses, i);
+    int offset = cJSON_GetObjectItem(address, "offset")->valueint;
+    if(offset > last_offset) {
+      last_offset = offset;
+    }
+  }
+
+  char seed[128] = { 0 };
+  if(0 != decrypt_seed(seed, 127, username, password)) {
+    cJSON_Delete(json);
+    close_db_handle(db);
+    log_wallet_error("%s Invalid Password", __func__);
+    return -1;
+  }
+  //Need to generate at least <last_offset> addresses
+  cJSON* generated_addresses = generate_new_addresses(seed, 0, last_offset + 1);
+
+  cJSON* address_to_check = NULL;
+  cJSON_ArrayForEach(address, generated_addresses) {
+    const char* temp_address = cJSON_GetObjectItem(address, "address")->valuestring;
+    int temp_index = cJSON_GetObjectItem(address, "index")->valueint;
+
+    int spent_from = 0,
+        used = 0;
+    uint64_t d_balance = 0;
+
+    cJSON_ArrayForEach(address_to_check, addresses) {
+      int offset = cJSON_GetObjectItem(address_to_check, "offset")->valueint;
+      if(temp_index == offset) {
+        spent_from = cJSON_GetObjectItem(address_to_check, "spent_from")->valueint;
+        used = cJSON_GetObjectItem(address_to_check, "used")->valueint;
+        d_balance = strtoull(cJSON_GetObjectItem(address_to_check, "balance")->valuestring, NULL, 10);
+        break;
+      }
+    }
+
+    if(0 != create_address(db, temp_address, temp_index, username)) {
+      log_wallet_error("%s error creating address <%s> when importing (offset.(%d) )", __func__, temp_address, temp_index);
+    } else {
+      if(spent_from > 0) {
+        mark_address_spent_from(db, temp_address);
+      }
+      if(used > 0) {
+        mark_address_used(db, temp_address);
+      }
+      if(d_balance > 0) {
+        char b[128] = { 0 };
+#ifdef WIN32
+        snprintf(b, 127, "%I64u", d_balance);
+#else
+    snprintf(b, 127, "%llu", d_balance);
+#endif
+        set_address_balance(db, temp_address, b);
+      }
+    }
+  }
+
+
+  close_db_handle(db);
+  log_wallet_info("%s User <%s> imported successfully", __func__, username);
+  cJSON_Delete(json);
   return 0;
 }

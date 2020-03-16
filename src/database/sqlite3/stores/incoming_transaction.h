@@ -7,6 +7,8 @@
 #include <sqlite3.h>
 #include <cjson/cJSON.h>
 int create_incoming_transaction(sqlite3* db, const char* address, uint64_t amount, const char* bundle, const char* hash, const char* time, int confirmed);
+int delete_account_incoming_transaction(sqlite3* db, const char* username);
+
 cJSON* get_incoming_transaction_by_address(sqlite3* db, const char* address);
 
 cJSON* get_incoming_transaction_hash(sqlite3* db, const char* hash);

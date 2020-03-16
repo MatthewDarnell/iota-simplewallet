@@ -26,7 +26,9 @@ int _create_account(sqlite3* db, const char* username, const char* seed_c, const
   sqlite3_bind_text(stmt, 3, salt, -1, NULL);
   sqlite3_bind_text(stmt, 4, nonce, -1, NULL);
 
-  rc = sqlite3_step(stmt);
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    sqlite3_sleep(100);
+  }
 
   if (rc != SQLITE_DONE) {
     log_wallet_error("%s execution failed: %s", __func__, sqlite3_errmsg(db));
@@ -35,6 +37,36 @@ int _create_account(sqlite3* db, const char* username, const char* seed_c, const
     return -1;
   }
   log_wallet_info("User.(%s) created successfully.", username);
+  sqlite3_finalize(stmt);
+  return 0;
+}
+
+int _delete_account(sqlite3* db, const char* username) {
+  enforce_max_length(strlen(username))
+  sqlite3_stmt* stmt;
+  int rc;
+
+  char* query = "DELETE FROM account WHERE username=?";
+  rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
+
+  if (rc != SQLITE_OK) {
+    log_wallet_error("%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
+    return -1;
+  }
+
+  sqlite3_bind_text(stmt, 1, username, -1, NULL);
+
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    sqlite3_sleep(100);
+  }
+
+  if (rc != SQLITE_DONE) {
+    log_wallet_error("%s execution failed: %s", __func__, sqlite3_errmsg(db));
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return -1;
+  }
+  log_wallet_info("User.(%s) Deleted successfully.", username);
   sqlite3_finalize(stmt);
   return 0;
 }
@@ -51,7 +83,9 @@ cJSON* get_all_accounts(sqlite3* db) {
     return NULL;
   }
 
-  rc = sqlite3_step(stmt);
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    sqlite3_sleep(100);
+  }
 
   cJSON *json = cJSON_CreateArray();
 
@@ -94,7 +128,11 @@ int is_account_synced(sqlite3* db, const char* username) {
   }
 
   sqlite3_bind_text(stmt, 1, username, -1, NULL);
-  rc = sqlite3_step(stmt);
+
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    sqlite3_sleep(100);
+  }
+
   int is_synced = 0;
   if (rc == SQLITE_ROW) {
     is_synced = sqlite3_column_int(stmt, 0 );
@@ -116,7 +154,10 @@ cJSON* get_account_by_username(sqlite3* db, const char* username) {
   }
 
   sqlite3_bind_text(stmt, 1, username, -1, NULL);
-  rc = sqlite3_step(stmt);
+
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    sqlite3_sleep(100);
+  }
 
   cJSON *json = NULL;
   if (rc == SQLITE_ROW) {
@@ -159,7 +200,10 @@ int mark_account_synced(sqlite3* db, const char* username) {
   }
 
   sqlite3_bind_text(stmt, 1, username, -1, NULL);
-  rc = sqlite3_step(stmt);
+
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    sqlite3_sleep(100);
+  }
 
   if (rc != SQLITE_DONE) {
     log_wallet_error("%s execution failed: %s", __func__, sqlite3_errmsg(db));

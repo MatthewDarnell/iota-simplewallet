@@ -68,9 +68,12 @@ int parse_command(char* buf, int* quit_flag) {
                     "IOTA Wallet CLI Usage: \n"
                     "\tAccounts:\n"
                     "\t\tcreate_account <username> <password>\n"
+                    "\t\tdelete_account <username> <password>\n"
                     "\t\timport_account <username> <password> <seed>\n"
                     "\t\texport_account_state <username> <password> <path> --- Write a synced account state to a file\n"
+                    "\t\timport_account_state <password> <path> --- Import a file and create a new synced account\n"
                     "\t\tlogin <username> <password>\n"
+                    "\t\tdecrypt_seed <username> <password>\n"
                     "\t\tget_all_accounts\n"
                     "\tAddresses:\n"
                     "\t\tget_new_address <username>\n"
@@ -90,6 +93,84 @@ int parse_command(char* buf, int* quit_flag) {
                     "\n----------\n\n";
     log_wallet_info("%s", h);
     printf("%s", h);
+  } else if(strcasecmp(command, "create_account") == 0) {
+    username = strtok_r(NULL, " ", &saveptr);
+    password = strtok_r(NULL, " ", &saveptr);
+    if(!username || !password) {
+      fprintf(stderr, "Invalid usage:  create_account <username> <password>\n");
+      log_wallet_error("Invalid usage:  create_account <username> <password>\n", "");
+      return -1;
+    }
+    if(0 == create_account(username, password)) {
+      printf("OK\n");
+      log_wallet_info("Created User %s\n", username);
+    } else {
+      printf("ERROR\n");
+      log_wallet_error("Error Creating User\n", "");
+    }
+  } else if(strcasecmp(command, "delete_account") == 0) {
+    username = strtok_r(NULL, " ", &saveptr);
+    password = strtok_r(NULL, " ", &saveptr);
+    if(!username || !password) {
+      fprintf(stderr, "Invalid usage: delete_account <username> <password>\n");
+      log_wallet_error("Invalid usage: delete_account <username> <password>\n", "");
+      return -1;
+    }
+    if(0 == delete_account(username, password)) {
+      printf("OK\n");
+      log_wallet_info("Deleted User %s\n", username);
+    } else {
+      printf("ERROR\n");
+      log_wallet_error("Error Deleting User\n", "");
+    }
+  } else if(strcasecmp(command, "import_account") == 0) {
+      username = strtok_r(NULL, " ", &saveptr);
+      password = strtok_r(NULL, " ", &saveptr);
+      char* seed = strtok_r(NULL, " ", &saveptr);
+      if(!username || !password || !seed) {
+        fprintf(stderr, "Invalid usage:  import_account <username> <password> <seed>\n");
+        log_wallet_error("Invalid usage:  import_account <username> <password> <seed>\n", "");
+        return -1;
+      }
+      if(0 == import_account(username, password, seed)) {
+        printf("OK\n");
+        log_wallet_info("Created User %s\n", username);
+      } else {
+        printf("ERROR\n");
+        log_wallet_error("Error Creating User\n", "");
+      }
+  } else if(strcasecmp(command, "login") == 0) {
+    username = strtok_r(NULL, " ", &saveptr);
+    password = strtok_r(NULL, " ", &saveptr);
+    if(!username || !password) {
+      fprintf(stderr, "Invalid usage:  login <username> <password>\n");
+      log_wallet_error("Invalid usage:  login <username> <password>\n", "");
+      return -1;
+    }
+    if(0 == verify_login(username, password, 1)) {
+      printf("OK\n");
+      log_wallet_info("Successfully Logged In User\n", "");
+    } else {
+      printf("ERROR\n");
+      log_wallet_error("Error logging in\n", "");
+    }
+  } else if(strcasecmp(command, "decrypt_seed") == 0) {
+    username = strtok_r(NULL, " ", &saveptr);
+    password = strtok_r(NULL, " ", &saveptr);
+    if(!username || !password) {
+      fprintf(stderr, "Invalid usage: decrypt_seed <username> <password>\n");
+      log_wallet_error("Invalid usage: decrypt_seed <username> <password>\n", "");
+      return -1;
+    }
+    char seed[128] = { 0 };
+    if(0 == decrypt_seed(seed, 128, username, password)) {
+      printf("%s\n", seed);
+      log_wallet_info("Successfully Decrypted Seed\n", "");
+      memset(seed, 0, 128);
+    } else {
+      printf("ERROR\n");
+      log_wallet_error("Error logging in\n", "");
+    }
   } else if(strcasecmp(command, "export_account_state") == 0) {
     username = strtok_r(NULL, " ", &saveptr);
     password = strtok_r(NULL, " ", &saveptr);
@@ -101,6 +182,17 @@ int parse_command(char* buf, int* quit_flag) {
       int state_written = export_account_state(username, password, path);
       printf("%s\n", state_written == 0 ? "OK" : "NOT OK");
       log_wallet_info("%s\n", state_written == 0 ? "OK" : "NOT OK");
+    }
+  } else if(strcasecmp(command, "import_account_state") == 0) {
+    password = strtok_r(NULL, " ", &saveptr);
+    char* path = strtok_r(NULL, " ", &saveptr);
+    if( !password || !path) {
+      fprintf(stderr, "Usage: import_account_state <password> <path>\n");
+      log_wallet_error("Usage: import_account_state <password> <path>\n", "");
+    } else {
+      int state_imported = import_account_state(password, path);
+      printf("%s\n", state_imported == 0 ? "OK" : "NOT OK");
+      log_wallet_info("%s\n", state_imported == 0 ? "OK" : "NOT OK");
     }
   } else if(strcasecmp(command, "get_all_accounts") == 0) {
     char* accounts = get_accounts();
@@ -196,56 +288,7 @@ int parse_command(char* buf, int* quit_flag) {
     printf("%s\n", events);
     log_wallet_info("%s\n", events);
     free(events);
-  }
-
-
-  else if(strcasecmp(command, "create_account") == 0) {
-    username = strtok_r(NULL, " ", &saveptr);
-    password = strtok_r(NULL, " ", &saveptr);
-    if(!username || !password) {
-      fprintf(stderr, "Invalid usage:  create_account <username> <password>\n");
-      log_wallet_error("Invalid usage:  create_account <username> <password>\n", "");
-      return -1;
-    }
-    if(0 == create_account(username, password)) {
-      printf("OK\n");
-      log_wallet_info("Created User %s\n", username);
-    } else {
-      printf("ERROR\n");
-      log_wallet_error("Error Creating User\n", "");
-    }
-  } else if(strcasecmp(command, "import_account") == 0) {
-    username = strtok_r(NULL, " ", &saveptr);
-    password = strtok_r(NULL, " ", &saveptr);
-    char* seed = strtok_r(NULL, " ", &saveptr);
-    if(!username || !password || !seed) {
-      fprintf(stderr, "Invalid usage:  import_account <username> <password> <seed>\n");
-      log_wallet_error("Invalid usage:  import_account <username> <password> <seed>\n", "");
-      return -1;
-    }
-    if(0 == import_account(username, password, seed)) {
-      printf("OK\n");
-      log_wallet_info("Created User %s\n", username);
-    } else {
-      printf("ERROR\n");
-      log_wallet_error("Error Creating User\n", "");
-    }
-  } else if(strcasecmp(command, "login") == 0) {
-    username = strtok_r(NULL, " ", &saveptr);
-    password = strtok_r(NULL, " ", &saveptr);
-    if(!username || !password) {
-      fprintf(stderr, "Invalid usage:  login <username> <password>\n");
-      log_wallet_error("Invalid usage:  login <username> <password>\n", "");
-      return -1;
-    }
-    if(0 == verify_login(username, password, 1)) {
-      printf("OK\n");
-      log_wallet_info("Successfully Logged In User\n", "");
-    } else {
-      printf("ERROR\n");
-      log_wallet_error("Error logging in\n", "");
-    }
-  }  else if(strcasecmp(command, "set_node") == 0) {
+  } else if(strcasecmp(command, "set_node") == 0) {
     char* host = strtok_r(NULL, " ", &saveptr);
     char* str_port = strtok_r(NULL, " ", &saveptr);
     if(!host || !str_port) {

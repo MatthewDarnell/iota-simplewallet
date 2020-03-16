@@ -8,6 +8,7 @@
 #include <sqlite3.h>
 #include <cjson/cJSON.h>
 int _create_account(sqlite3* db, const char* username, const char* seed_c, const char* salt, const char* nonce);
+int _delete_account(sqlite3* db, const char* username);
 cJSON* get_all_accounts(sqlite3* db);
 
 //@return 1 if yes, 0 otherwise
