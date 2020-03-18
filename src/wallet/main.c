@@ -17,7 +17,6 @@
 static void read_cli(void* args) {
   int* quit_flag = (int*)args;
   char buf[256] = { 0 };
-  printf("Welcome to IOTA wallet CLI. Enter <help> to see available commands\n");
   while(*quit_flag == 0) {
     if(*quit_flag != 0) {
       break;
@@ -83,9 +82,8 @@ int main(int argc, char *argv[]) {
 
   int quit_flag = 0;
 
-  log_wallet_info("IOTA Wallet Started. Enter <quit> to shutdown.\n", "");
-  printf("IOTA Wallet Started. Enter <quit> to shutdown.\n");
-
+  printf("\n\t\t--------------------------------------\n\t\t\tWelcome to IOTA Simple Wallet!\n\t\t--------------------------------------\n\nEnter <help> to see menu\nEnter <quit> to shutdown.\n", "");
+  log_wallet_info("IOTA CLI Wallet Started", "");
 
   //register_callback("node_updated", &node_updated_callback);
   register_callback("balance_changed", &balance_changed_callback);

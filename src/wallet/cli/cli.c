@@ -93,7 +93,10 @@ int parse_command(char* buf, int* quit_flag) {
                     "\n----------\n\n";
     log_wallet_info("%s", h);
     printf("%s", h);
-  } else if(strcasecmp(command, "create_account") == 0) {
+  }
+
+  //Accounts
+  else if(strcasecmp(command, "create_account") == 0) {
     username = strtok_r(NULL, " ", &saveptr);
     password = strtok_r(NULL, " ", &saveptr);
     if(!username || !password) {
@@ -108,7 +111,8 @@ int parse_command(char* buf, int* quit_flag) {
       printf("ERROR\n");
       log_wallet_error("Error Creating User\n", "");
     }
-  } else if(strcasecmp(command, "delete_account") == 0) {
+  }
+  else if(strcasecmp(command, "delete_account") == 0) {
     username = strtok_r(NULL, " ", &saveptr);
     password = strtok_r(NULL, " ", &saveptr);
     if(!username || !password) {
@@ -123,23 +127,25 @@ int parse_command(char* buf, int* quit_flag) {
       printf("ERROR\n");
       log_wallet_error("Error Deleting User\n", "");
     }
-  } else if(strcasecmp(command, "import_account") == 0) {
-      username = strtok_r(NULL, " ", &saveptr);
-      password = strtok_r(NULL, " ", &saveptr);
-      char* seed = strtok_r(NULL, " ", &saveptr);
-      if(!username || !password || !seed) {
-        fprintf(stderr, "Invalid usage:  import_account <username> <password> <seed>\n");
-        log_wallet_error("Invalid usage:  import_account <username> <password> <seed>\n", "");
-        return -1;
-      }
-      if(0 == import_account(username, password, seed)) {
-        printf("OK\n");
-        log_wallet_info("Created User %s\n", username);
-      } else {
-        printf("ERROR\n");
-        log_wallet_error("Error Creating User\n", "");
-      }
-  } else if(strcasecmp(command, "login") == 0) {
+  }
+  else if(strcasecmp(command, "import_account") == 0) {
+    username = strtok_r(NULL, " ", &saveptr);
+    password = strtok_r(NULL, " ", &saveptr);
+    char* seed = strtok_r(NULL, " ", &saveptr);
+    if(!username || !password || !seed) {
+      fprintf(stderr, "Invalid usage:  import_account <username> <password> <seed>\n");
+      log_wallet_error("Invalid usage:  import_account <username> <password> <seed>\n", "");
+      return -1;
+    }
+    if(0 == import_account(username, password, seed)) {
+      printf("OK\n");
+      log_wallet_info("Created User %s\n", username);
+    } else {
+      printf("ERROR\n");
+      log_wallet_error("Error Creating User\n", "");
+    }
+  }
+  else if(strcasecmp(command, "login") == 0) {
     username = strtok_r(NULL, " ", &saveptr);
     password = strtok_r(NULL, " ", &saveptr);
     if(!username || !password) {
@@ -154,7 +160,8 @@ int parse_command(char* buf, int* quit_flag) {
       printf("ERROR\n");
       log_wallet_error("Error logging in\n", "");
     }
-  } else if(strcasecmp(command, "decrypt_seed") == 0) {
+  }
+  else if(strcasecmp(command, "decrypt_seed") == 0) {
     username = strtok_r(NULL, " ", &saveptr);
     password = strtok_r(NULL, " ", &saveptr);
     if(!username || !password) {
@@ -171,7 +178,8 @@ int parse_command(char* buf, int* quit_flag) {
       printf("ERROR\n");
       log_wallet_error("Error logging in\n", "");
     }
-  } else if(strcasecmp(command, "export_account_state") == 0) {
+  }
+  else if(strcasecmp(command, "export_account_state") == 0) {
     username = strtok_r(NULL, " ", &saveptr);
     password = strtok_r(NULL, " ", &saveptr);
     char* path = strtok_r(NULL, " ", &saveptr);
@@ -183,7 +191,8 @@ int parse_command(char* buf, int* quit_flag) {
       printf("%s\n", state_written == 0 ? "OK" : "NOT OK");
       log_wallet_info("%s\n", state_written == 0 ? "OK" : "NOT OK");
     }
-  } else if(strcasecmp(command, "import_account_state") == 0) {
+  }
+  else if(strcasecmp(command, "import_account_state") == 0) {
     password = strtok_r(NULL, " ", &saveptr);
     char* path = strtok_r(NULL, " ", &saveptr);
     if( !password || !path) {
@@ -194,17 +203,16 @@ int parse_command(char* buf, int* quit_flag) {
       printf("%s\n", state_imported == 0 ? "OK" : "NOT OK");
       log_wallet_info("%s\n", state_imported == 0 ? "OK" : "NOT OK");
     }
-  } else if(strcasecmp(command, "get_all_accounts") == 0) {
+  }
+  else if(strcasecmp(command, "get_all_accounts") == 0) {
     char* accounts = get_accounts();
     printf("%s\n", accounts);
     log_wallet_info("%s\n", accounts);
     free(accounts);
-  } else if(strcasecmp(command, "get_node_status") == 0) {
-    char* status = get_node_status();
-    printf("%s\n", status);
-    log_wallet_info("%s\n", status);
-    free(status);
-  } else if(strcasecmp(command, "get_new_address") == 0) {
+  }
+
+  //Addresses
+  else if(strcasecmp(command, "get_new_address") == 0) {
     username = strtok_r(NULL, " ", &saveptr);
     if(!username) {
       fprintf(stderr, "Usage: get_new_address <username>\n");
@@ -220,8 +228,10 @@ int parse_command(char* buf, int* quit_flag) {
         free(address);
       }
     }
-  } else if(strcasecmp(command, "get_all_transactions") == 0) {
+  }
 
+  //Transactions
+  else if(strcasecmp(command, "get_all_transactions") == 0) {
     username = strtok_r(NULL, " ", &saveptr);
     char* str_offset = strtok_r(NULL, " ", &saveptr);
     char* str_limit = strtok_r(NULL, " ", &saveptr);
@@ -237,7 +247,8 @@ int parse_command(char* buf, int* quit_flag) {
       log_wallet_info("%s\n", txs);
       free(txs);
     }
-  } else if(strcasecmp(command, "get_all_sent_transactions") == 0) {
+  }
+  else if(strcasecmp(command, "get_all_sent_transactions") == 0) {
 
     username = strtok_r(NULL, " ", &saveptr);
     char* str_offset = strtok_r(NULL, " ", &saveptr);
@@ -254,41 +265,55 @@ int parse_command(char* buf, int* quit_flag) {
       log_wallet_info("%s\n", txs);
       free(txs);
     }
-  } else if(strcasecmp(command, "send_transaction") == 0) {
+  }
+  else if(strcasecmp(command, "send_transaction") == 0) {
     username = strtok_r(NULL, " ", &saveptr);
     password = strtok_r(NULL, " ", &saveptr);
-    if(!username || !password) {
+    char* destination = strtok_r(NULL, " ", &saveptr);
+    char* str_amount = strtok_r(NULL, " ", &saveptr);
+    if(!username || !password || !destination || !str_amount) {
       fprintf(stderr, "Invalid usage: send_transaction <username> <password> <destination_address> <amount>\n");
       log_wallet_error("Invalid usage: send_transaction <username> <password> <destination_address> <amount>\n", "");
       return -1;
     }
-    char* destination = strtok_r(NULL, " ", &saveptr);
-    uint64_t amount = strtoull(strtok_r(NULL, " ", &saveptr), NULL, 10);
+    uint64_t amount = strtoull(str_amount, NULL, 10);
     int res = create_transaction(username, password, destination, amount);
     printf("%s\n", res == 0 ? "OK" : "NOT OK");
     log_wallet_info("%s\n", res == 0 ? "OK" : "NOT OK");
-  } else if(strcasecmp(command, "get_transaction") == 0) {
+  }
+  else if(strcasecmp(command, "get_transaction") == 0) {
     char* hash = strtok_r(NULL, " ", &saveptr);
+    if(!hash) {
+      fprintf(stderr, "Invalid usage: get_transaction <hash>\n");
+      log_wallet_error("Invalid usage: get_transaction <hash>\n", "");
+      return -1;
+    }
     char* tx = get_incoming_transaction_by_hash(hash);
     printf("%s\n", tx);
     log_wallet_info("%s\n", tx);
     free(tx);
-  } else if(strcasecmp(command, "get_sent_transaction") == 0) {
+  }
+  else if(strcasecmp(command, "get_sent_transaction") == 0) {
     char* hash = strtok_r(NULL, " ", &saveptr);
+    if(!hash) {
+      fprintf(stderr, "Invalid usage: get_sent_transaction <hash>\n");
+      log_wallet_error("Invalid usage: get_sent_transaction <hash>\n", "");
+      return -1;
+    }
     char* tx = get_outgoing_transaction_by_hash(hash);
     printf("%s\n", tx);
     log_wallet_info("%s\n", tx);
     free(tx);
   }
 
-
-  //Events
-  else if(strcasecmp(command, "get_all_events") == 0) {
-    char* events = get_valid_events();
-    printf("%s\n", events);
-    log_wallet_info("%s\n", events);
-    free(events);
-  } else if(strcasecmp(command, "set_node") == 0) {
+  //Misc
+  else if(strcasecmp(command, "get_node_status") == 0) {
+    char* status = get_node_status();
+    printf("%s\n", status);
+    log_wallet_info("%s\n", status);
+    free(status);
+  }
+  else if(strcasecmp(command, "set_node") == 0) {
     char* host = strtok_r(NULL, " ", &saveptr);
     char* str_port = strtok_r(NULL, " ", &saveptr);
     if(!host || !str_port) {
@@ -306,6 +331,15 @@ int parse_command(char* buf, int* quit_flag) {
       }
     }
   }
+
+  //Events
+  else if(strcasecmp(command, "get_all_events") == 0) {
+    char* events = get_valid_events();
+    printf("%s\n", events);
+    log_wallet_info("%s\n", events);
+    free(events);
+  }
+
 
   else {
     fprintf(stderr, "Invalid Option. Try <help> to see all available options\n");
