@@ -91,6 +91,7 @@ int store_inputs(sqlite3* db, char* str_inputs) {
         cJSON_AddNumberToObject(transaction, "confirmed", d_confirmed);
         cJSON_AddStringToObject(transaction, "username", username);
         cJSON_AddStringToObject(transaction, "address", address);
+        cJSON_AddStringToObject(transaction, "time", timestamp);
         char* string = cJSON_PrintUnformatted(transaction);
         push_new_event("transaction_received", string);
         free(string);
@@ -104,6 +105,7 @@ int store_inputs(sqlite3* db, char* str_inputs) {
             cJSON_AddNumberToObject(transaction, "confirmed", 1);
             cJSON_AddStringToObject(transaction, "username", username);
             cJSON_AddStringToObject(transaction, "address", address);
+            cJSON_AddStringToObject(transaction, "time", timestamp);
 
             char* string = cJSON_PrintUnformatted(transaction);
             push_new_event("transaction_received_confirmed", string);

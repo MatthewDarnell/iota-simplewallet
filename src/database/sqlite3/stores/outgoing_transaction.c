@@ -265,7 +265,7 @@ cJSON* get_all_unsent_outgoing_transactions(sqlite3* db) {
   sqlite3_stmt* stmt;
   int rc;
 
-  char* query = "SELECT a.account as username, ot.serial, ot.amount, ot.dest_address, ot.change_address, ot.confirmed, ot.trytes, ot.sent, ot.bundle, ot.hash, ot.created_at "
+  char* query = "SELECT a.account as username, ot.serial, ot.amount, ot.dest_address, ot.change_address, ot.confirmed, ot.trytes, ot.sent, ot.bundle, ot.hash, ot.created_at as time "
                 " FROM outgoing_transaction ot "
                 " INNER JOIN address a on ot.change_address=a.address "
                 " WHERE ot.sent=0";
@@ -309,7 +309,7 @@ cJSON* get_all_unsent_outgoing_transactions(sqlite3* db) {
     cJSON_AddNumberToObject(row, "sent", sqlite3_column_int(stmt, 7 ));
     cJSON_AddStringToObject(row, "bundle", (char*)sqlite3_column_text(stmt, 8 ));
     cJSON_AddStringToObject(row, "hash", (char*)sqlite3_column_text(stmt, 9 ));
-    cJSON_AddStringToObject(row, "created_at", (char*)sqlite3_column_text(stmt, 10));
+    cJSON_AddStringToObject(row, "time", (char*)sqlite3_column_text(stmt, 10));
 
     cJSON_AddItemToArray(json, row);
     rc = sqlite3_step(stmt);
@@ -324,7 +324,7 @@ cJSON* get_all_unconfirmed_outgoing_transactions(sqlite3* db) {
   int rc;
 
 
-  char* query = "SELECT a.account as username, ot.serial, ot.amount, ot.dest_address, ot.change_address, ot.confirmed, ot.trytes, ot.sent, ot.bundle, ot.hash, ot.created_at "
+  char* query = "SELECT a.account as username, ot.serial, ot.amount, ot.dest_address, ot.change_address, ot.confirmed, ot.trytes, ot.sent, ot.bundle, ot.hash, ot.created_at as time "
                 " FROM outgoing_transaction ot "
                 " INNER JOIN address a on ot.change_address=a.address "
                 " WHERE ot.sent=1 AND ot.confirmed=0";
@@ -370,7 +370,7 @@ cJSON* get_all_unconfirmed_outgoing_transactions(sqlite3* db) {
     cJSON_AddNumberToObject(row, "sent", sqlite3_column_int(stmt, 7 ));
     cJSON_AddStringToObject(row, "bundle", (char*)sqlite3_column_text(stmt, 8 ));
     cJSON_AddStringToObject(row, "hash", (char*)sqlite3_column_text(stmt, 9 ));
-    cJSON_AddStringToObject(row, "created_at", (char*)sqlite3_column_text(stmt, 10));
+    cJSON_AddStringToObject(row, "time", (char*)sqlite3_column_text(stmt, 10));
 
     cJSON_AddItemToArray(json, row);
     rc = sqlite3_step(stmt);
