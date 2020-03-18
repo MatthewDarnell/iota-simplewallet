@@ -8,6 +8,7 @@
 #include "../../iota-simplewallet.h"
 #include "../../thread/event_queue.h"
 #include "store_iota_inputs.h"
+#include "../sqlite3/stores/address.h"
 
 int store_inputs(sqlite3* db, char* str_inputs) {
   if(!str_inputs) {
@@ -40,6 +41,16 @@ int store_inputs(sqlite3* db, char* str_inputs) {
     }
 
     const char* address = cJSON_GetObjectItem(input, "address")->valuestring;
+
+    cJSON* address_json = get_address_by_address(db, address);
+    if(!address_json) {
+      log_wallet_error("%s Unable to get address %s", __func__, address);
+      continue;
+    }
+
+    const char* username = cJSON_GetObjectItem(address_json, "account")->valuestring;
+
+
     cJSON* transaction_array = cJSON_GetObjectItem(input, "transactions");
 
     if(!cJSON_IsArray(transaction_array)) {
@@ -71,8 +82,14 @@ int store_inputs(sqlite3* db, char* str_inputs) {
 
       int d_confirmed = (strcasecmp(confirmed, "true") == 0) ? 1 : 0;
 
+
+
+
       int create_ret_val = 0;
       if(0 == (create_ret_val = create_incoming_transaction(db, address, d_amount, bundle, hash, timestamp, d_confirmed))) {
+        cJSON_DeleteItemFromObject(transaction, "confirmed");
+        cJSON_AddNumberToObject(transaction, "confirmed", d_confirmed);
+        cJSON_AddStringToObject(transaction, "username", username);
         char* string = cJSON_PrintUnformatted(transaction);
         push_new_event("transaction_received", string);
         free(string);
@@ -84,6 +101,7 @@ int store_inputs(sqlite3* db, char* str_inputs) {
           if(0 == mark_incoming_transaction_confirmed(db, hash)) {
             cJSON_DeleteItemFromObject(transaction, "confirmed");
             cJSON_AddNumberToObject(transaction, "confirmed", 1);
+            cJSON_AddStringToObject(transaction, "username", username);
             char* string = cJSON_PrintUnformatted(transaction);
             push_new_event("transaction_received_confirmed", string);
             free(string);
@@ -92,6 +110,7 @@ int store_inputs(sqlite3* db, char* str_inputs) {
       }
 
     }
+    cJSON_Delete(address_json);
   }
   cJSON_Delete(inputs);
   return 0;

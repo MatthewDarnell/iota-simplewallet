@@ -324,7 +324,7 @@ int mark_incoming_transaction_confirmed(sqlite3* db, const char* hash) {
     sqlite3_reset(stmt);
     ret_val = -1;
   } else if(sqlite3_changes(db) < 1) {
-    log_wallet_debug("hash %s not marked confirmed", hash);
+    //log_wallet_debug("hash %s not marked confirmed", hash);
     ret_val = -1;
   } else {
       log_wallet_info("Confirming Incoming Transaction. (hash=<%s>)", hash);

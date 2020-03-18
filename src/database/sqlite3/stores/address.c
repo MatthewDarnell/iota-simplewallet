@@ -234,14 +234,11 @@ cJSON* get_address_by_address(sqlite3* db, const char* address) {
   }
 
   sqlite3_bind_text(stmt, 1, address, -1, NULL);
-  int count = 0;
+
   while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
-    if(count > 5) {
-      break;
-    }
-    count++;
     sqlite3_sleep(100);
   }
+
   cJSON *json = NULL;
   if (rc == SQLITE_ROW) {
     json =  cJSON_CreateObject();
