@@ -266,8 +266,8 @@ cJSON* get_all_unsent_outgoing_transactions(sqlite3* db) {
   int rc;
 
   char* query = "SELECT a.account as username, ot.serial, ot.amount, ot.dest_address, ot.change_address, ot.confirmed, ot.trytes, ot.sent, ot.bundle, ot.hash, ot.created_at "
-                " FROM outgoing_transaction ot\n"
-                " INNER JOIN address a on ot.change_address=a.address\n"
+                " FROM outgoing_transaction ot "
+                " INNER JOIN address a on ot.change_address=a.address "
                 " WHERE ot.sent=0";
   rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
 
@@ -290,9 +290,10 @@ cJSON* get_all_unsent_outgoing_transactions(sqlite3* db) {
   while(rc == SQLITE_ROW) {
     cJSON *row =  cJSON_CreateObject();
 
-    cJSON_AddNumberToObject(row, "serial", sqlite3_column_int(stmt, 0 ));
+    cJSON_AddStringToObject(row, "username", (char*)sqlite3_column_text(stmt, 0 ));
+    cJSON_AddNumberToObject(row, "serial", sqlite3_column_int(stmt, 1 ));
 
-    uint64_t amount = sqlite3_column_int64(stmt, 1);
+    uint64_t amount = sqlite3_column_int64(stmt, 2);
     char str_amount[64] = { 0 };
 
 #ifdef WIN32
@@ -301,14 +302,14 @@ cJSON* get_all_unsent_outgoing_transactions(sqlite3* db) {
     snprintf(str_amount, 64, "%lld", amount);
 #endif
     cJSON_AddStringToObject(row, "amount", str_amount);
-    cJSON_AddStringToObject(row, "dest_address", (char*)sqlite3_column_text(stmt, 2));
-    cJSON_AddStringToObject(row, "change_address", (char*)sqlite3_column_text(stmt, 3 ));
-    cJSON_AddNumberToObject(row, "confirmed", sqlite3_column_int(stmt, 4 ));
-    cJSON_AddStringToObject(row, "trytes", (char*)sqlite3_column_text(stmt, 5 ));
-    cJSON_AddNumberToObject(row, "sent", sqlite3_column_int(stmt, 6 ));
-    cJSON_AddStringToObject(row, "bundle", (char*)sqlite3_column_text(stmt, 7 ));
-    cJSON_AddStringToObject(row, "hash", (char*)sqlite3_column_text(stmt, 8 ));
-    cJSON_AddStringToObject(row, "created_at", (char*)sqlite3_column_text(stmt, 9));
+    cJSON_AddStringToObject(row, "dest_address", (char*)sqlite3_column_text(stmt, 3));
+    cJSON_AddStringToObject(row, "change_address", (char*)sqlite3_column_text(stmt, 4 ));
+    cJSON_AddNumberToObject(row, "confirmed", sqlite3_column_int(stmt, 5 ));
+    cJSON_AddStringToObject(row, "trytes", (char*)sqlite3_column_text(stmt, 6 ));
+    cJSON_AddNumberToObject(row, "sent", sqlite3_column_int(stmt, 7 ));
+    cJSON_AddStringToObject(row, "bundle", (char*)sqlite3_column_text(stmt, 8 ));
+    cJSON_AddStringToObject(row, "hash", (char*)sqlite3_column_text(stmt, 9 ));
+    cJSON_AddStringToObject(row, "created_at", (char*)sqlite3_column_text(stmt, 10));
 
     cJSON_AddItemToArray(json, row);
     rc = sqlite3_step(stmt);
@@ -322,7 +323,12 @@ cJSON* get_all_unconfirmed_outgoing_transactions(sqlite3* db) {
   sqlite3_stmt* stmt;
   int rc;
 
-  char* query = "SELECT * FROM outgoing_transaction WHERE sent=1 AND confirmed=0";
+
+  char* query = "SELECT a.account as username, ot.serial, ot.amount, ot.dest_address, ot.change_address, ot.confirmed, ot.trytes, ot.sent, ot.bundle, ot.hash, ot.created_at "
+                " FROM outgoing_transaction ot "
+                " INNER JOIN address a on ot.change_address=a.address "
+                " WHERE ot.sent=1 AND ot.confirmed=0";
+
   rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
 
   if (rc != SQLITE_OK) {
@@ -344,9 +350,10 @@ cJSON* get_all_unconfirmed_outgoing_transactions(sqlite3* db) {
   while(rc == SQLITE_ROW) {
     cJSON *row =  cJSON_CreateObject();
 
-    cJSON_AddNumberToObject(row, "serial", sqlite3_column_int(stmt, 0 ));
+    cJSON_AddStringToObject(row, "username", (char*)sqlite3_column_text(stmt, 0 ));
+    cJSON_AddNumberToObject(row, "serial", sqlite3_column_int(stmt, 1 ));
 
-    uint64_t amount = sqlite3_column_int64(stmt, 1);
+    uint64_t amount = sqlite3_column_int64(stmt, 2);
     char str_amount[64] = { 0 };
 
 #ifdef WIN32
@@ -356,14 +363,14 @@ cJSON* get_all_unconfirmed_outgoing_transactions(sqlite3* db) {
 #endif
     cJSON_AddStringToObject(row, "amount", str_amount);
 
-    cJSON_AddStringToObject(row, "dest_address", (char*)sqlite3_column_text(stmt, 2 ));
-    cJSON_AddStringToObject(row, "change_address", (char*)sqlite3_column_text(stmt, 3 ));
-    cJSON_AddNumberToObject(row, "confirmed", sqlite3_column_int(stmt, 4 ));
-    cJSON_AddStringToObject(row, "trytes", (char*)sqlite3_column_text(stmt, 5 ));
-    cJSON_AddNumberToObject(row, "sent", sqlite3_column_int(stmt, 6 ));
-    cJSON_AddStringToObject(row, "bundle", (char*)sqlite3_column_text(stmt, 7 ));
-    cJSON_AddStringToObject(row, "hash", (char*)sqlite3_column_text(stmt, 8 ));
-    cJSON_AddStringToObject(row, "created_at", (char*)sqlite3_column_text(stmt, 9));
+    cJSON_AddStringToObject(row, "dest_address", (char*)sqlite3_column_text(stmt, 3 ));
+    cJSON_AddStringToObject(row, "change_address", (char*)sqlite3_column_text(stmt, 4 ));
+    cJSON_AddNumberToObject(row, "confirmed", sqlite3_column_int(stmt, 5 ));
+    cJSON_AddStringToObject(row, "trytes", (char*)sqlite3_column_text(stmt, 6 ));
+    cJSON_AddNumberToObject(row, "sent", sqlite3_column_int(stmt, 7 ));
+    cJSON_AddStringToObject(row, "bundle", (char*)sqlite3_column_text(stmt, 8 ));
+    cJSON_AddStringToObject(row, "hash", (char*)sqlite3_column_text(stmt, 9 ));
+    cJSON_AddStringToObject(row, "created_at", (char*)sqlite3_column_text(stmt, 10));
 
     cJSON_AddItemToArray(json, row);
     rc = sqlite3_step(stmt);
