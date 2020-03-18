@@ -265,7 +265,10 @@ cJSON* get_all_unsent_outgoing_transactions(sqlite3* db) {
   sqlite3_stmt* stmt;
   int rc;
 
-  char* query = "SELECT * FROM outgoing_transaction WHERE sent=0";
+  char* query = "SELECT a.account as username, ot.serial, ot.amount, ot.dest_address, ot.change_address, ot.confirmed, ot.trytes, ot.sent, ot.bundle, ot.hash, ot.created_at "
+                " FROM outgoing_transaction ot\n"
+                " INNER JOIN address a on ot.change_address=a.address\n"
+                " WHERE ot.sent=0";
   rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
 
   if (rc != SQLITE_OK) {
