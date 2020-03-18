@@ -56,6 +56,10 @@ void thread_sent_transaction_confirmer(void* args) {
         char* bundle = cJSON_GetObjectItem(tx, "bundle")->valuestring;
         mark_outgoing_transaction_confirmed(db, serial, (const char*)bundle, (const char*)hash);
         cJSON_DeleteItemFromObject(tx, "trytes");
+
+        char* dest_address = cJSON_GetObjectItem(tx, "dest_address")->valuestring;
+        cJSON_AddStringToObject(tx, "address", dest_address);
+
         char* string = cJSON_PrintUnformatted(tx);
         push_new_event("sent_transaction_confirmed", string);
         free(string);

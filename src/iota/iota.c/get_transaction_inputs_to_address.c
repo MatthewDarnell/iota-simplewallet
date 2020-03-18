@@ -95,6 +95,9 @@ void get_transaction_inputs_to_address(cJSON** addresses) {
     uint64_t t_time  = transaction_timestamp(tx);
     int64_t d_value = transaction_value(tx);
 
+
+
+
     if(d_value <= 0) {
       continue;
     }
