@@ -435,13 +435,7 @@ int mark_outgoing_transaction_sent(sqlite3* db, int serial, const char* bundle, 
   sqlite3_bind_text(stmt, 2, hash, -1, NULL);
   sqlite3_bind_int(stmt, 3, serial);
 
-
-  int count = 0;
   while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
-    if(count > 5) {
-      break;
-    }
-    count++;
     sqlite3_sleep(100);
   }
 

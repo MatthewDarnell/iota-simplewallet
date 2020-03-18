@@ -57,6 +57,10 @@ void thread_send_transaction(void* args) {
         cJSON_DeleteItemFromObject(tx, "trytes");
         cJSON_AddStringToObject(tx, "hash", hash);
         cJSON_AddStringToObject(tx, "bundle", bundle);
+
+        cJSON_DeleteItemFromObject(tx, "sent");
+        cJSON_AddNumberToObject(tx, "sent", 1);
+
         char* string = cJSON_PrintUnformatted(tx);
         push_new_event("transaction_sent",string);
         free(string);
