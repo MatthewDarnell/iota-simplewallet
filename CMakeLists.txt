@@ -147,13 +147,13 @@ if(WIN32)
             )
     if(USE_CURL_API)
       message("linking to curl")
-      target_link_libraries(iota_simplewallet cclient libssl.a libssh2.a libnghttp2.a libcrypto.a libssl.a libcrypto.a libbrotlicommon-static.a libbrotlidec-static.a libbrotlienc-static.a libbrotlicommon-static.a libz.a libcurl.a wldap32 logger libsodium.a common http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread wldap32 ws2_32 wsock32 crypt32 libssl.a libssh2.a libnghttp2.a libcrypto.a libssl.a libcrypto.a libbrotlicommon-static.a libbrotlidec-static.a libbrotlienc-static.a libbrotlicommon-static.a libz.a libcurl.a wldap32)
+      target_link_libraries(iota_simplewallet PRIVATE cclient libssl.a libssh2.a libnghttp2.a libcrypto.a libssl.a libcrypto.a libbrotlicommon-static.a libbrotlidec-static.a libbrotlienc-static.a libbrotlicommon-static.a libz.a libcurl.a wldap32 logger libsodium.a common http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread wldap32 ws2_32 wsock32 crypt32 libssl.a libssh2.a libnghttp2.a libcrypto.a libssl.a libcrypto.a libbrotlicommon-static.a libbrotlidec-static.a libbrotlienc-static.a libbrotlicommon-static.a libz.a libcurl.a wldap32)
     else()
         message("not linking to curl")
-      target_link_libraries(iota_simplewallet cclient logger libsodium.a common http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread wldap32 ws2_32 wsock32 crypt32)
+      target_link_libraries(iota_simplewallet PRIVATE cclient logger libsodium.a common http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread wldap32 ws2_32 wsock32 crypt32)
     endif()
 else()
-    target_link_libraries(iota_simplewallet cclient logger sodium common http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread m dl)
+    target_link_libraries(iota_simplewallet PRIVATE cclient logger sodium common http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread m dl)
 endif()
 
 unset(USE_CURL_API)
@@ -208,10 +208,6 @@ write_basic_package_version_file(${version_file}
                                  VERSION ${IOTA_SIMPLEWALLET_VERSION}
                                  COMPATIBILITY AnyNewerVersion)
 
-
-
-
-
 #Should we build the cli app
 if(BUILD_CLI)
     include_directories(${CMAKE_SOURCE_DIR}/deps/include)
@@ -225,7 +221,7 @@ if(BUILD_CLI)
             ${wallet_src}
             )
     link_directories(${CMAKE_BINARY_DIR})
-    target_link_libraries(wallet iota_simplewallet)
+    target_link_libraries(wallet iota_simplewallet pthread)
 endif(BUILD_CLI)
 
 add_dependencies(json iota.c-library)
