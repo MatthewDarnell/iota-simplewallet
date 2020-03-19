@@ -57,11 +57,7 @@ void thread_event_queue(void* args) {
     }
 
     Sleep(100);
-
-    while ((p = (char**)utarray_next(loaded_events,p))) {
-      if(!*p) {
-        continue;
-      }
+    for(p=(char**)utarray_front(loaded_events); p != NULL; p = (char**)utarray_next(loaded_events, p)) {
       cJSON* event = NULL;
       event = cJSON_Parse(*p);
       if(!event) {
@@ -79,7 +75,6 @@ void thread_event_queue(void* args) {
       cJSON_Delete(event);
     }
     utarray_clear(loaded_events);
-
   }
   utarray_free(loaded_events);
   log_wallet_info("Shutting Down Event Queue Thread", "");
