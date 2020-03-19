@@ -150,7 +150,7 @@ int import_account_state(char* password, const char* path);
 
 //Get a new Deposit Address
 //@username: NULL to use main account
-char* get_new_address(char* username);
+char* get_new_address(const char* username);
 
 
 /*
@@ -161,23 +161,23 @@ char* get_new_address(char* username);
 
 //Get a received transaction
 //@hash: transaction hash
-char* get_incoming_transaction_by_hash(char* hash);
+char* get_incoming_transaction_by_hash(const char* hash);
 
 //Get received transactions
 //@username: NULL to use main account
 //@offset: the 0-based offset at which to start looking
 //@num: the max count of transactions to return
-char* get_incoming_transactions(char* username, int offset, int num);
+char* get_incoming_transactions(const char* username, uint32_t offset, uint32_t num);
 
 //Get a sent transaction
 //@hash: transaction hash
-char* get_outgoing_transaction_by_hash(char* hash);
+char* get_outgoing_transaction_by_hash(const char* hash);
 
 //Get sent transactions
 //@username: NULL to use main account
 //@offset: the 0-based offset at which to start looking
 //@num: the max count of transactions to return
-char* get_outgoing_transactions(char* username, int offset, int num);
+char* get_outgoing_transactions(const char* username, uint32_t offset, uint32_t num);
 
 
 //Creates a new transaction to send
@@ -186,7 +186,7 @@ char* get_outgoing_transactions(char* username, int offset, int num);
 //@dest_address: the receiving address
 //@value: the amount to send
 //Returns 0 on success, < 1 if failure
-int create_transaction(char* username, char* password, char* dest_address, uint64_t value);
+int create_transaction(const char* username, char* password, const char* dest_address, uint64_t value);
 
 
 /*
@@ -197,9 +197,19 @@ int create_transaction(char* username, char* password, char* dest_address, uint6
 int init_events();
 void shutdown_events();
 char* get_valid_events();
-int register_callback(const char* event, void* (*cb)(char*));
+int register_callback(const char* event, void* (*cb)(const char*));
 
 
+/*
+ *
+ *   Other functions
+ *
+*/
+
+//Access this API at runtime
+//@command: the full string, i.e. "get_new_address <username>"
+// <help> will return all available options
+char* parse_debug_command(char* cmd);
 
 #endif //IOTA_SIMPLEWALLET_IOTA_SIMPLEWALLET_H
 

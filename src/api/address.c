@@ -9,7 +9,7 @@
 #include "../database/sqlite3/stores/address.h"
 #include "../iota-simplewallet.h"
 
-char* get_new_address(char* username) {
+char* get_new_address(const char* username) {
   if(!username) {
     log_wallet_error("%s invalid parameters", __func__);
     return NULL;

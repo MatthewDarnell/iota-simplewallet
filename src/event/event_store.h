@@ -9,6 +9,6 @@ void shutdown_event_store();
 
 int is_valid_event(const char* event);
 char* get_all_valid_events();
-int register_new_callback(const char* event, void* (cb)(char*));
-int fire_registered_callbacks(const char* event, char* value);
+int register_new_callback(const char* event, void* (cb)(const char*));
+int fire_registered_callbacks(const char* event, const char* value);
 #endif //IOTA_SIMPLEWALLET_EVENT_STORE_H

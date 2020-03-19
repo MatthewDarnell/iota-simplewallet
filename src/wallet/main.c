@@ -33,32 +33,32 @@ static void read_cli(void* args) {
 }
 
 
-void* node_updated_callback(char* value) {
+void* node_updated_callback(const char* value) {
   printf("%s fired!!! Got <%s>\n", __func__, value);
   return NULL;
 }
 
-void* balance_changed_callback(char* value) {
+void* balance_changed_callback(const char* value) {
   printf("%s fired!!! Got <%s>\n", __func__, value);
   return NULL;
 }
 
-void* transaction_received_callback(char* value) {
+void* transaction_received_callback(const char* value) {
   printf("%s fired!!! Got <%s>\n", __func__, value);
   return NULL;
 }
 
-void* transaction_received_confirmed_callback(char* value) {
+void* transaction_received_confirmed_callback(const char* value) {
   printf("%s fired!!! Got <%s>\n", __func__, value);
   return NULL;
 }
 
-void* transaction_sent_callback(char* value) {
+void* transaction_sent_callback(const char* value) {
   printf("%s fired!!! Got <%s>\n", __func__, value);
   return NULL;
 }
 
-void* sent_transaction_confirmed_callback(char* value) {
+void* sent_transaction_confirmed_callback(const char* value) {
   printf("%s fired!!! Got <%s>\n", __func__, value);
   return NULL;
 }
@@ -82,7 +82,11 @@ int main(int argc, char *argv[]) {
 
   int quit_flag = 0;
 
-  printf("\n\t\t--------------------------------------\n\t\t\tWelcome to IOTA Simple Wallet!\n\t\t--------------------------------------\n\nEnter <help> to see menu\nEnter <quit> to shutdown.\n", "");
+  printf("\n\t\t--------------------------------------\n"
+         "\t\t\tWelcome to IOTA Simple Wallet!\n"
+         "\t\t--------------------------------------\n\n"
+         "Enter <help> to see menu\nEnter <quit> to shutdown.\n");
+
   log_wallet_info("IOTA CLI Wallet Started", "");
 
   //register_callback("node_updated", &node_updated_callback);

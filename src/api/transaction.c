@@ -13,7 +13,7 @@
 #include "../iota/api.h"
 #include "../iota-simplewallet.h"
 
-char* get_incoming_transaction_by_hash(char* hash) {
+char* get_incoming_transaction_by_hash(const char* hash) {
   if(!hash) {
     log_wallet_error("%s invalid parameters", __func__);
     return NULL;
@@ -28,7 +28,7 @@ char* get_incoming_transaction_by_hash(char* hash) {
   cJSON_Delete(json);
   return ret_val;
 }
-char* get_incoming_transactions(char* username, int offset, int num) {
+char* get_incoming_transactions(const char* username, uint32_t offset, uint32_t num) {
   if(!username) {
     log_wallet_error("%s invalid parameters", __func__);
     return NULL;
@@ -50,7 +50,7 @@ char* get_incoming_transactions(char* username, int offset, int num) {
 }
 
 
-char* get_outgoing_transaction_by_hash(char* hash) {
+char* get_outgoing_transaction_by_hash(const char* hash) {
   if(!hash) {
     log_wallet_error("%s invalid parameters", __func__);
     return NULL;
@@ -65,7 +65,7 @@ char* get_outgoing_transaction_by_hash(char* hash) {
   cJSON_Delete(json);
   return ret_val;
 }
-char* get_outgoing_transactions(char* username, int offset, int num) {
+char* get_outgoing_transactions(const char* username, uint32_t offset, uint32_t num) {
   if(!username) {
     log_wallet_error("%s invalid parameters", __func__);
     return NULL;
@@ -86,7 +86,7 @@ char* get_outgoing_transactions(char* username, int offset, int num) {
   return ret_val;
 }
 
-int create_transaction(char* username, char* password, char* dest_address, uint64_t value) {
+int create_transaction(const char* username, char* password, const char* dest_address, uint64_t value) {
   if(!username || !password || !dest_address || value < 1) {
     log_wallet_error("%s invalid parameters", __func__);
     return -1;

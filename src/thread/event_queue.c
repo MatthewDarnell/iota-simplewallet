@@ -73,7 +73,7 @@ void thread_event_queue(void* args) {
         continue;
       }
       char* event_type = cJSON_GetObjectItem(event, "event")->valuestring;
-      char* value_to_fire = cJSON_GetObjectItem(event, "value")->valuestring;
+      const char* value_to_fire = cJSON_GetObjectItem(event, "value")->valuestring;
       log_wallet_debug("Firing <%s> event", event_type);
       fire_registered_callbacks(event_type, value_to_fire);
       cJSON_Delete(event);

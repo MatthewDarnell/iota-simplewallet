@@ -143,7 +143,7 @@ cJSON* get_outgoing_transaction_by_serial(sqlite3* db, int serial) {
   return json;
 }
 
-cJSON* get_outgoing_transaction_hash(sqlite3* db, char* hash) {
+cJSON* get_outgoing_transaction_hash(sqlite3* db, const char* hash) {
   enforce_max_length_null(strlen(hash))
   sqlite3_stmt* stmt;
   int rc;

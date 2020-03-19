@@ -15,7 +15,7 @@ typedef struct {
 } callback_events;
 
 typedef struct callback {
-    void* (*cb)(char*);
+    void* (*cb)(const char*);
 } cb;
 
 UT_icd cb_icd = {sizeof(cb), NULL, NULL, NULL};
@@ -102,7 +102,7 @@ char* get_all_valid_events() {
 }
 
 
-int register_new_callback(const char* event, void* (*new_callback)(char*)) {
+int register_new_callback(const char* event, void* (*new_callback)(const char*)) {
   cJSON* json_event = NULL;
   int event_found = 0;
   int i = 0;
@@ -124,7 +124,7 @@ int register_new_callback(const char* event, void* (*new_callback)(char*)) {
   return 0;
 }
 
-int fire_registered_callbacks(const char* event, char* value) {
+int fire_registered_callbacks(const char* event, const char* value) {
   cJSON* json_event = NULL;
   int event_found = 0;
   int i = 0;

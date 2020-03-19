@@ -8,7 +8,7 @@
 #include "../event/event_store.h"
 #include "../iota-simplewallet.h"
 
-int register_callback(const char* event, void* (*cb)(char*)) {
+int register_callback(const char* event, void* (*cb)(const char*)) {
   if(is_valid_event(event) < 0) {
     log_wallet_error("%s: Invalid event type <%s>", __func__, event);
     return -1;
