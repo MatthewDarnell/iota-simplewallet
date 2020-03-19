@@ -384,12 +384,7 @@ cJSON* get_deposit_addresses(sqlite3* db) {
     return NULL;
   }
 
-  int count = 0;
   while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
-    if(count > 5) {
-      break;
-    }
-    count++;
     sqlite3_sleep(100);
   }
   cJSON *json = cJSON_CreateArray();
@@ -405,12 +400,7 @@ cJSON* get_deposit_addresses(sqlite3* db) {
     cJSON_AddNumberToObject(row, "spent_from", sqlite3_column_int(stmt, 6 ));
     cJSON_AddStringToObject(row, "created_at", (char*)sqlite3_column_text(stmt, 7));
     cJSON_AddItemToArray(json, row);
-    count = 0;
     while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
-      if(count > 5) {
-        break;
-      }
-      count++;
       sqlite3_sleep(100);
     }
   }
@@ -442,12 +432,7 @@ cJSON* get_addresses_for_spending(sqlite3* db, const char* username) {
 
   sqlite3_bind_text(stmt, 1, username, -1, NULL);
 
-  int count = 0;
   while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
-    if(count > 5) {
-      break;
-    }
-    count++;
     sqlite3_sleep(100);
   }
   cJSON *json = cJSON_CreateObject();
@@ -464,7 +449,9 @@ cJSON* get_addresses_for_spending(sqlite3* db, const char* username) {
     cJSON_AddNumberToObject(row, "offset", sqlite3_column_int(stmt, 2 ));
     total_balance += strtoull(balance, NULL, 10);
     cJSON_AddItemToArray(inputs, row);
-    rc = sqlite3_step(stmt);
+    while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+      sqlite3_sleep(100);
+    }
   }
 
   char str_balance[64] = { 0 };

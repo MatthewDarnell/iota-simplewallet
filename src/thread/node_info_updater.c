@@ -35,8 +35,8 @@ void thread_node_info_updater(void* args) {
       cJSON_Delete(info);
     }
 
-    for(i=0; i < 300; i++) {
-      Sleep(100);
+    for(i=0; i < 10; i++) {
+      Sleep(1000);
       if(*quit_flag != 0) {
         break;
       }

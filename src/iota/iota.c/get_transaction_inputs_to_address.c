@@ -129,12 +129,6 @@ void get_transaction_inputs_to_address(cJSON** addresses) {
       trit_bundle,
       NUM_TRITS_BUNDLE, NUM_TRITS_BUNDLE);
 
-    cJSON* obj = cJSON_CreateObject();
-    cJSON_AddStringToObject(obj, "hash", (const char*)hash);
-    cJSON_AddStringToObject(obj, "bundle", (const char*)bundle);
-    cJSON_AddStringToObject(obj, "amount", (const char*)value);
-    cJSON_AddStringToObject(obj, "timestamp", (const char*)time);
-
     for(j = 0; j < cJSON_GetArraySize(*addresses); j++) {
       cJSON* addr_obj = cJSON_GetArrayItem(*addresses, j);
       const char* addr_address = cJSON_GetObjectItem(addr_obj, "address")->valuestring;
@@ -143,6 +137,13 @@ void get_transaction_inputs_to_address(cJSON** addresses) {
           cJSON_AddItemToObject(addr_obj, "transactions", cJSON_CreateArray());
         }
         cJSON* addr_obj_txs = cJSON_GetObjectItem(addr_obj, "transactions");
+
+        cJSON* obj = cJSON_CreateObject();
+        cJSON_AddStringToObject(obj, "hash", (const char*)hash);
+        cJSON_AddStringToObject(obj, "bundle", (const char*)bundle);
+        cJSON_AddStringToObject(obj, "amount", (const char*)value);
+        cJSON_AddStringToObject(obj, "timestamp", (const char*)time);
+
         cJSON_AddItemToArray(addr_obj_txs, obj);
         break;
       }

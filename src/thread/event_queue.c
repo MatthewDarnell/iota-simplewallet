@@ -56,7 +56,7 @@ void thread_event_queue(void* args) {
       break;
     }
 
-    Sleep(100);
+    Sleep(5 * 1000);
     for(p=(char**)utarray_front(loaded_events); p != NULL; p = (char**)utarray_next(loaded_events, p)) {
       cJSON* event = NULL;
       event = cJSON_Parse(*p);

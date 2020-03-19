@@ -26,8 +26,8 @@ void thread_sent_transaction_confirmer(void* args) {
 
   int i;
   while(1) {
-    for(i=0; i < 50; i++) {
-      Sleep(100);
+    for(i=0; i < 10; i++) {
+      Sleep(1000);
       if(*quit_flag != 0) {
         break;
       }

@@ -26,8 +26,8 @@ void thread_deposit_detector(void* args) {
 
   int i;
   while(1) {
-    for(i=0; i < 50; i++) {
-      Sleep(100);
+    for(i=0; i < 15; i++) {
+      Sleep(1000);
       if(*quit_flag != 0) {
         break;
       }

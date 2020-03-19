@@ -30,8 +30,8 @@ void thread_address_balance_detector(void* args) {
   accounts = get_all_accounts(db);
   int i;
   while(1) {
-    for(i=0; i < 50; i++) {
-      Sleep(100);
+    for(i=0; i < 10; i++) {
+      Sleep(1000);
       if(*quit_flag != 0) {
         break;
       }
