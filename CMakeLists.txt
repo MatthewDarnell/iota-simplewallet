@@ -2,6 +2,13 @@ cmake_minimum_required(VERSION 3.11)
 project(iota_simplewallet C)
 set(CMAKE_C_STANDARD 99)
 
+set(IOTA_SIMPLEWALLET_VERSION_MAJOR 0 CACHE STRING "major version of memory" FORCE)
+set(IOTA_SIMPLEWALLET_VERSION_MINOR 1 CACHE STRING "minor version of memory" FORCE)
+set(IOTA_SIMPLEWALLET_VERSION_PATCH 0 CACHE STRING "patch version of memory" FORCE)
+set(IOTA_SIMPLEWALLET_VERSION "${IOTA_SIMPLEWALLET_VERSION_MAJOR}.${IOTA_SIMPLEWALLET_VERSION_MINOR}.${IOTA_SIMPLEWALLET_VERSION_PATCH}"
+                             CACHE STRING "version of memory" FORCE)
+
+include(GNUInstallDirs)
 
 #Determine arch
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -140,21 +147,66 @@ if(WIN32)
             )
     if(USE_CURL_API)
       message("linking to curl")
-      target_link_libraries(iota_simplewallet cclient libssl.a libssh2.a libnghttp2.a libcrypto.a libssl.a libcrypto.a libbrotlicommon-static.a libbrotlidec-static.a libbrotlienc-static.a libbrotlicommon-static.a libz.a libcurl.a wldap32 logger libsodium.a common http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread wldap32 ws2_32 wsock32 crypt32 libssl.a libssh2.a libnghttp2.a libcrypto.a libssl.a libcrypto.a libbrotlicommon-static.a libbrotlidec-static.a libbrotlienc-static.a libbrotlicommon-static.a libz.a libcurl.a wldap32)
+      target_link_libraries(iota_simplewallet PRIVATE cclient libssl.a libssh2.a libnghttp2.a libcrypto.a libssl.a libcrypto.a libbrotlicommon-static.a libbrotlidec-static.a libbrotlienc-static.a libbrotlicommon-static.a libz.a libcurl.a wldap32 logger libsodium.a common http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread wldap32 ws2_32 wsock32 crypt32 libssl.a libssh2.a libnghttp2.a libcrypto.a libssl.a libcrypto.a libbrotlicommon-static.a libbrotlidec-static.a libbrotlienc-static.a libbrotlicommon-static.a libz.a libcurl.a wldap32)
     else()
         message("not linking to curl")
-      target_link_libraries(iota_simplewallet cclient logger libsodium.a common http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread wldap32 ws2_32 wsock32 crypt32)
+      target_link_libraries(iota_simplewallet PRIVATE cclient logger libsodium.a common http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread wldap32 ws2_32 wsock32 crypt32)
     endif()
 else()
-    target_link_libraries(iota_simplewallet cclient logger sodium common http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread m dl)
+    target_link_libraries(iota_simplewallet PRIVATE cclient logger sodium common http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread m dl)
 endif()
 
 unset(USE_CURL_API)
 
-
 add_dependencies(iota_simplewallet json libsodium iota.c-library sqlite)
-install(TARGETS iota_simplewallet DESTINATION ${CMAKE_SOURCE_DIR}/deps/lib)
 
+set(CMAKE_IOTA_CONFIG_INSTALL_DIR "lib/cmake/iota_simplewallet")
+
+target_include_directories(iota_simplewallet PUBLIC
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
+
+install(TARGETS iota_simplewallet
+	EXPORT iota_simplewalletTargets
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+
+install(FILES "${CMAKE_SOURCE_DIR}/src/iota-simplewallet.h"
+	DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/iota)
+
+set(PROJECT_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
+
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+	"src/cmake/${PROJECT_NAME}Config.cmake.in"
+	"${PROJECT_BINARY_DIR}/cmake/${PROJECT_NAME}Config.cmake"
+	INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
+
+write_basic_package_version_file(
+	"${PROJECT_BINARY_DIR}/cmake/${PROJECT_NAME}ConfigVersion.cmake"
+	VERSION ${IOTA_SIMPLEWALLET_VERSION}
+	COMPATIBILITY SameMajorVersion)
+
+install(
+	EXPORT iota_simplewalletTargets
+	NAMESPACE iota::
+	DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
+
+install(
+	FILES
+  		"${PROJECT_BINARY_DIR}/cmake/${PROJECT_NAME}Config.cmake"
+  		"${PROJECT_BINARY_DIR}/cmake/${PROJECT_NAME}ConfigVersion.cmake"
+	DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
+
+
+# Write/install version file
+include(CMakePackageConfigHelpers)
+set(version_file "${CMAKE_CURRENT_BINARY_DIR}/cmake/iota-simplewallet-config-version.cmake")
+write_basic_package_version_file(${version_file}
+                                 VERSION ${IOTA_SIMPLEWALLET_VERSION}
+                                 COMPATIBILITY AnyNewerVersion)
 
 #Should we build the cli app
 if(BUILD_CLI)
@@ -169,15 +221,7 @@ if(BUILD_CLI)
             ${wallet_src}
             )
     link_directories(${CMAKE_BINARY_DIR})
-    target_link_libraries(wallet iota_simplewallet)
+    target_link_libraries(wallet iota_simplewallet pthread)
 endif(BUILD_CLI)
 
 add_dependencies(json iota.c-library)
-
-
-
-
-
-
-
-
