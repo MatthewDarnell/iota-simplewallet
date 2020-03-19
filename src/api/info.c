@@ -24,7 +24,7 @@ char* get_node_status() {
   return ret_val;
 }
 
-char* parse_debug_command(char* cmd) {
+char* parse_debug_command(const char* cmd) {
   char* ret_val = NULL;
 
   char* username, *password, *saveptr;

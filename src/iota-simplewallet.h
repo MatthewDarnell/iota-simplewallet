@@ -209,7 +209,7 @@ int register_callback(const char* event, void* (*cb)(const char*));
 //Access this API at runtime
 //@command: the full string, i.e. "get_new_address <username>"
 // <help> will return all available options
-char* parse_debug_command(char* cmd);
+char* parse_debug_command(const char* cmd);
 
 #endif //IOTA_SIMPLEWALLET_IOTA_SIMPLEWALLET_H
 
