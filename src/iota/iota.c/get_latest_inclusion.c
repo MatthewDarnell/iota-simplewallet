@@ -137,5 +137,6 @@ void get_latest_inclusion_by_tx_hash(cJSON** tx_array) {
 
   get_inclusion_states_res_free(&inclusion_res);
   hash243_queue_free(&txs);
+  iota_client_core_destroy(&serv);
 }
 

@@ -19,6 +19,7 @@ cJSON* get_node_info() {
   retcode_t ret;
   if ((ret = iota_client_get_node_info(serv, node_res)) != RC_OK) {
     log_wallet_error("Get Node Info Returned: %s", error_2_string(ret));
+    get_node_info_res_free(&node_res);
     iota_client_core_destroy(&serv);
     return NULL;
   }
