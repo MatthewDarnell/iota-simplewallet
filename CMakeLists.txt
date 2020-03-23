@@ -18,12 +18,14 @@ else()
     set(crypto_SUBDIR Win32)
 endif()
 
+set(DEPS_DIR "${CMAKE_BINARY_DIR}/deps")
 
 include(ExternalProject)
-include_directories(${CMAKE_SOURCE_DIR}/deps/include)
-include_directories(${CMAKE_SOURCE_DIR}/deps/include/keccak)
-link_directories(${CMAKE_SOURCE_DIR}/deps/lib)
-link_directories(${CMAKE_SOURCE_DIR}/deps/bin)
+include(FetchContent)
+include_directories(${DEPS_DIR}/include)
+include_directories(${DEPS_DIR}/include/keccak)
+link_directories(${DEPS_DIR}/lib)
+link_directories(${DEPS_DIR}/bin)
 
 
 if(WIN32)
@@ -32,25 +34,13 @@ if(WIN32)
 else()
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -O3 -DFLEX_TRIT_ENCODING_3_TRITS_PER_BYTE -DSQLITE_THREADSAFE=1")
 endif()
-include(${CMAKE_SOURCE_DIR}/src/cmake/iota.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/src/cmake/iota.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/src/cmake/sqlite3.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/src/cmake/sodium.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/src/cmake/cjson.cmake)
 
 ### Main library
 #option(BUILD_CLI "Build the cli application" ON)
 set(BUILD_CLI ON)
-option(USE_CURL_API "Use libcURL api to query nodes instead of iota.c" OFF)
-
-
-#cURL based api queries
-file(GLOB curl_src
-        src/iota/curl/get_address_balance.c
-        src/iota/curl/get_latest_inclusion.c
-        src/iota/curl/get_transaction_inputs_to_address.c
-        src/config/http.c
-        src/iota/curl/init.c
-        )
 
 #iota.c based api queries
 file(GLOB iota_c_src
@@ -111,54 +101,27 @@ file(GLOB iota_simplewallet_SRC
 
         src/thread/helper/start.c
 
-        deps/sqlite3.c
-        deps/cJSON.c
+        ${DEPS_DIR}/sqlite3.c
         )
 
 
-if(USE_CURL_API)
-    include(${CMAKE_CURRENT_LIST_DIR}/src/cmake/curl.cmake)
-    message(STATUS "Using libcURL for IOTA network calls")
-    add_library(iota_simplewallet SHARED
-            ${iota_simplewallet_SRC}
-            ${curl_src}
-            )
-    target_compile_definitions(iota_simplewallet PUBLIC "-DUSE_CURL_API")
-    set(LIBRARIES "${LIBRARIES} libssl.a libssh2.a libnghttp2.a libcrypto.a libssl.a libcrypto.a libbrotlicommon-static.a libbrotlidec-static.a libbrotlienc-static.a libbrotlicommon-static.a libz.a libcurl.a wldap32 ")
-    add_dependencies(iota_simplewallet curl openssl libssh2 nghttp2 brotli zlib)
-    if(WIN32)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DCURL_STATICLIB")
-    endif()
-else()
-    message(STATUS "Using iota.c for IOTA network calls")
+add_library(iota_simplewallet SHARED
+        ${iota_simplewallet_SRC}
+        ${iota_c_src}
+        )
+target_include_directories(iota_simplewallet PRIVATE ${DEPS_DIR}/include/cjson)
 
-    add_library(iota_simplewallet SHARED
-            ${iota_simplewallet_SRC}
-            ${iota_c_src}
-            )
-endif()
-
-
+add_dependencies(iota_simplewallet iota.c-library libsodium)
 
 if(WIN32)
     set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--whole-archive")
     set_target_properties(iota_simplewallet PROPERTIES
             LINK_FLAGS "-Wl,--whole-archive -Wl,--export-all-symbols"
             )
-    if(USE_CURL_API)
-      message("linking to curl")
-      target_link_libraries(iota_simplewallet PRIVATE cclient libssl.a libssh2.a libnghttp2.a libcrypto.a libssl.a libcrypto.a libbrotlicommon-static.a libbrotlidec-static.a libbrotlienc-static.a libbrotlicommon-static.a libz.a libcurl.a wldap32 logger libsodium.a common http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread wldap32 ws2_32 wsock32 crypt32 libssl.a libssh2.a libnghttp2.a libcrypto.a libssl.a libcrypto.a libbrotlicommon-static.a libbrotlidec-static.a libbrotlienc-static.a libbrotlicommon-static.a libz.a libcurl.a wldap32)
-    else()
-        message("not linking to curl")
-      target_link_libraries(iota_simplewallet PRIVATE cclient logger libsodium.a common http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread wldap32 ws2_32 wsock32 crypt32)
-    endif()
+    target_link_libraries(iota_simplewallet PRIVATE cclient logger libsodium.a common cjson http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread wldap32 ws2_32 wsock32 crypt32)
 else()
-    target_link_libraries(iota_simplewallet PRIVATE cclient logger sodium common http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread m dl)
+    target_link_libraries(iota_simplewallet PRIVATE cclient logger sodium common cjson http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread m dl)
 endif()
-
-unset(USE_CURL_API)
-
-add_dependencies(iota_simplewallet json libsodium iota.c-library sqlite)
 
 set(CMAKE_IOTA_CONFIG_INSTALL_DIR "lib/cmake/iota_simplewallet")
 
@@ -210,7 +173,7 @@ write_basic_package_version_file(${version_file}
 
 #Should we build the cli app
 if(BUILD_CLI)
-    include_directories(${CMAKE_SOURCE_DIR}/deps/include)
+    include_directories(${DEPS_DIR}/include)
     file(GLOB wallet_src
             src/wallet/cli/cli.c
             src/wallet/main.c
@@ -223,5 +186,3 @@ if(BUILD_CLI)
     link_directories(${CMAKE_BINARY_DIR})
     target_link_libraries(wallet iota_simplewallet pthread)
 endif(BUILD_CLI)
-
-add_dependencies(json iota.c-library)
