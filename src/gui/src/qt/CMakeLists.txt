@@ -81,4 +81,4 @@ install(CODE "execute_process(COMMAND ${CMAKE_COMMAND}
     -DQMAKE=${QT_QMAKE_EXECUTABLE}
     -DAPP_EXE=\${CMAKE_INSTALL_PREFIX}/${APP_EXE}
     -DDEPLOY_TOOL=${DEPLOY_TOOL}
-    -P ${CMAKE_SOURCE_DIR}/../cmake/platformdeployqt.cmake)")
+    -P ${CMAKE_SOURCE_DIR}/cmake/platformdeployqt.cmake)")

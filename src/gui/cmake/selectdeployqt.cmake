@@ -4,7 +4,7 @@ endif()
 if(NOT QT_BINARY_DIR)
     if(NOT QT_QMAKE_EXECUTABLE)
         find_program(QT_QMAKE_EXECUTABLE_FINDQT NAMES qmake qmake5 qmake-qt5
-            PATHS "${Qt5_DIR}/../../bin")
+            PATHS "${Qt5_DIR}/../../../bin")
         set(QT_QMAKE_EXECUTABLE ${QT_QMAKE_EXECUTABLE_FINDQT} CACHE PATH "Qt qmake program.")
     endif(NOT QT_QMAKE_EXECUTABLE)
 

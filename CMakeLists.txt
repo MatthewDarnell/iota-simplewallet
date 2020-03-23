@@ -18,6 +18,7 @@ ExternalProject_Add(iota_simplewallet
 ExternalProject_Add(iotq-qt
   PREFIX iota-qt
   SOURCE_DIR "${GUI_SOURCE_DIR}"
+  BUILD_ALWAYS 1
   CMAKE_CACHE_ARGS
         -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
         -DCMAKE_PREFIX_PATH:PATH=${CMAKE_PREFIX_PATH}
