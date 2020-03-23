@@ -142,6 +142,15 @@ int export_account_state(const char* username, char* password, const char* path)
 //Account must not exist already
 int import_account_state(char* password, const char* path);
 
+//Write a key/value pair to the db associated with this user
+//return: Returns 0 if ok, -1 otherwise
+int write_user_data(const char* username, const char* key, const char* value);
+
+//return: Returns 0 if ok, -1 otherwise
+int delete_user_data(const char* username, const char* key);
+
+//return: Returns NULL if user or key does not exist, a json string otherwise containing {value: "value"}
+char* read_user_data(const char* username, const char* key);
 /*
  *
  *   Address functions
