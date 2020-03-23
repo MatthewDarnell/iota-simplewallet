@@ -1,0 +1,8 @@
+#include <iotaqtconfig.h>
+
+//==============================================================================
+
+extern const char IOTA_QT_GIT_SHA1_BUILD[] = "@GIT_SHA1@";
+extern const char PACKAGE_NAME[] = "iota-qt";
+
+//==============================================================================
