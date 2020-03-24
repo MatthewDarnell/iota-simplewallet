@@ -182,9 +182,7 @@ void IotaNode::appShutdown()
 {
     shutdown_threads();
     join_threads();
-    shutdown_iota();
     shutdown_iota_simplewallet();
-    shutdown_config();
     shutdown_events();
 }
 
