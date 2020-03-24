@@ -312,7 +312,7 @@ std::unique_ptr<Wallet> IotaNode::loadWallet(const std::string &username, const 
     }
 
     password.assign(passphrase);
-    verify_login(username.data(), &password[0], 1, 1);
+    verify_login(username.data(), &password[0], 1);
 
     loadAccounts();
 
@@ -331,7 +331,7 @@ WalletCreationStatus IotaNode::createWallet(const SecureString &passphrase, uint
     SecureString password(passphrase);
     create_account(name.data(), &password[0]);
     password.assign(passphrase);
-    verify_login(name.data(), &password[0], 1, 1);
+    verify_login(name.data(), &password[0], 1);
 
     loadAccounts();
 
