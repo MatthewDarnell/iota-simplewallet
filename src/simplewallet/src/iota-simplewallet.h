@@ -15,7 +15,7 @@ extern "C" {
  *   Initialization/Shutdown Functions
  *
 */
-int init_iota_simplewallet();
+int init_iota_simplewallet(const char* data_dir);
 int shutdown_iota_simplewallet();
 
 //deprecated
@@ -78,11 +78,6 @@ int set_node(char* host, int port);
  *
 */
 
-//Load  initial config  from  file path
-//@path NULL for defaults, file path for json config file. If @path does not exist, a new file with default settings will be created
-//returns 0 for success, -1 for  failure
-int load_config(const char *path);
-
 //Shutdown the config file
 void shutdown_config();
 
@@ -142,6 +137,15 @@ int export_account_state(const char* username, char* password, const char* path)
 //Account must not exist already
 int import_account_state(char* password, const char* path);
 
+//Write a key/value pair to the db associated with this user
+//return: Returns 0 if ok, -1 otherwise
+int write_user_data(const char* username, const char* key, const char* value);
+
+//return: Returns 0 if ok, -1 otherwise
+int delete_user_data(const char* username, const char* key);
+
+//return: Returns NULL if user or key does not exist, a json string otherwise containing {value: "value"}
+char* read_user_data(const char* username, const char* key);
 /*
  *
  *   Address functions

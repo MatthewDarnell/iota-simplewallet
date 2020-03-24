@@ -10,7 +10,6 @@
 #include <string.h>
 #include <pthread.h>
 #include "../iota-simplewallet.h"
-#include "../thread/deposit_detector.h"
 #include "cli/cli.h"
 
 
@@ -70,12 +69,11 @@ int main(int argc, char *argv[]) {
   */
 
   //Init Configuration
-  load_config(NULL);
   if(argc > 0) {
     parse_cli(argc, argv);
   }
 
-  init_iota_simplewallet();
+  init_iota_simplewallet(".");
   init_events();
 
 

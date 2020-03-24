@@ -13,6 +13,7 @@
 #include "../database/sqlite3/stores/address.h"
 #include "../database/sqlite3/stores/incoming_transaction.h"
 #include "../database/sqlite3/stores/outgoing_transaction.h"
+#include "../database/sqlite3/stores/user_data.h"
 #include "../database/helpers/generate_address.h"
 #include "../database/sqlite3/db.h"
 #include "../iota/api.h"
@@ -61,6 +62,7 @@ int __create_account(const char* username, char* password, const char* imported_
 
   if(encrypt_result < 0) {
     log_wallet_fatal("Failed to Create Account! %d", encrypt_result);
+    close_db_handle(db);
     return -1;
   }
 
@@ -506,4 +508,47 @@ int import_account_state(char* password, const char* path) {
   log_wallet_info("%s User <%s> imported successfully", __func__, username);
   cJSON_Delete(json);
   return 0;
+}
+
+
+
+int write_user_data(const char* username, const char* key, const char* value) {
+  if(!username || !key || !value) {
+    log_wallet_error("%s invalid parameters", __func__);
+    return -1;
+  }
+  //Generate a secure password to derive encryption key
+  sqlite3* db = get_db_handle();
+  int ret_val = _write_user_data(db, username, key, value);
+  close_db_handle(db);
+  return ret_val;
+}
+
+int delete_user_data(const char* username, const char* key) {
+  if(!username || !key) {
+    log_wallet_error("%s invalid parameters", __func__);
+    return -1;
+  }
+  //Generate a secure password to derive encryption key
+  sqlite3* db = get_db_handle();
+  int ret_val = _delete_user_data(db, username, key);
+  close_db_handle(db);
+  return ret_val;
+}
+
+char* read_user_data(const char* username, const char* key) {
+  if(!username || !key) {
+    log_wallet_error("%s invalid parameters", __func__);
+    return NULL;
+  }
+  //Generate a secure password to derive encryption key
+  sqlite3* db = get_db_handle();
+  cJSON* json = _read_user_data(db, username, key);
+  close_db_handle(db);
+  if(!json) {
+    return NULL;
+  }
+  char* ret_val = cJSON_PrintUnformatted(json);
+  cJSON_Delete(json);
+  return ret_val;
 }
