@@ -10,10 +10,8 @@
 pthread_mutex_t config_file_mutex = PTHREAD_MUTEX_INITIALIZER;
 cJSON *config = NULL;
 const char *default_config = "{"
-                        "\"database\": \"iota-simplewallet.db\","
                         "\"minAddressPool\": \"5\","
                         "\"minAddressesToCheckWhenSyncing\": \"25\","
-                        "\"logFile\": \"iota-simplewallet.log\","
                         "\"nodes\": ["
                         "{"
                         "\"pem\": \"-----BEGIN CERTIFICATE-----\r\nMIIDQTCCAimgAwIBAgITBmyfz5m/jAo54vB4ikPmljZbyjANBgkqhkiG9w0BAQsF\r\nADA5MQswCQYDVQQGEwJVUzEPMA0GA1UEChMGQW1hem9uMRkwFwYDVQQDExBBbWF6\r\nb24gUm9vdCBDQSAxMB4XDTE1MDUyNjAwMDAwMFoXDTM4MDExNzAwMDAwMFowOTEL\r\nMAkGA1UEBhMCVVMxDzANBgNVBAoTBkFtYXpvbjEZMBcGA1UEAxMQQW1hem9uIFJv\r\nb3QgQ0EgMTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALJ4gHHKeNXj\r\nca9HgFB0fW7Y14h29Jlo91ghYPl0hAEvrAIthtOgQ3pOsqTQNroBvo3bSMgHFzZM\r\n9O6II8c+6zf1tRn4SWiw3te5djgdYZ6k/oI2peVKVuRF4fn9tBb6dNqcmzU5L/qw\r\nIFAGbHrQgLKm+a/sRxmPUDgH3KKHOVj4utWp+UhnMJbulHheb4mjUcAwhmahRWa6\r\nVOujw5H5SNz/0egwLX0tdHA114gk957EWW67c4cX8jJGKLhD+rcdqsq08p8kDi1L\r\n93FcXmn/6pUCyziKrlA4b9v7LWIbxcceVOF34GfID5yHI9Y/QCB/IIDEgEw+OyQm\r\njgSubJrIqg0CAwEAAaNCMEAwDwYDVR0TAQH/BAUwAwEB/zAOBgNVHQ8BAf8EBAMC\r\nAYYwHQYDVR0OBBYEFIQYzIU07LwMlJQuCFmcx7IQTgoIMA0GCSqGSIb3DQEBCwUA\r\nA4IBAQCY8jdaQZChGsV2USggNiMOruYou6r4lK5IpDB/G/wkjUu0yKGX9rbxenDI\r\nU5PMCCjjmCXPI6T53iHTfIUJrU6adTrCC2qJeHZERxhlbI1Bjjt/msv0tadQ1wUs\r\nN+gDS63pYaACbvXy8MWy7Vu33PqUXHeeE6V/Uq2V8viTO96LXFvKWlJbYK8U90vv\r\no/ufQJVtMVT8QtPHRh8jrdkPSHCa2XV4cdFyQzR1bldZwgJcJmApzyMZFo6IQ6XU\r\n5MsI+yMRQ+hDKXJioaldXgjUkK642M4UwtBV8ob2xJNDd2ZhwLnoQdeXeGADbkpy\r\nrqXRfboQnoZsG4q5WTP468SQvvG5\r\n-----END CERTIFICATE-----\r\n\","
@@ -31,7 +29,9 @@ const char *default_config = "{"
                         "\"sent_transaction_confirmed\""
                         "]"
                         "}";
-const char* default_path = "wallet.conf";
+const char* default_log = "debug.log";
+const char* default_path = "iota.conf";
+const char* default_db = "wallet.db";
 
 //Returns number of overwritten configs
 int __fill_missing_configs_with_defaults(cJSON** object) {  //object exists with the minimal set of parameters
@@ -134,20 +134,38 @@ int load_config(const char *path) {
     cJSON_AddStringToObject(config, "path", default_path);
     printf("Loading default configuration file at <%s>\n", default_path);
   } else {
-    cJSON_AddStringToObject(config, "path", path);
+    size_t path_size = strlen(path) + strlen(default_path) + 3;
+    char config_file[path_size];
+    memset(config_file, 0, path_size);
+    snprintf(config_file, path_size-1, "%s/%s", path, default_path);
+    printf("Loading default configuration file at <%s>\n", config_file);
+    cJSON_AddStringToObject(config, "path", config_file);
   }
 
   const char* config_file = cJSON_GetObjectItem(config, "path")->valuestring;
   int file_exists = __does_file_exist(config_file);
 
+  size_t log_size = strlen(path) + strlen(default_log) + 3;
+  char log_file[log_size];
+  memset(log_file, 0, log_size);
+  snprintf(log_file, log_size-1, "%s/%s", path, default_log);
+
+  size_t db_size = strlen(path) + strlen(default_db) + 3;
+  char db_file[db_size];
+  memset(db_file, 0, db_size);
+  snprintf(db_file, db_size-1, "%s/%s", path, default_db);
+
   if(file_exists == 0) {  //File exists and is is not empty, let's read it
     cJSON* config_obj = __read_file(config_file);
     if(!config_obj) { //Invalid Json, just load default settings
       printf("Loading Default configuration settings\n");
+      cJSON* c = cJSON_Parse(default_config);
+      cJSON_AddStringToObject(c, "logFile", log_file);
+      cJSON_AddStringToObject(c, "database", db_file);
       cJSON_AddItemToObject(
         config,
         "config",
-        cJSON_Parse(default_config)
+        c
       );
     } else {
 
@@ -168,11 +186,16 @@ int load_config(const char *path) {
 
   //Config file does not exist
   printf("Configuration file not found. Creating <%s> with default settings\n", config_file);
-  __write_to_file_and_create(config_file, default_config);
+  cJSON* c = cJSON_Parse(default_config);
+  cJSON_AddStringToObject(c, "logFile", log_file);
+  cJSON_AddStringToObject(c, "database", db_file);
+  char* str_config = cJSON_Print(c);
+  __write_to_file_and_create(config_file, str_config);
+  free(str_config);
   cJSON_AddItemToObject(
     config,
     "config",
-    cJSON_Parse(default_config)
+    c
   );
   return 0;
 }

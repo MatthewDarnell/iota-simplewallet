@@ -6,7 +6,8 @@
 #include "../config/config.h"
 #include "../iota/api.h"
 
-int init_iota_simplewallet() {
+int init_iota_simplewallet(const char* data_dir) {
+  load_config(data_dir);
   init_db();
   init_crypto();
   init_iota();

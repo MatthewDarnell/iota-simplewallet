@@ -15,7 +15,7 @@ extern "C" {
  *   Initialization/Shutdown Functions
  *
 */
-int init_iota_simplewallet();
+int init_iota_simplewallet(const char* data_dir);
 int shutdown_iota_simplewallet();
 
 //deprecated
@@ -77,11 +77,6 @@ int set_node(char* host, int port);
  *   Configuration functions
  *
 */
-
-//Load  initial config  from  file path
-//@path NULL for defaults, file path for json config file. If @path does not exist, a new file with default settings will be created
-//returns 0 for success, -1 for  failure
-int load_config(const char *path);
 
 //Shutdown the config file
 void shutdown_config();
