@@ -301,8 +301,27 @@ std::vector<std::unique_ptr<Wallet> > IotaNode::getWallets()
     return res;
 }
 
-std::unique_ptr<Wallet> IotaNode::loadWallet(const std::string &name, std::string &error, std::vector<std::string> &warnings)
+std::unique_ptr<Wallet> IotaNode::loadWallet(const std::string &username, const SecureString &passphrase, const SecureString &seed, std::string &error)
 {
+    SecureString password(passphrase);
+    auto r = import_account(username.data(), &password[0], seed.data());
+    if(r < 0)
+    {
+        error = "Failed to import account";
+        return {};
+    }
+
+    password.assign(passphrase);
+    verify_login(username.data(), &password[0], 1);
+
+    loadAccounts();
+
+    UserAccount acc;
+    if(tryGetUserAccount(QString::fromStdString(username), acc))
+    {
+        return createIotaWallet(acc);
+    }
+
     return {};
 }
 
@@ -311,6 +330,8 @@ WalletCreationStatus IotaNode::createWallet(const SecureString &passphrase, uint
 {
     SecureString password(passphrase);
     create_account(name.data(), &password[0]);
+    password.assign(passphrase);
+    verify_login(name.data(), &password[0], 1);
 
     loadAccounts();
 

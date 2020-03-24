@@ -338,6 +338,7 @@ void BitcoinGUI::createActions()
             auto activity = new ImportWalletActivity(m_wallet_controller, this);
             connect(activity, &ImportWalletActivity::opened, this, &BitcoinGUI::setCurrentWallet);
             connect(activity, &ImportWalletActivity::finished, activity, &QObject::deleteLater);
+            activity->importFromSeed();
         });
         connect(m_close_wallet_action, &QAction::triggered, [this] {
             m_wallet_controller->closeWallet(walletFrame->currentWalletModel(), this);

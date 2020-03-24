@@ -6,6 +6,7 @@
 
 #include <askpassphrasedialog.h>
 #include <createwalletdialog.h>
+#include <importaccountdialog.h>
 #include <guiconstants.h>
 #include <guiutil.h>
 #include <walletmodel.h>
@@ -264,6 +265,26 @@ ImportWalletActivity::ImportWalletActivity(WalletController* wallet_controller, 
 {
 }
 
+void ImportWalletActivity::importFromSeed()
+{
+    m_import_wallet_dialog = new ImportAccountDialog(ImportAccountDialog::Mode::Seed, m_parent_widget,
+                                                     &m_username,
+                                                     &m_passphrase,
+                                                     &m_seed);
+    m_import_wallet_dialog->setWindowModality(Qt::ApplicationModal);
+    m_import_wallet_dialog->show();
+
+    connect(m_import_wallet_dialog, &QObject::destroyed, [this] {
+        m_import_wallet_dialog = nullptr;
+    });
+    connect(m_import_wallet_dialog, &QDialog::rejected, [this] {
+        Q_EMIT finished();
+    });
+    connect(m_import_wallet_dialog, &QDialog::accepted, [this] {
+
+    });
+}
+
 void ImportWalletActivity::finish()
 {
     m_progress_dialog->hide();
@@ -279,8 +300,23 @@ void ImportWalletActivity::finish()
     Q_EMIT finished();
 }
 
+void ImportWalletActivity::import()
+{
+    showProgressDialog(tr("Importing Account..."));
+
+    QTimer::singleShot(0, worker(), [this] {
+        std::string name(m_username.begin(), m_username.end());
+        std::unique_ptr<interfaces::Wallet> wallet = node().loadWallet(name, m_passphrase, m_seed, m_error_message);
+
+        if (wallet) m_wallet_model = m_wallet_controller->getOrCreateWallet(std::move(wallet));
+
+        QTimer::singleShot(0, this, &ImportWalletActivity::finish);
+    });
+}
+
 void ImportWalletActivity::open(const std::string& path)
 {
+#if 0
     QString name = path.empty() ? QString("["+tr("default wallet")+"]") : QString::fromStdString(path);
 
     showProgressDialog(tr("Opening Wallet <b>%1</b>...").arg(name.toHtmlEscaped()));
@@ -292,4 +328,5 @@ void ImportWalletActivity::open(const std::string& path)
 
         QTimer::singleShot(0, this, &ImportWalletActivity::finish);
     });
+#endif
 }

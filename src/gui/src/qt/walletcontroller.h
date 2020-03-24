@@ -34,6 +34,7 @@ class Wallet;
 class AskPassphraseDialog;
 class CreateWalletActivity;
 class CreateWalletDialog;
+class ImportAccountDialog;
 class ImportWalletActivity;
 class WalletControllerActivity;
 
@@ -136,6 +137,7 @@ class ImportWalletActivity : public WalletControllerActivity
 public:
     ImportWalletActivity(WalletController* wallet_controller, QWidget* parent_widget);
 
+    void importFromSeed();
     void open(const std::string& path);
 
 Q_SIGNALS:
@@ -143,6 +145,12 @@ Q_SIGNALS:
 
 private:
     void finish();
+    void import();
+
+    ImportAccountDialog* m_import_wallet_dialog { nullptr };
+    SecureString m_username;
+    SecureString m_passphrase;
+    SecureString m_seed;
 };
 
 #endif // BITCOIN_QT_WALLETCONTROLLER_H
