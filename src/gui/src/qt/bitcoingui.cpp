@@ -558,6 +558,13 @@ void BitcoinGUI::setWalletController(WalletController* wallet_controller)
     for (WalletModel* wallet_model : m_wallet_controller->getOpenWallets()) {
         addWallet(wallet_model);
     }
+
+    if (m_wallet_controller->getOpenWallets().empty()) {
+        auto activity = new CreateWalletActivity(m_wallet_controller, this);
+        connect(activity, &CreateWalletActivity::created, this, &BitcoinGUI::setCurrentWallet);
+        connect(activity, &CreateWalletActivity::finished, activity, &QObject::deleteLater);
+        activity->create();
+    }
 }
 
 void BitcoinGUI::addWallet(WalletModel* walletModel)
