@@ -47,6 +47,9 @@ ImportAccountDialog::ImportAccountDialog(Mode _mode, QWidget *parent,
     connect(ui->usernameEdit, &QLineEdit::textChanged, this, &ImportAccountDialog::textChanged);
     connect(ui->passEdit, &QLineEdit::textChanged, this, &ImportAccountDialog::textChanged);
     connect(ui->seedEdit, &QLineEdit::textChanged, this, &ImportAccountDialog::textChanged);
+
+    setTabOrder(ui->usernameEdit, ui->passEdit);
+    setTabOrder(ui->passEdit, ui->seedEdit);
 }
 
 ImportAccountDialog::~ImportAccountDialog()

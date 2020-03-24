@@ -302,7 +302,7 @@ void BitcoinGUI::createActions()
     usedReceivingAddressesAction = new QAction(tr("&Receiving addresses"), this);
     usedReceivingAddressesAction->setStatusTip(tr("Show the list of used receiving addresses and labels"));
 
-    m_import_wallet_action = new QAction(tr("Import Account"), this);
+    m_import_wallet_action = new QAction(tr("Import Account..."), this);
     m_import_wallet_action->setEnabled(false);
     m_import_wallet_action->setStatusTip(tr("Import an account"));
 
