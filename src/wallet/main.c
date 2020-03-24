@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
     parse_cli(argc, argv);
   }
 
-  init_iota_simplewallet("/Users/matthew/Desktop/data-dir");
+  init_iota_simplewallet(".");
   init_events();
 
 
