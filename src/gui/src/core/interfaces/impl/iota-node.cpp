@@ -10,6 +10,8 @@
 #include <QPointer>
 #include <QDebug>
 #include <QCoreApplication>
+#include <QStandardPaths>
+#include <QDir>
 #include <sstream>
 
 #include <iota/iota-simplewallet.h>
@@ -123,7 +125,8 @@ std::string IotaNode::getNetwork()
 
 std::string IotaNode::getDataDir()
 {
-    return QCoreApplication::applicationDirPath().toStdString();
+    static const auto datadir = QStandardPaths::writableLocation(QStandardPaths::DataLocation).toStdString();
+    return datadir;
 }
 
 void IotaNode::initLogging()
@@ -147,7 +150,17 @@ uint32_t IotaNode::getLogCategories()
 
 bool IotaNode::baseInitialize()
 {
-    load_config(0);
+    auto dataDirPath = getDataDir();
+
+    QDir dataDir(QString::fromStdString(dataDirPath));
+    if (!dataDir.exists()) {
+        if (!dataDir.mkpath(".")) {
+            qDebug("Failed to create dataDir at location: %s\n", dataDirPath.c_str());
+            return false;
+        }
+    }
+
+    init_iota_simplewallet(dataDirPath.data());
     return true;
 }
 
@@ -170,6 +183,7 @@ void IotaNode::appShutdown()
     shutdown_threads();
     join_threads();
     shutdown_iota();
+    shutdown_iota_simplewallet();
     shutdown_config();
     shutdown_events();
 }
