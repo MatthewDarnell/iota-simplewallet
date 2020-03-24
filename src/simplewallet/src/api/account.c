@@ -58,7 +58,6 @@ int __create_account(const char* username, char* password, const char* imported_
   );
 
   sodium_memzero(seed, 128);  //Clear sensitive data from stack immediately
-  sodium_memzero(password, strlen(password));
 
   if(encrypt_result < 0) {
     log_wallet_fatal("Failed to Create Account! %d", encrypt_result);
