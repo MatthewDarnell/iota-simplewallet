@@ -166,9 +166,6 @@ bool IotaNode::baseInitialize()
 
 bool IotaNode::appInitMain()
 {
-    init_db();
-    init_crypto();
-    init_iota();
     init_events();
     start_threads();
 

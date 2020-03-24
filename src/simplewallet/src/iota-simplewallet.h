@@ -18,17 +18,6 @@ extern "C" {
 int init_iota_simplewallet(const char* data_dir);
 int shutdown_iota_simplewallet();
 
-//deprecated
-int init_db();
-int init_crypto();
-void init_iota();
-void shutdown_iota();
-void shutdown_config();
-
-
-
-
-
 /*
  *
  *   Start/Stop the IOTA Wallet Threads
