@@ -13,6 +13,7 @@ int init_db() {
     log_wallet_error( "Unable to read database path from config", "");
     exit(1);
   }
+  printf("Loading database at <%s>\n", path);
   int rc = sqlite3_open(path, &connection);
   free(path);
   if(rc) {
