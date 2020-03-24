@@ -10,12 +10,13 @@ set(GUI_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/src/gui")
 ExternalProject_Add(iota_simplewallet
   PREFIX iota_simplewallet
   SOURCE_DIR "${SIMPLEWALLET_SOURCE_DIR}"
+  BUILD_ALWAYS 1
   CMAKE_CACHE_ARGS
         -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
         -DCMAKE_INSTALL_PREFIX:PATH=${SIMPLEWALLET_INSTALL_DIR}
 )
 
-ExternalProject_Add(iotq-qt
+ExternalProject_Add(iota-qt
   PREFIX iota-qt
   SOURCE_DIR "${GUI_SOURCE_DIR}"
   BUILD_ALWAYS 1
