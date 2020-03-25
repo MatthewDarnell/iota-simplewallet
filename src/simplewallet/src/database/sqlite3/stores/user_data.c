@@ -76,7 +76,7 @@ cJSON* _read_user_data(sqlite3* db, const char* username, const char* key) {
   sqlite3_stmt* stmt;
   int rc;
 
-  char* query = "SELECT * FROM user_data WHERE username=? AND key=?";
+  char* query = "SELECT * FROM user_data WHERE username=? AND key LIKE '?%'";
   rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
 
   if (rc != SQLITE_OK) {
