@@ -26,7 +26,7 @@ public:
     void selectParams(const std::string &network) override;
     uint64_t getAssumedBlockchainSize() override;
     uint64_t getAssumedChainStateSize() override;
-    std::string getNetwork() override;
+    QString getNetwork() override;
     std::string getDataDir() override;
     void initLogging() override;
     void initParameterInteraction() override;
@@ -39,7 +39,7 @@ public:
     bool shutdownRequested() override;
     void setupServerArgs() override;;
     bool getHeaderTip(int &height, int64_t &block_time) override;
-    int getNumBlocks() override;
+    int getNumBlocks(bool solid) override;
     int64_t getLastBlockTime() override;
     double getVerificationProgress() override;
     bool isInitialBlockDownload() override;
@@ -50,7 +50,7 @@ public:
     QString getAppName() override;
     QString getAppVersion() override;
 
-    QString getLatestMilestone() override;
+    QString getLatestMilestone(bool solid) override;
 
     std::string executeRpc(const std::string& command, const std::vector<std::string> params,
                            const std::string &uri) override;
@@ -81,7 +81,8 @@ signals:
                                  QString newMilestone);
     void connectionsNumChanged(int connectionsNum);
     void appInfoChanged(QString appName,
-                        QString appVersion);
+                        QString appVersion,
+                        QString connectedNode);
     void accountChanged(QString username);
     void balanceChanged(QString username, QString balance);
     void transactionChanged(QString username, QJsonObject payload);
@@ -89,7 +90,7 @@ signals:
 private:
     void updateNodeStatus(QJsonObject nodeInfo);
     void setLatestMiltesone(QPair<int, QString> newMilestone);
-    void setAppInfo(QPair<QString, QString> newAppInfo);
+    void setAppInfo(std::tuple<QString, QString, QString> newAppInfo);
     void setConnectionsNum(int connectionsNum);
     void loadAccounts();
     void registerEvents();
@@ -106,9 +107,10 @@ private:
 private:
     std::vector<UserAccount> _accounts;
     QJsonObject _nodeInfo;
+    QPair<int, QString> _latestSolidMilestone;
     QPair<int, QString> _latestMilestone;
     int _numberOfConnections { 0 };
-    QPair<QString, QString> _appInfo;
+    std::tuple<QString, QString, QString> _appInfo;
 
     int _connectionsNum;
 };

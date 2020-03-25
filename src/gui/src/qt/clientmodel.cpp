@@ -210,11 +210,12 @@ static void BlockTipChanged(ClientModel *clientmodel, int height, std::string bl
     //    }
 }
 
-static void AppInfoChanged(ClientModel *clientModel, std::string appName, std::string appVersion)
+static void AppInfoChanged(ClientModel *clientModel, std::string appName, std::string appVersion, std::string connectedNode)
 {
     bool invoked = QMetaObject::invokeMethod(clientModel, "appInfoChanged", Qt::QueuedConnection,
                                              Q_ARG(QString, QString::fromStdString(appName)),
-                                             Q_ARG(QString, QString::fromStdString(appVersion)));
+                                             Q_ARG(QString, QString::fromStdString(appVersion)),
+                                             Q_ARG(QString, QString::fromStdString(connectedNode)));
 
     assert(invoked);
 }
@@ -228,7 +229,7 @@ void ClientModel::subscribeToCoreSignals()
     m_handler_notify_alert_changed = m_node.handleNotifyAlertChanged(std::bind(NotifyAlertChanged, this));
     m_handler_banned_list_changed = m_node.handleBannedListChanged(std::bind(BannedListChanged, this));
     m_handler_notify_block_tip = m_node.handleNotifyBlockTip(std::bind(BlockTipChanged, this, std::placeholders::_1, std::placeholders::_2));
-    m_handler_notify_appInfo_changed = m_node.handleNotifyAppInfochanged(std::bind(AppInfoChanged, this, std::placeholders::_1, std::placeholders::_2));
+    m_handler_notify_appInfo_changed = m_node.handleNotifyAppInfochanged(std::bind(AppInfoChanged, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 }
 
 void ClientModel::unsubscribeFromCoreSignals()

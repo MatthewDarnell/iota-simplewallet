@@ -94,7 +94,7 @@ public Q_SLOTS:
     /** Set network state shown in the UI */
     void setNetworkActive(bool networkActive);
     /** Set number of blocks and last block date shown in the UI */
-    void setNumBlocks(int count, QString blockTip);
+    void setNumBlocks(int count, QString blockTipSolid, QString blockTip);
     /** Go forward or back in history */
     void browseHistory(int offset);
     /** Scroll console view to end */
@@ -103,7 +103,7 @@ public Q_SLOTS:
     void setTabFocus(enum TabTypes tabType);
 
     /** Set app info shown in the UI */
-    void setAppInfo(QString appName, QString appVersion);
+    void setAppInfo(QString appName, QString appVersion, QString connectedNode);
 
     void updateClientVersion(const QString &version);
 

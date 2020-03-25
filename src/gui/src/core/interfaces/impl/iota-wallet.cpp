@@ -191,16 +191,23 @@ std::vector<WalletAddress> IotaWallet::getAddresses()
 
 bool IotaWallet::addDestData(const std::string &dest, const std::string &key, const std::string &value)
 {
-    return true;
+    Q_UNUSED(dest)
+    return write_user_data(_account.username.toStdString().data(), key.data(), value.data()) == 0;
 }
 
 bool IotaWallet::eraseDestData(const std::string &dest, const std::string &key)
 {
-    return true;
+    Q_UNUSED(dest)
+    return delete_user_data(_account.username.toStdString().data(), key.data()) == 0;
 }
 
 std::vector<std::string> IotaWallet::getDestValues(const std::string &prefix)
 {
+    c_string_unique_ptr result(read_user_data(_account.username.toStdString().data(), prefix.data()));
+    std::vector<std::string> data;
+    if (result) {
+        qDebug() << QJsonDocument::fromJson(QByteArray(result.get()));
+    }
     return {};
 }
 

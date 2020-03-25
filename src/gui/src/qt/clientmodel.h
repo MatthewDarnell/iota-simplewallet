@@ -94,7 +94,7 @@ private:
 Q_SIGNALS:
     void numConnectionsChanged(int count);
     void numBlocksChanged(int count, QString blockTip);
-    void appInfoChanged(QString appName, QString appVersion);
+    void appInfoChanged(QString appName, QString appVersion, QString connectedNode);
     void mempoolSizeChanged(long count, size_t mempoolSizeInBytes);
     void networkActiveChanged(bool networkActive);
     void alertsChanged(const QString &warnings);

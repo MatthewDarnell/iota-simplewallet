@@ -461,10 +461,13 @@ void RPCConsole::setClientModel(ClientModel *model)
         connect(model, &ClientModel::numConnectionsChanged, this, &RPCConsole::setNumConnections);
 
         interfaces::Node& node = clientModel->node();
-        setAppInfo(node.getAppName(), node.getAppVersion());
-        setNumBlocks(node.getNumBlocks(), node.getLatestMilestone());
+        setAppInfo(node.getAppName(), node.getAppVersion(), node.getNetwork());
+        setNumBlocks(node.getNumBlocks(true), node.getLatestMilestone(true), node.getLatestMilestone(false));
         connect(model, &ClientModel::appInfoChanged, this, &RPCConsole::setAppInfo);
-        connect(model, &ClientModel::numBlocksChanged, this, &RPCConsole::setNumBlocks);
+        connect(model, &ClientModel::numBlocksChanged, this, [this] {
+            interfaces::Node& node = clientModel->node();
+            setNumBlocks(node.getNumBlocks(true), node.getLatestMilestone(true), node.getLatestMilestone(false));
+        });
         connect(model, &ClientModel::updateNumConnections, this, &RPCConsole::setNumConnections);
 
         updateNetworkState();
@@ -484,7 +487,6 @@ void RPCConsole::setClientModel(ClientModel *model)
             wordList << ("help " + commandList[i]).c_str();
         }
 
-        wordList << "help-console";
         wordList.sort();
         autoCompleter = new QCompleter(wordList, this);
         autoCompleter->setModelSorting(QCompleter::CaseSensitivelySortedModel);
@@ -670,15 +672,17 @@ void RPCConsole::setNetworkActive(bool networkActive)
     updateNetworkState();
 }
 
-void RPCConsole::setNumBlocks(int count, QString blockTip)
+void RPCConsole::setNumBlocks(int count, QString blockTipSolid, QString blockTip)
 {
+    ui->latestSolidMilestone->setText(blockTipSolid);
     ui->latestMilestone->setText(blockTip);
 }
 
-void RPCConsole::setAppInfo(QString appName, QString appVersion)
+void RPCConsole::setAppInfo(QString appName, QString appVersion, QString connectedNode)
 {
     ui->networkName->setText(appName);
     ui->clientVersion->setText(appVersion);
+    ui->connectedNode->setText(connectedNode);
 }
 
 void RPCConsole::on_lineEdit_returnPressed()

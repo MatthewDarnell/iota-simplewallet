@@ -496,7 +496,7 @@ void BitcoinGUI::setClientModel(ClientModel *_clientModel)
         connect(_clientModel, &ClientModel::networkActiveChanged, this, &BitcoinGUI::setNetworkActive);
 
         modalOverlay->setKnownBestHeight(_clientModel->getHeaderTipHeight(), QDateTime::fromTime_t(_clientModel->getHeaderTipTime()));
-        setNumBlocks(m_node.getNumBlocks(), m_node.getLatestMilestone());
+        setNumBlocks(m_node.getNumBlocks(true), m_node.getLatestMilestone(true));
         connect(_clientModel, &ClientModel::numBlocksChanged, this, &BitcoinGUI::setNumBlocks);
 
         // Receive and report messages from client model
@@ -849,8 +849,8 @@ void BitcoinGUI::setNumBlocks(int count, QString blockTip)
     // Prevent orphan statusbar messages (e.g. hover Quit in main menu, wait until chain-sync starts -> garbled text)
     statusBar()->clearMessage();
 
-    progressBarLabel->setText(QString("Latest Milestone : %1").arg(QString::number(m_node.getNumBlocks())));
-    progressBarLabel->setVisible(true);
+    progressBarLabel->setText(QString("Latest Milestone : %1").arg(QString::number(m_node.getNumBlocks(true))));
+    progressBarLabel->setVisible(false);
 
     QDateTime currentDate = QDateTime::currentDateTime();
 

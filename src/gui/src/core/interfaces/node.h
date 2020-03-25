@@ -60,8 +60,8 @@ public:
     //! Get the (assumed) chain state size.
     virtual uint64_t getAssumedChainStateSize() = 0;
 
-    //! Get network name.
-    virtual std::string getNetwork() = 0;
+    //! Get connected node name.
+    virtual QString getNetwork() = 0;
 
     virtual std::string getDataDir() = 0;
 
@@ -99,7 +99,7 @@ public:
     virtual bool getHeaderTip(int& height, int64_t& block_time) = 0;
 
     //! Get num blocks.
-    virtual int getNumBlocks() = 0;
+    virtual int getNumBlocks(bool solid) = 0;
 
     //! Get last block time.
     virtual int64_t getLastBlockTime() = 0;
@@ -123,7 +123,7 @@ public:
     virtual bool getNetworkActive() = 0;
 
     //! Get latest milestone
-    virtual QString getLatestMilestone() = 0;
+    virtual QString getLatestMilestone(bool solid) = 0;
 
     //! Get application name
     virtual QString getAppName() = 0;
@@ -217,7 +217,7 @@ public:
     virtual std::unique_ptr<Handler> handleNotifyHeaderTip(NotifyHeaderTipFn fn) = 0;
 
     //!Register handler for app info messages
-    using NotifyAppInfoChangedFn = std::function<void(std::string appName, std::string appVersion)>;
+    using NotifyAppInfoChangedFn = std::function<void(std::string appName, std::string appVersion, std::string connectedNode)>;
     virtual std::unique_ptr<Handler> handleNotifyAppInfochanged(NotifyAppInfoChangedFn fn) = 0;
 
     //! Return pointer to internal chain interface, useful for testing.

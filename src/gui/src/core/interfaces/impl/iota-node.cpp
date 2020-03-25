@@ -118,9 +118,9 @@ uint64_t IotaNode::getAssumedChainStateSize()
     return 0;
 }
 
-std::string IotaNode::getNetwork()
+QString IotaNode::getNetwork()
 {
-    return {};
+    return std::get<2>(_appInfo);
 }
 
 std::string IotaNode::getDataDir()
@@ -131,7 +131,6 @@ std::string IotaNode::getDataDir()
 
 void IotaNode::initLogging()
 {
-    //    init_logger();
 }
 
 void IotaNode::initParameterInteraction()
@@ -201,14 +200,14 @@ bool IotaNode::getHeaderTip(int &height, int64_t &block_time)
     return false;
 }
 
-int IotaNode::getNumBlocks()
+int IotaNode::getNumBlocks(bool solid)
 {
-    return _latestMilestone.first;
+    return (solid ? _latestSolidMilestone : _latestMilestone).first;
 }
 
-QString IotaNode::getLatestMilestone()
+QString IotaNode::getLatestMilestone(bool solid)
 {
-    return _latestMilestone.second;
+    return (solid ? _latestSolidMilestone : _latestMilestone).second;
 }
 
 std::string IotaNode::executeRpc(const std::string &command, const std::vector<std::string> params, const std::string &uri)
@@ -225,12 +224,12 @@ std::string IotaNode::executeRpc(const std::string &command, const std::vector<s
 
 QString IotaNode::getAppName()
 {
-    return _appInfo.first;
+    return std::get<0>(_appInfo);
 }
 
 QString IotaNode::getAppVersion()
 {
-    return _appInfo.second;
+    return std::get<1>(_appInfo);
 }
 
 int64_t IotaNode::getLastBlockTime()
@@ -407,8 +406,8 @@ std::unique_ptr<Handler> IotaNode::handleNotifyBlockTip(Node::NotifyBlockTipFn f
 std::unique_ptr<Handler> IotaNode::handleNotifyAppInfochanged(NotifyAppInfoChangedFn fn)
 {
     auto conn = connect(this, &IotaNode::appInfoChanged,
-                         this, [fn](auto newAppName, auto newAppVersion){
-        fn(newAppName.toStdString(), newAppVersion.toStdString());
+                        this, [fn](auto newAppName, auto newAppVersion, auto newConnectedNode){
+        fn(newAppName.toStdString(), newAppVersion.toStdString(), newConnectedNode.toStdString());
     });
 
     return MakeHandler([conn] {disconnect(conn); });
@@ -422,12 +421,21 @@ std::unique_ptr<Handler> IotaNode::handleNotifyHeaderTip(Node::NotifyHeaderTipFn
 void IotaNode::updateNodeStatus(QJsonObject nodeInfo)
 {
     _nodeInfo = nodeInfo;
+
+    _latestSolidMilestone = qMakePair(_nodeInfo.value("latestSolidSubtangleMilestoneIndex").toInt(),
+                                      _nodeInfo.value("latestSolidSubtangleMilestone").toString());
+
     setLatestMiltesone(qMakePair(_nodeInfo.value("latestMilestoneIndex").toInt(),
                                  _nodeInfo.value("latestMilestone").toString()));
-    setAppInfo(qMakePair(_nodeInfo.value("appName").toString(), _nodeInfo.value("appVersion").toString()));
+
+    auto node = _nodeInfo.value("node").toObject();
+    auto connectedNode =  QString("%1:%2").arg(node.value("host").toString()).arg(node.value("port").toInt());
+
+    setAppInfo(std::make_tuple(_nodeInfo.value("appName").toString(),
+                               _nodeInfo.value("appVersion").toString(),
+                               connectedNode));
     setConnectionsNum(_nodeInfo.value("neighbors").toInt());
 
-//    qDebug() << _nodeInfo;
 }
 
 void IotaNode::setLatestMiltesone(QPair<int, QString> newMilestone)
@@ -440,13 +448,14 @@ void IotaNode::setLatestMiltesone(QPair<int, QString> newMilestone)
     }
 }
 
-void IotaNode::setAppInfo(QPair<QString, QString> newAppInfo)
+void IotaNode::setAppInfo(std::tuple<QString, QString, QString> newAppInfo)
 {
     if(newAppInfo != _appInfo)
     {
         _appInfo = newAppInfo;
-        emit appInfoChanged(newAppInfo.first,
-                            newAppInfo.second);
+        emit appInfoChanged(std::get<0>(newAppInfo),
+                            std::get<1>(newAppInfo),
+                            std::get<2>(newAppInfo));
     }
 }
 
