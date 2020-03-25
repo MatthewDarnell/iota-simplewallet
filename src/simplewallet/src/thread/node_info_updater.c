@@ -28,6 +28,10 @@ void thread_node_info_updater(void* args) {
 
     cJSON* info = get_node_info();
     if(info) {
+      cJSON* node = get_node();
+      if(node) {
+        cJSON_AddItemToObject(info, "node", node);
+      }
       char* str_info = cJSON_PrintUnformatted(info);
       push_new_event("node_updated", str_info);
       set_config("info", str_info, 0);
