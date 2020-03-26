@@ -114,17 +114,7 @@ public:
     //! Get dest values with prefix.
     virtual std::vector<std::string> getDestValues(const std::string& prefix) = 0;
 
-    //    //! Lock coin.
-    //    virtual void lockCoin(const COutPoint& output) = 0;
-
-    //    //! Unlock coin.
-    //    virtual void unlockCoin(const COutPoint& output) = 0;
-
-    //    //! Return whether coin is locked.
-    //    virtual bool isLockedCoin(const COutPoint& output) = 0;
-
-    //    //! List locked coins.
-    //    virtual void listLockedCoins(std::vector<COutPoint>& outputs) = 0;
+    virtual void generateAddresses(int count) = 0;
 
     //! Create transaction.
     virtual WalletMutableTransaction createTransaction(const std::vector<CRecipient>& recipients,
@@ -134,36 +124,6 @@ public:
     virtual bool commitTransaction(WalletMutableTransaction tx,
                                    WalletOrderForm order_form,
                                    std::string &fail_reason) = 0;
-
-    //! Return whether transaction can be abandoned.
-    virtual bool transactionCanBeAbandoned(const uint256& txid) = 0;
-
-    //! Abandon transaction.
-    virtual bool abandonTransaction(const uint256& txid) = 0;
-
-    //! Return whether transaction can be bumped.
-    virtual bool transactionCanBeBumped(const uint256& txid) = 0;
-
-    //! Create bump transaction.
-    //    virtual bool createBumpTransaction(const uint256& txid,
-    //        const CCoinControl& coin_control,
-    //        CAmount total_fee,
-    //        std::vector<std::string>& errors,
-    //        CAmount& old_fee,
-    //        CAmount& new_fee,
-    //        CMutableTransaction& mtx) = 0;
-
-    //! Sign bump transaction.
-    //    virtual bool signBumpTransaction(CMutableTransaction& mtx) = 0;
-
-    //! Commit bump transaction.
-    //    virtual bool commitBumpTransaction(const uint256& txid,
-    //        CMutableTransaction&& mtx,
-    //        std::vector<std::string>& errors,
-    //        uint256& bumped_txid) = 0;
-
-    //    //! Get a transaction.
-    //    virtual CTransactionRef getTx(const uint256& txid) = 0;
 
     //! Get transaction information.
     virtual WalletTx getWalletTx(const std::string& txid) = 0;
@@ -183,13 +143,6 @@ public:
                                         WalletOrderForm& order_form,
                                         bool& in_mempool,
                                         int& num_blocks) = 0;
-
-    //! Fill PSBT.
-    //    virtual TransactionError fillPSBT(PartiallySignedTransaction& psbtx,
-    //        bool& complete,
-    //        int sighash_type = 1 /* SIGHASH_ALL */,
-    //        bool sign = true,
-    //        bool bip32derivs = false) = 0;
 
     //! Get balances.
     virtual WalletBalances getBalances() = 0;

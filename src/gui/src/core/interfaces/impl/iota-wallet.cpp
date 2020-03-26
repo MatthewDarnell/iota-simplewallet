@@ -211,6 +211,11 @@ std::vector<std::string> IotaWallet::getDestValues(const std::string &prefix)
     return {};
 }
 
+void IotaWallet::generateAddresses(int count)
+{
+
+}
+
 WalletMutableTransaction IotaWallet::createTransaction(const std::vector<CRecipient> &recipients, std::string &fail_reason)
 {
     if(recipients.size() == 1)
@@ -242,21 +247,6 @@ bool IotaWallet::commitTransaction(WalletMutableTransaction tx, WalletOrderForm 
     }
 
     fail_reason = "Failed to commit transaction: " + std::to_string(r);
-    return false;
-}
-
-bool IotaWallet::transactionCanBeAbandoned(const uint256 &txid)
-{
-    return false;
-}
-
-bool IotaWallet::abandonTransaction(const uint256 &txid)
-{
-    return false;
-}
-
-bool IotaWallet::transactionCanBeBumped(const uint256 &txid)
-{
     return false;
 }
 
