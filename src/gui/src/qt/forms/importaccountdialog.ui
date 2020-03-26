@@ -37,7 +37,7 @@
       </widget>
      </item>
      <item row="2" column="0">
-      <widget class="QLabel" name="passLabel3">
+      <widget class="QLabel" name="seedLabel">
        <property name="text">
         <string>Seed</string>
        </property>

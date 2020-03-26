@@ -306,6 +306,15 @@ void BitcoinGUI::createActions()
     m_import_wallet_action->setEnabled(false);
     m_import_wallet_action->setStatusTip(tr("Import an account"));
 
+    QMenu *import_menu = new QMenu(this);
+    auto import_from_file_action = import_menu->addAction(tr("Import from file..."));
+    import_from_file_action->setEnabled(true);
+    import_from_file_action->setStatusTip(tr("Import account from file"));
+    auto import_from_seed_action = import_menu->addAction(tr("Import from seed..."));
+    import_from_seed_action->setEnabled(true);
+    import_from_seed_action->setStatusTip(tr("Import account from seed"));
+    m_import_wallet_action->setMenu(import_menu);
+
     m_close_wallet_action = new QAction(tr("Close Account..."), this);
     m_close_wallet_action->setStatusTip(tr("Close account"));
 
@@ -334,11 +343,17 @@ void BitcoinGUI::createActions()
         connect(changePassphraseAction, &QAction::triggered, walletFrame, &WalletFrame::changePassphrase);
         connect(usedSendingAddressesAction, &QAction::triggered, walletFrame, &WalletFrame::usedSendingAddresses);
         connect(usedReceivingAddressesAction, &QAction::triggered, walletFrame, &WalletFrame::usedReceivingAddresses);
-        connect(m_import_wallet_action, &QAction::triggered, [this] {
+        connect(import_from_seed_action, &QAction::triggered, [this] {
             auto activity = new ImportWalletActivity(m_wallet_controller, this);
             connect(activity, &ImportWalletActivity::opened, this, &BitcoinGUI::setCurrentWallet);
             connect(activity, &ImportWalletActivity::finished, activity, &QObject::deleteLater);
             activity->importFromSeed();
+        });
+        connect(import_from_file_action, &QAction::triggered, [this] {
+            auto activity = new ImportWalletActivity(m_wallet_controller, this);
+            connect(activity, &ImportWalletActivity::opened, this, &BitcoinGUI::setCurrentWallet);
+            connect(activity, &ImportWalletActivity::finished, activity, &QObject::deleteLater);
+            activity->importFromFile();
         });
         connect(m_close_wallet_action, &QAction::triggered, [this] {
             m_wallet_controller->closeWallet(walletFrame->currentWalletModel(), this);

@@ -61,6 +61,7 @@ public:
     std::vector<std::string> listWalletDir() override;
     std::vector<std::unique_ptr<Wallet> > getWallets() override;
     std::unique_ptr<Wallet> loadWallet(const std::string &username, const SecureString& passphrase, const SecureString& seed, std::string& error) override;
+    std::unique_ptr<Wallet> loadWallet(const std::string &username, const SecureString& passphrase, const std::string& path, std::string& error) override;
     WalletCreationStatus createWallet(const SecureString &passphrase, uint64_t wallet_creation_flags, const std::string &name, std::string &error, std::vector<std::string> &warnings, std::unique_ptr<Wallet> &result) override;
     std::unique_ptr<Handler> handleInitMessage(InitMessageFn fn) override;
     std::unique_ptr<Handler> handleMessageBox(MessageBoxFn fn) override;

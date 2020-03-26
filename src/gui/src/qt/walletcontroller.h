@@ -138,14 +138,14 @@ public:
     ImportWalletActivity(WalletController* wallet_controller, QWidget* parent_widget);
 
     void importFromSeed();
-    void open(const std::string& path);
+    void importFromFile();
 
 Q_SIGNALS:
     void opened(WalletModel* wallet_model);
 
 private:
     void finish();
-    void import();
+    void import(QString path);
 
     ImportAccountDialog* m_import_wallet_dialog { nullptr };
     SecureString m_username;

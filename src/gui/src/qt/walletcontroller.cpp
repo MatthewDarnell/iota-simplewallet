@@ -34,8 +34,8 @@ WalletController::WalletController(interfaces::Node& node, const PlatformStyle* 
     , m_options_model(options_model)
 {
     m_handler_load_wallet = m_node.handleLoadWallet([this](std::unique_ptr<interfaces::Wallet> wallet) {
-        getOrCreateWallet(std::move(wallet));
-    });
+            getOrCreateWallet(std::move(wallet));
+});
 
     for (std::unique_ptr<interfaces::Wallet>& wallet : m_node.getWallets()) {
         getOrCreateWallet(std::move(wallet));
@@ -211,12 +211,12 @@ void CreateWalletActivity::createWallet()
 
     std::string name = m_create_wallet_dialog->walletName().toStdString();
     uint64_t flags = 0;
-//    if (m_create_wallet_dialog->isDisablePrivateKeysChecked()) {
-//        flags |= WALLET_FLAG_DISABLE_PRIVATE_KEYS;
-//    }
-//    if (m_create_wallet_dialog->isMakeBlankWalletChecked()) {
-//        flags |= WALLET_FLAG_BLANK_WALLET;
-//    }
+    //    if (m_create_wallet_dialog->isDisablePrivateKeysChecked()) {
+    //        flags |= WALLET_FLAG_DISABLE_PRIVATE_KEYS;
+    //    }
+    //    if (m_create_wallet_dialog->isMakeBlankWalletChecked()) {
+    //        flags |= WALLET_FLAG_BLANK_WALLET;
+    //    }
 
     QTimer::singleShot(500, worker(), [this, name, flags] {
         std::unique_ptr<interfaces::Wallet> wallet;
@@ -256,7 +256,7 @@ void CreateWalletActivity::create()
         Q_EMIT finished();
     });
     connect(m_create_wallet_dialog, &QDialog::accepted, [this] {
-            askPassphrase();
+        askPassphrase();
     });
 }
 
@@ -281,8 +281,39 @@ void ImportWalletActivity::importFromSeed()
         Q_EMIT finished();
     });
     connect(m_import_wallet_dialog, &QDialog::accepted, [this] {
-        import();
+        import({});
     });
+}
+
+void ImportWalletActivity::importFromFile()
+{
+    auto importFromFileHelper = [this](QString filePath) {
+
+        m_import_wallet_dialog = new ImportAccountDialog(ImportAccountDialog::Mode::File, m_parent_widget,
+                                                         &m_username,
+                                                         &m_passphrase,
+                                                         nullptr);
+        m_import_wallet_dialog->setWindowModality(Qt::ApplicationModal);
+        m_import_wallet_dialog->show();
+
+        connect(m_import_wallet_dialog, &QObject::destroyed, [this] {
+            m_import_wallet_dialog = nullptr;
+        });
+        connect(m_import_wallet_dialog, &QDialog::rejected, [this] {
+            Q_EMIT finished();
+        });
+        connect(m_import_wallet_dialog, &QDialog::accepted, [this, filePath] {
+            import(filePath);
+        });
+    };
+
+    auto filePath = GUIUtil::getOpenFileName(m_parent_widget, "Selected accout file", {}, {}, nullptr);
+
+    if (filePath.isEmpty()) {
+        Q_EMIT finished();
+    } else {
+        importFromFileHelper(filePath);
+    }
 }
 
 void ImportWalletActivity::finish()
@@ -298,7 +329,7 @@ void ImportWalletActivity::finish()
     Q_EMIT finished();
 }
 
-void ImportWalletActivity::import()
+void ImportWalletActivity::import(QString path)
 {
     showProgressDialog(tr("Importing Account..."));
 
@@ -310,21 +341,4 @@ void ImportWalletActivity::import()
 
         QTimer::singleShot(0, this, &ImportWalletActivity::finish);
     });
-}
-
-void ImportWalletActivity::open(const std::string& path)
-{
-#if 0
-    QString name = path.empty() ? QString("["+tr("default wallet")+"]") : QString::fromStdString(path);
-
-    showProgressDialog(tr("Opening Wallet <b>%1</b>...").arg(name.toHtmlEscaped()));
-
-    QTimer::singleShot(0, worker(), [this, path] {
-        std::unique_ptr<interfaces::Wallet> wallet = node().loadWallet(path, m_error_message, m_warning_message);
-
-        if (wallet) m_wallet_model = m_wallet_controller->getOrCreateWallet(std::move(wallet));
-
-        QTimer::singleShot(0, this, &ImportWalletActivity::finish);
-    });
-#endif
 }

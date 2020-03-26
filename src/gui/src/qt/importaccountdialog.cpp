@@ -24,10 +24,12 @@ ImportAccountDialog::ImportAccountDialog(Mode _mode, QWidget *parent,
     ui->setupUi(this);
 
     // support only seed for now
-    Q_ASSERT(mode == Mode::Seed);
     Q_ASSERT(m_username_out);
     Q_ASSERT(m_passphrase_out);
-    Q_ASSERT(m_seed_out);
+
+    if (mode == Mode::Seed) {
+        Q_ASSERT(m_seed_out);
+    }
 
     ui->usernameEdit->setMinimumSize(ui->usernameEdit->sizeHint());
     ui->passEdit->setMinimumSize(ui->passEdit->sizeHint());
@@ -41,6 +43,11 @@ ImportAccountDialog::ImportAccountDialog(Mode _mode, QWidget *parent,
     ui->usernameEdit->installEventFilter(this);
     ui->passEdit->installEventFilter(this);
     ui->seedEdit->installEventFilter(this);
+
+    if (mode == Mode::File) {
+        ui->seedLabel->setVisible(false);
+        ui->seedEdit->setVisible(false);
+    }
 
     textChanged();
     connect(ui->toggleShowPasswordButton, &QPushButton::toggled, this, &ImportAccountDialog::toggleShowPassword);
@@ -73,7 +80,9 @@ void ImportAccountDialog::accept()
 
     m_username_out->assign(username);
     m_passphrase_out->assign(password);
-    m_seed_out->assign(seed);
+    if (mode == Mode::Seed) {
+        m_seed_out->assign(seed);
+    }
 
     QDialog::accept();
 }
@@ -85,7 +94,7 @@ void ImportAccountDialog::textChanged()
     switch(mode)
     {
     case Mode::File: // New passphrase x2
-//        acceptable = !ui->passEdit2->text().isEmpty() && !ui->passEdit3->text().isEmpty();
+        acceptable = !ui->passEdit->text().isEmpty() && !ui->usernameEdit->text().isEmpty();
         break;
     case Mode::Seed: // Old passphrase x1, new passphrase x2
         acceptable = !ui->passEdit->text().isEmpty() && !ui->usernameEdit->text().isEmpty() && !ui->seedEdit->text().isEmpty();
