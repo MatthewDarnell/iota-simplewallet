@@ -134,13 +134,14 @@ private:
     QAction* toggleHideAction = nullptr;
     QAction* encryptWalletAction = nullptr;
     QAction* backupWalletAction = nullptr;
+    QAction* generateAddressesAction = nullptr;
     QAction* changePassphraseAction = nullptr;
     QAction* aboutQtAction = nullptr;
     QAction* openRPCConsoleAction = nullptr;
     QAction* showHelpMessageAction = nullptr;
-    QAction* m_create_wallet_action{nullptr};
-    QAction* m_import_wallet_action{nullptr};
-    QAction* m_close_wallet_action{nullptr};
+    QAction* m_create_wallet_action = nullptr;
+    QAction* m_import_wallet_action = nullptr;
+    QAction* m_close_wallet_action = nullptr;
     QAction* m_wallet_selector_label_action = nullptr;
     QAction* m_wallet_selector_action = nullptr;
 

@@ -179,6 +179,13 @@ void WalletFrame::unlockWallet()
         walletView->unlockWallet();
 }
 
+void WalletFrame::generateMoreAddresses()
+{
+    WalletView *walletView = currentWalletView();
+    if (walletView)
+        walletView->generateMoreAddresses();
+}
+
 void WalletFrame::usedSendingAddresses()
 {
     WalletView *walletView = currentWalletView();

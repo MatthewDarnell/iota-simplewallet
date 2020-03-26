@@ -288,6 +288,8 @@ void BitcoinGUI::createActions()
     encryptWalletAction->setCheckable(true);
     backupWalletAction = new QAction(tr("&Backup Account..."), this);
     backupWalletAction->setStatusTip(tr("Backup account to another location"));
+    generateAddressesAction = new QAction(tr("&Generate more addresses..."), this);
+    generateAddressesAction->setStatusTip(tr("Generate more addresses for this account"));
     changePassphraseAction = new QAction(tr("&Change Passphrase..."), this);
     changePassphraseAction->setStatusTip(tr("Change the passphrase used for account encryption"));
 
@@ -340,30 +342,32 @@ void BitcoinGUI::createActions()
     {
         connect(encryptWalletAction, &QAction::triggered, walletFrame, &WalletFrame::encryptWallet);
         connect(backupWalletAction, &QAction::triggered, walletFrame, &WalletFrame::backupWallet);
+        connect(generateAddressesAction, &QAction::triggered, walletFrame, &WalletFrame::generateMoreAddresses);
         connect(changePassphraseAction, &QAction::triggered, walletFrame, &WalletFrame::changePassphrase);
         connect(usedSendingAddressesAction, &QAction::triggered, walletFrame, &WalletFrame::usedSendingAddresses);
         connect(usedReceivingAddressesAction, &QAction::triggered, walletFrame, &WalletFrame::usedReceivingAddresses);
-        connect(import_from_seed_action, &QAction::triggered, [this] {
+        connect(import_from_seed_action, &QAction::triggered, this, [this] {
             auto activity = new ImportWalletActivity(m_wallet_controller, this);
             connect(activity, &ImportWalletActivity::opened, this, &BitcoinGUI::setCurrentWallet);
             connect(activity, &ImportWalletActivity::finished, activity, &QObject::deleteLater);
             activity->importFromSeed();
         });
-        connect(import_from_file_action, &QAction::triggered, [this] {
+        connect(import_from_file_action, &QAction::triggered, this, [this] {
             auto activity = new ImportWalletActivity(m_wallet_controller, this);
             connect(activity, &ImportWalletActivity::opened, this, &BitcoinGUI::setCurrentWallet);
             connect(activity, &ImportWalletActivity::finished, activity, &QObject::deleteLater);
             activity->importFromFile();
         });
-        connect(m_close_wallet_action, &QAction::triggered, [this] {
+        connect(m_close_wallet_action, &QAction::triggered, this, [this] {
             m_wallet_controller->closeWallet(walletFrame->currentWalletModel(), this);
         });
-        connect(m_create_wallet_action, &QAction::triggered, [this] {
+        connect(m_create_wallet_action, &QAction::triggered, this, [this] {
             auto activity = new CreateWalletActivity(m_wallet_controller, this);
             connect(activity, &CreateWalletActivity::created, this, &BitcoinGUI::setCurrentWallet);
             connect(activity, &CreateWalletActivity::finished, activity, &QObject::deleteLater);
             activity->create();
         });
+
     }
 
     connect(new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_C), this), &QShortcut::activated, this, &BitcoinGUI::showDebugWindowActivateConsole);
@@ -390,6 +394,7 @@ void BitcoinGUI::createMenuBar()
         file->addSeparator();
         file->addAction(backupWalletAction);
         file->addSeparator();
+        file->addAction(generateAddressesAction);
     }
     file->addAction(quitAction);
 

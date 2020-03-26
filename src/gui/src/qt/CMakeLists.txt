@@ -51,6 +51,7 @@ target_link_libraries(iota-qt
     core
     Qt5::Widgets
     Qt5::Gui
+    Qt5::Concurrent
     ${EXTRA_LIBS})
 
 
