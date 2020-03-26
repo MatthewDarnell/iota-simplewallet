@@ -210,7 +210,7 @@
           </font>
          </property>
          <property name="text">
-          <string>Block chain</string>
+          <string>Tangle data</string>
          </property>
         </widget>
        </item>

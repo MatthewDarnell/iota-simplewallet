@@ -462,11 +462,13 @@ void RPCConsole::setClientModel(ClientModel *model)
 
         interfaces::Node& node = clientModel->node();
         setAppInfo(node.getAppName(), node.getAppVersion(), node.getNetwork());
-        setNumBlocks(node.getNumBlocks(true), node.getLatestMilestone(true), node.getLatestMilestone(false));
+        setNumBlocks(node.getNumBlocks(true), node.getNumBlocks(false),
+                     node.getLatestMilestone(true), node.getLatestMilestone(false));
         connect(model, &ClientModel::appInfoChanged, this, &RPCConsole::setAppInfo);
         connect(model, &ClientModel::numBlocksChanged, this, [this] {
             interfaces::Node& node = clientModel->node();
-            setNumBlocks(node.getNumBlocks(true), node.getLatestMilestone(true), node.getLatestMilestone(false));
+            setNumBlocks(node.getNumBlocks(true), node.getNumBlocks(false),
+                         node.getLatestMilestone(true), node.getLatestMilestone(false));
         });
         connect(model, &ClientModel::updateNumConnections, this, &RPCConsole::setNumConnections);
 
@@ -672,10 +674,11 @@ void RPCConsole::setNetworkActive(bool networkActive)
     updateNetworkState();
 }
 
-void RPCConsole::setNumBlocks(int count, QString blockTipSolid, QString blockTip)
+void RPCConsole::setNumBlocks(int solidCount, int count,
+                              QString blockTipSolid, QString blockTip)
 {
-    ui->latestSolidMilestone->setText(blockTipSolid);
-    ui->latestMilestone->setText(blockTip);
+    ui->latestSolidMilestone->setText(QString("%1\n%2").arg(blockTipSolid).arg(solidCount));
+    ui->latestMilestone->setText(QString("%1\n%2").arg(blockTip).arg(count));
 }
 
 void RPCConsole::setAppInfo(QString appName, QString appVersion, QString connectedNode)

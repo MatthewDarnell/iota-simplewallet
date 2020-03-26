@@ -94,7 +94,7 @@ public Q_SLOTS:
     /** Set network state shown in the UI */
     void setNetworkActive(bool networkActive);
     /** Set number of blocks and last block date shown in the UI */
-    void setNumBlocks(int count, QString blockTipSolid, QString blockTip);
+    void setNumBlocks(int solidCount, int count, QString blockTipSolid, QString blockTip);
     /** Go forward or back in history */
     void browseHistory(int offset);
     /** Scroll console view to end */
