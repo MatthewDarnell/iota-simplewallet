@@ -42,6 +42,8 @@
 #include <QThread>
 #include <QTimer>
 #include <QTranslator>
+#include <QLockFile>
+#include <QDir>
 
 #if defined(QT_STATICPLUGIN)
 #include <QtPlugin>
@@ -368,6 +370,13 @@ int GuiMain(int argc, char* argv[])
     util::ThreadSetInternalName("main");
 
     std::unique_ptr<interfaces::Node> node = interfaces::MakeNode();
+    QDir dataDir(QString::fromStdString(node->getDataDir()));
+    QLockFile lockFile(dataDir.absoluteFilePath("lock.lock"));
+    lockFile.setStaleLockTime(0);
+    if (!lockFile.tryLock(1000)) {
+        qDebug() << "Application is already running";
+        return -1;
+    }
 
     // Do not refer to data directory yet, this can be overridden by Intro::pickDataDirectory
 
