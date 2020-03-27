@@ -168,8 +168,11 @@ char* parse_debug_command(const char* cmd) {
     if( !password || !path) {
       ret_val = strdup("Usage: import_account_state <password> <path>");
     } else {
-      int state_imported = import_account_state(password, path);
-      ret_val = strdup(state_imported == 0 ? "OK" : "NOT OK");
+      ret_val = import_account_state(password, path);
+      if(!ret_val) {
+        log_wallet_error("Failed to Imported User", "");
+        ret_val = strdup("NOT OK");
+      }
     }
   }
   else if(strcasecmp(c, "get_all_accounts") == 0) {

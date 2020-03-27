@@ -124,7 +124,7 @@ int export_account_state(const char* username, char* password, const char* path)
 //Import a synced account from file
 //@path: the output file to write
 //Account must not exist already
-int import_account_state(char* password, const char* path);
+char* import_account_state(char* password, const char* path);
 
 //Write a key/value pair to the db associated with this user
 //return: Returns 0 if ok, -1 otherwise

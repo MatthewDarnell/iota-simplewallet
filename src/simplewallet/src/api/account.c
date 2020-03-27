@@ -307,10 +307,10 @@ int export_account_state(const char* username, char* password, const char* path)
   return 0;
 }
 
-int import_account_state(char* password, const char* path) {
+char* import_account_state(char* password, const char* path) {
   if(!path) {
     log_wallet_error("%s No path provided", __func__);
-    return -1;
+    return NULL;
   }
 
   pthread_mutex_lock(&account_state_file_mutex);
@@ -319,7 +319,7 @@ int import_account_state(char* password, const char* path) {
   if(!i_file) {
     pthread_mutex_unlock(&account_state_file_mutex);
     log_wallet_error("%s Could not open file %s", __func__, path);
-    return -1;
+    return NULL;
   }
 
   fseek(i_file, 0, SEEK_END);
@@ -331,14 +331,14 @@ int import_account_state(char* password, const char* path) {
     fclose(i_file);
     pthread_mutex_unlock(&account_state_file_mutex);
     log_wallet_error("%s OOM", __func__);
-    return -1;
+    return NULL;
   }
   if(f_size != fread(buffer, sizeof(char), f_size, i_file)) {
     fclose(i_file);
     pthread_mutex_unlock(&account_state_file_mutex);
     free(buffer);
     log_wallet_error("%s Could not read file", __func__);
-    return -1;
+    return NULL;
   }
   fclose(i_file);
   pthread_mutex_unlock(&account_state_file_mutex);
@@ -348,7 +348,7 @@ int import_account_state(char* password, const char* path) {
 
   if(!json) {
     log_wallet_error("%s could not read file. (Was it altered?)", __func__);
-    return -1;
+    return NULL;
   }
 
 
@@ -356,7 +356,7 @@ int import_account_state(char* password, const char* path) {
   if(!cJSON_IsObject(json)) {
     cJSON_Delete(json);
     log_wallet_error("%s could not read file. (Was it altered?)", __func__);
-    return -1;
+    return NULL;
   }
 
   if(
@@ -370,7 +370,7 @@ int import_account_state(char* password, const char* path) {
     ) {
     cJSON_Delete(json);
     log_wallet_error("%s could not read file. (Was it altered?)", __func__);
-    return -1;
+    return NULL;
   }
 
   cJSON* addresses = cJSON_GetObjectItem(json, "addresses");
@@ -378,7 +378,7 @@ int import_account_state(char* password, const char* path) {
   if(!cJSON_IsArray(addresses)) {
     cJSON_Delete(json);
     log_wallet_error("%s could not read file. (Was it altered?)", __func__);
-    return -1;
+    return NULL;
   }
 
   int num_addresses = cJSON_GetArraySize(addresses);
@@ -393,7 +393,7 @@ int import_account_state(char* password, const char* path) {
     ) {
       cJSON_Delete(json);
       log_wallet_error("%s could not read file. (Was it altered?)", __func__);
-      return -1;
+      return NULL;
     }
 
     if(
@@ -404,7 +404,7 @@ int import_account_state(char* password, const char* path) {
       ) {
       cJSON_Delete(json);
       log_wallet_error("%s could not read file. (Was it altered?)", __func__);
-      return -1;
+      return NULL;
     }
   }
 
@@ -423,7 +423,7 @@ int import_account_state(char* password, const char* path) {
     cJSON_Delete(existing_user);
     close_db_handle(db);
     cJSON_Delete(json);
-    return -1;
+    return NULL;
   }
 
 
@@ -438,7 +438,7 @@ int import_account_state(char* password, const char* path) {
     close_db_handle(db);
     cJSON_Delete(json);
     log_wallet_error("%s Could not create account, db error", __func__);
-    return -1;
+    return NULL;
   }
 
   uint32_t last_offset = 0;
@@ -457,7 +457,7 @@ int import_account_state(char* password, const char* path) {
     cJSON_Delete(json);
     close_db_handle(db);
     log_wallet_error("%s Invalid Password", __func__);
-    return -1;
+    return NULL;
   }
   //Need to generate at least <last_offset> addresses
   cJSON* generated_addresses = generate_new_addresses(seed, 0, last_offset + 1);
@@ -505,8 +505,9 @@ int import_account_state(char* password, const char* path) {
 
   close_db_handle(db);
   log_wallet_info("%s User <%s> imported successfully", __func__, username);
+  char* ret_val = strdup(username);
   cJSON_Delete(json);
-  return 0;
+  return ret_val;
 }
 
 

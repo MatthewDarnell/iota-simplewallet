@@ -199,9 +199,15 @@ int parse_command(char* buf, int* quit_flag) {
       fprintf(stderr, "Usage: import_account_state <password> <path>\n");
       log_wallet_error("Usage: import_account_state <password> <path>\n", "");
     } else {
-      int state_imported = import_account_state(password, path);
-      printf("%s\n", state_imported == 0 ? "OK" : "NOT OK");
-      log_wallet_info("%s\n", state_imported == 0 ? "OK" : "NOT OK");
+      char* username = import_account_state(password, path);
+      if(username) {
+        printf("Imported User: <%s>\n", username);
+        log_wallet_info("Imported User: <%s>", username);
+        free(username);
+      } else {
+        printf("Failed to Imported User\n");
+        log_wallet_info("Failed to Imported User", "");
+      }
     }
   }
   else if(strcasecmp(command, "get_all_accounts") == 0) {
