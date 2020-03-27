@@ -7,6 +7,7 @@
 #include <cjson/cJSON.h>
 #include "../database/sqlite3/db.h"
 #include "../database/sqlite3/stores/address.h"
+#include "../database/helpers/generate_address.h"
 #include "../iota-simplewallet.h"
 
 char* get_new_address(const char* username) {
@@ -26,3 +27,6 @@ char* get_new_address(const char* username) {
   }
 }
 
+int generate_num_addresses(const char* username, char* password, int num_addrs) {
+  return _generate_num_addresses(username, password, num_addrs);
+}

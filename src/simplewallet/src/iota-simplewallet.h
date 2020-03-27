@@ -142,8 +142,10 @@ char* read_user_data(const char* username, const char* key);
 */
 
 //Get a new Deposit Address
-//@username: NULL to use main account
 char* get_new_address(const char* username);
+
+//Generate a user-defined number of Deposit Addresses and Save to Disk
+int generate_num_addresses(const char* username, char* password, int num_addrs);
 
 
 /*
@@ -157,7 +159,6 @@ char* get_new_address(const char* username);
 char* get_incoming_transaction_by_hash(const char* hash);
 
 //Get received transactions
-//@username: NULL to use main account
 //@offset: the 0-based offset at which to start looking
 //@num: the max count of transactions to return
 char* get_incoming_transactions(const char* username, uint32_t offset, uint32_t num);
@@ -167,14 +168,12 @@ char* get_incoming_transactions(const char* username, uint32_t offset, uint32_t 
 char* get_outgoing_transaction_by_hash(const char* hash);
 
 //Get sent transactions
-//@username: NULL to use main account
 //@offset: the 0-based offset at which to start looking
 //@num: the max count of transactions to return
 char* get_outgoing_transactions(const char* username, uint32_t offset, uint32_t num);
 
 
 //Creates a new transaction to send
-//@username: NULL to use main account
 //@password: the password of the account
 //@dest_address: the receiving address
 //@value: the amount to send

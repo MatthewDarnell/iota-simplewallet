@@ -44,7 +44,7 @@ char* parse_debug_command(const char* cmd) {
   }
 
   if(strcasecmp(c, "help") == 0) {
-    const char *h = "\n----------\n"
+    const char *h = "\n---------------\n"
                     "IOTA Wallet CLI Usage: \n"
                     "\tAccounts:\n"
                     "\t\tcreate_account <username> <password>\n"
@@ -57,6 +57,7 @@ char* parse_debug_command(const char* cmd) {
                     "\t\tget_all_accounts\n"
                     "\tAddresses:\n"
                     "\t\tget_new_address <username>\n"
+                    "\t\tgenerate_num_addresses <username> <password> <num_addrs>\n"
                     "\tTransactions:\n"
                     "\t\tsend_transaction <username> <password> <destination_address> <amount>\n"
                     "\t\tget_all_transactions <username> <offset> <limit>\n"
@@ -69,8 +70,7 @@ char* parse_debug_command(const char* cmd) {
                     "\t\thelp\n"
                     "\t\tget_node_status\n"
                     "\t\tset_node <host> <port>\n"
-                    "\t\tquit\n"
-                    "\n----------\n\n";
+                    "\n---------------\n\n";
     ret_val = strdup(h);
   }
 
@@ -184,6 +184,18 @@ char* parse_debug_command(const char* cmd) {
       ret_val = strdup("Usage: get_new_address <username>");
     } else {
       ret_val = get_new_address(username);
+    }
+  }
+  else if(strcasecmp(c, "generate_num_addresses") == 0) {
+    username = strtok_r(NULL, " ", &saveptr);
+    password = strtok_r(NULL, " ", &saveptr);
+    char* str_num_addrs = strtok_r(NULL, " ", &saveptr);
+    if(!username || !password || !str_num_addrs) {
+      ret_val = strdup("Usage: generate_new_addresses <username> <password> <num_addrs>");
+    } else {
+      uint32_t num_addrs = strtol(str_num_addrs, NULL, 10);
+      int res = generate_num_addresses(username, password, num_addrs);
+      ret_val = strdup(res == 0 ? "OK" : "NOT OK");
     }
   }
 
