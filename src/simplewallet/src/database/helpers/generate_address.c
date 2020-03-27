@@ -106,11 +106,8 @@ int generate_address(const char* username, const char* seed) {
         if(create_address(db, addr, index, username) < 0) {
           log_wallet_error("Error storing address %s %d in database!", addr, index);
         } else {
-          if(i >= num_addresses_to_create) {
-            mark_address_is_change_address(db, addr);
-          }
+          mark_address_is_change_address(db, addr);
         }
-        i++;
       }
       cJSON_Delete(new_change_addresses);
 
