@@ -114,7 +114,7 @@ public:
     //! Get dest values with prefix.
     virtual std::vector<std::string> getDestValues(const std::string& prefix) = 0;
 
-    virtual void generateAddresses(int count) = 0;
+    virtual bool generateAddresses(int count, std::string &fail_reason) = 0;
 
     //! Create transaction.
     virtual WalletMutableTransaction createTransaction(const std::vector<CRecipient>& recipients,

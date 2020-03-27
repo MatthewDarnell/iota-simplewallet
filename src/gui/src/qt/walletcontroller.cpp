@@ -7,6 +7,7 @@
 #include <askpassphrasedialog.h>
 #include <createwalletdialog.h>
 #include <importaccountdialog.h>
+#include <generateaddressesdialog.h>
 #include <guiconstants.h>
 #include <guiutil.h>
 #include <walletmodel.h>
@@ -341,4 +342,44 @@ void ImportWalletActivity::import(QString path)
 
         QTimer::singleShot(0, this, &ImportWalletActivity::finish);
     });
+}
+
+GenerateAddressesWalletActivity::GenerateAddressesWalletActivity(WalletModel *walletModel, WalletController *wallet_controller, QWidget *parent_widget) :
+    WalletControllerActivity(wallet_controller, parent_widget),
+    m_walletModel(walletModel)
+{
+    connect(this, &GenerateAddressesWalletActivity::generated,
+            this, &GenerateAddressesWalletActivity::finished);
+    connect(this, &GenerateAddressesWalletActivity::failure,
+            this, &GenerateAddressesWalletActivity::finished);
+}
+
+void GenerateAddressesWalletActivity::generate()
+{
+    GenerateAddressesDialog *dlg = new GenerateAddressesDialog(m_parent_widget);
+    connect(dlg, &GenerateAddressesDialog::generateRequested, this, [this](int count) {
+
+        WalletModel::UnlockContext ctx(m_walletModel->requestUnlock());
+        if(!ctx.isValid())
+        {
+            // Unlock wallet was cancelled
+            return;
+        }
+
+        showProgressDialog(tr("Generating Addresses..."));
+
+        QTimer::singleShot(0, worker(), [this, count, ctx = std::move(ctx)] {
+            std::string fail_reason;
+            auto r = m_walletModel->wallet().generateAddresses(count, fail_reason);
+            std::move(ctx);
+            if (r) {
+                QTimer::singleShot(500, this, &GenerateAddressesWalletActivity::finished);
+            } else {
+                QTimer::singleShot(500, this, std::bind(&GenerateAddressesWalletActivity::failure, this, QString::fromStdString(fail_reason)));
+            }
+        });
+    });
+
+    connect(dlg, &GenerateAddressesDialog::finished, dlg, &QObject::deleteLater);
+    dlg->show();
 }

@@ -153,4 +153,21 @@ private:
     SecureString m_seed;
 };
 
+class GenerateAddressesWalletActivity : public WalletControllerActivity
+{
+    Q_OBJECT
+public:
+    GenerateAddressesWalletActivity(WalletModel* walletModel, WalletController* wallet_controller,
+                                    QWidget* parent_widget);
+
+    void generate();
+
+signals:
+    void generated(int count);
+    void failure(const QString &reason);
+
+private:
+    WalletModel* m_walletModel;
+};
+
 #endif // BITCOIN_QT_WALLETCONTROLLER_H

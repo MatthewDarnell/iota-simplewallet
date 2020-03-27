@@ -20,7 +20,6 @@ namespace interfaces {
 
 static std::vector<QPointer<IotaNode>> _nodes;
 
-
 static void ForEachDeliverEvent(std::function<void(IotaNode&)> functor)
 {
     _nodes.erase(std::remove_if(std::begin(_nodes), std::end(_nodes), [](const auto &node) {
@@ -125,8 +124,17 @@ QString IotaNode::getNetwork()
 
 std::string IotaNode::getDataDir()
 {
-    static const auto datadir = QStandardPaths::writableLocation(QStandardPaths::DataLocation).toStdString();
-    return datadir;
+    static const auto genericDataDir = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation);
+
+    QDir dataDir(QString("%1/Iota/Iota-Qt").arg(genericDataDir));
+    if (!dataDir.exists()) {
+        if (!dataDir.mkpath(".")) {
+            qDebug("Failed to create dataDir at location: %s\n", dataDir.absolutePath().toLatin1().data());
+            throw std::runtime_error("Failed to create datadir");
+        }
+    }
+
+    return dataDir.absolutePath().toStdString();
 }
 
 void IotaNode::initLogging()
@@ -150,15 +158,6 @@ uint32_t IotaNode::getLogCategories()
 bool IotaNode::baseInitialize()
 {
     auto dataDirPath = getDataDir();
-
-    QDir dataDir(QString::fromStdString(dataDirPath));
-    if (!dataDir.exists()) {
-        if (!dataDir.mkpath(".")) {
-            qDebug("Failed to create dataDir at location: %s\n", dataDirPath.c_str());
-            return false;
-        }
-    }
-
     init_iota_simplewallet(dataDirPath.data());
     return true;
 }

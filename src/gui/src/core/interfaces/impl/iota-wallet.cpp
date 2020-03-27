@@ -211,9 +211,23 @@ std::vector<std::string> IotaWallet::getDestValues(const std::string &prefix)
     return {};
 }
 
-void IotaWallet::generateAddresses(int count)
+bool IotaWallet::generateAddresses(int count, std::string &fail_reason)
 {
+    if(isLocked())
+    {
+        fail_reason = "Wallet locked";
+        return false;
+    }
 
+    SecureString password(_unlockPassword);
+    auto r = generate_num_addresses(_account.username.toStdString().data(), &password[0], count);
+
+    if (r < 0) {
+        fail_reason = "Address generation failed";
+        return false;
+    }
+
+    return true;
 }
 
 WalletMutableTransaction IotaWallet::createTransaction(const std::vector<CRecipient> &recipients, std::string &fail_reason)

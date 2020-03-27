@@ -342,10 +342,20 @@ void BitcoinGUI::createActions()
     {
         connect(encryptWalletAction, &QAction::triggered, walletFrame, &WalletFrame::encryptWallet);
         connect(backupWalletAction, &QAction::triggered, walletFrame, &WalletFrame::backupWallet);
-        connect(generateAddressesAction, &QAction::triggered, walletFrame, &WalletFrame::generateMoreAddresses);
         connect(changePassphraseAction, &QAction::triggered, walletFrame, &WalletFrame::changePassphrase);
         connect(usedSendingAddressesAction, &QAction::triggered, walletFrame, &WalletFrame::usedSendingAddresses);
         connect(usedReceivingAddressesAction, &QAction::triggered, walletFrame, &WalletFrame::usedReceivingAddresses);
+        connect(generateAddressesAction, &QAction::triggered, this, [this] {
+            GenerateAddressesWalletActivity *activity = new GenerateAddressesWalletActivity(walletFrame->currentWalletModel(), m_wallet_controller, this);
+            connect(activity, &GenerateAddressesWalletActivity::finished, activity, &QObject::deleteLater);
+            connect(activity, &GenerateAddressesWalletActivity::generated, this, [this](int count) {
+                Q_EMIT message(tr("Addresses generation"), QString(tr("Generated %1 addresses")).arg(count), CClientUIInterface::MSG_INFORMATION);
+            });
+            connect(activity, &GenerateAddressesWalletActivity::failure, this, [this](QString fail_reason) {
+                Q_EMIT message(tr("Address generation failed"), fail_reason, CClientUIInterface::MSG_ERROR);
+            });
+            activity->generate();
+        });
         connect(import_from_seed_action, &QAction::triggered, this, [this] {
             auto activity = new ImportWalletActivity(m_wallet_controller, this);
             connect(activity, &ImportWalletActivity::opened, this, &BitcoinGUI::setCurrentWallet);

@@ -62,7 +62,7 @@ public:
     bool addDestData(const std::string &dest, const std::string &key, const std::string &value) override;
     bool eraseDestData(const std::string &dest, const std::string &key) override;
     std::vector<std::string> getDestValues(const std::string &prefix) override;
-    void generateAddresses(int count) override;
+    bool generateAddresses(int count, std::string &fail_reason) override;
     WalletMutableTransaction createTransaction(const std::vector<CRecipient>& recipients, std::string& fail_reason) override;
     bool commitTransaction(WalletMutableTransaction tx,  WalletOrderForm order_form,  std::string &fail_reason) override;
     WalletTx getWalletTx(const std::string &txid) override;

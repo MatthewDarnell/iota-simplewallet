@@ -18,7 +18,6 @@
 #include <walletmodel.h>
 #include <ui-interface.h>
 #include <interfaces/node.h>
-#include <generateaddressesdialog.h>
 
 #include <QtConcurrent>
 #include <QFutureWatcher>
@@ -295,15 +294,4 @@ void WalletView::showProgress(const QString &title, int nProgress)
 void WalletView::requestedSyncWarningInfo()
 {
     Q_EMIT outOfSyncWarningClicked();
-}
-
-void WalletView::generateMoreAddresses()
-{
-    GenerateAddressesDialog *dlg = new GenerateAddressesDialog(this);
-    connect(dlg, &GenerateAddressesDialog::generateRequested, this, [this](int count) {
-        walletModel->wallet().generateAddresses(count);
-        Q_EMIT message(tr("Addresses generated"), QString(tr("Generated %1 addresses")).arg(count), CClientUIInterface::MSG_INFORMATION);
-    });
-
-    dlg->show();
 }
