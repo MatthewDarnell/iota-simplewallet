@@ -331,24 +331,25 @@ std::unique_ptr<Wallet> IotaNode::loadWallet(const std::string &username, const 
         error = "Account with this username already exists";
     }
 
-//    SecureString password(passphrase);
-//    auto r = import_account_state(&password[0], path.data());
-//    if(r < 0)
-//    {
-//        error = "Failed to import account";
-//        return {};
-//    }
+    SecureString password(passphrase);
+    c_string_unique_ptr r_username(import_account_state(&password[0], path.data()));
+    if(!r_username)
+    {
+        error = "Failed to import account";
+        return {};
+    }
 
-//    password.assign(passphrase);
-//    verify_login(username.data(), &password[0], 1);
+    password.assign(passphrase);
+    verify_login(username.data(), &password[0], 1);
 
-//    loadAccounts();
+    loadAccounts();
 
+    if(tryGetUserAccount(QString::fromStdString(r_username.get()), acc))
+    {
+        return createIotaWallet(acc);
+    }
 
-//    if(tryGetUserAccount(QString::fromStdString(username), acc))
-//    {
-//        return createIotaWallet(acc);
-//    }
+    error = "Failed to find imported account";
 
     return {};
 }
