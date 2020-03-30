@@ -100,11 +100,13 @@ public slots:
 
 private:
     void updateTransactions();
+    void updateUnconfirmedBalance();
 
 private:
     UserAccount _account;
     SecureString _unlockPassword;
     std::map<std::string, WalletTx> _transactions;
+    CAmount _uncofirmedBalance { 0 };
     int _latestMilestoneIndex { 0 };
 };
 

@@ -5,6 +5,7 @@
 #include "iota-wallet.hpp"
 #include <iota/iota-simplewallet.h>
 #include <ui-interface.h>
+#include <util/strencodings.h>
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QDebug>
@@ -192,7 +193,7 @@ std::vector<WalletAddress> IotaWallet::getAddresses()
 bool IotaWallet::addDestData(const std::string &dest, const std::string &key, const std::string &value)
 {
     Q_UNUSED(dest)
-    return write_user_data(_account.username.toStdString().data(), key.data(), value.data()) == 0;
+    return write_user_data(_account.username.toStdString().data(), key.data(), HexStr(value).data()) == 0;
 }
 
 bool IotaWallet::eraseDestData(const std::string &dest, const std::string &key)
@@ -206,9 +207,13 @@ std::vector<std::string> IotaWallet::getDestValues(const std::string &prefix)
     c_string_unique_ptr result(read_user_data(_account.username.toStdString().data(), prefix.data()));
     std::vector<std::string> data;
     if (result) {
-        qDebug() << QJsonDocument::fromJson(QByteArray(result.get()));
+        for (auto val : QJsonDocument::fromJson(QByteArray(result.get())).array()) {
+            auto obj = val.toObject();
+            auto v = ParseHex(obj.value("value").toString().toStdString());
+            data.emplace_back(v.begin(), v.end());
+        }
     }
-    return {};
+    return data;
 }
 
 bool IotaWallet::generateAddresses(int count, std::string &fail_reason)
@@ -305,7 +310,7 @@ WalletBalances IotaWallet::getBalances()
     WalletBalances balances;
     balances.have_watch_only = false;
     balances.balance = _account.balance.toLongLong();
-    balances.unconfirmed_balance = 0;
+    balances.unconfirmed_balance = _uncofirmedBalance;
     balances.immature_balance = 0;
 
     return balances;
@@ -435,17 +440,21 @@ void IotaWallet::onTransactionChanged(QJsonObject payload)
         return;
     }
 
-
     auto wtx = ParseTransaction(payload);
     auto idx = QString::fromStdString(wtx.hash);
     if(_transactions.count(wtx.hash) > 0)
     {
         _transactions.at(wtx.hash) = wtx;
+        updateUnconfirmedBalance();
         Q_EMIT transactionUpdated(idx);
     }
     else
     {
         _transactions.emplace(wtx.hash, wtx);
+        if(!wtx.is_confirmed)
+        {
+            updateUnconfirmedBalance();
+        }
         Q_EMIT transactionAdded(idx);
     }
 }
@@ -470,6 +479,19 @@ void IotaWallet::updateTransactions()
 
     cpy(incoming_txns);
     cpy(outgoing_txns);
+
+    updateUnconfirmedBalance();
 }
 
+void IotaWallet::updateUnconfirmedBalance()
+{
+    _uncofirmedBalance = 0;
+    for (auto &&tx : _transactions)
+    {
+        if (!tx.second.is_confirmed)
+        {
+            _uncofirmedBalance += tx.second.credit + tx.second.debit;
+        }
+    }
+}
 } // namespace interfaces
