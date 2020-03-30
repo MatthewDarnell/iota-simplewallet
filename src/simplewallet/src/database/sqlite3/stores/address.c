@@ -704,3 +704,31 @@ int mark_address_is_change_address(sqlite3* db, const char* address) {
   sqlite3_finalize(stmt);
   return 0;
 }
+
+int _get_num_generated_addresses(sqlite3* db, const char* username) {
+  enforce_max_length(strlen(username))
+  sqlite3_stmt* stmt;
+  int rc;
+fprintf(stderr, "username: %s\n", username);
+  char* query = "SELECT COUNT(*) as num "
+                " FROM address "
+                " WHERE account=?";
+  rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
+
+  if (rc != SQLITE_OK) {
+    log_wallet_error("%s -- Failed to create prepared statement: %s", __func__, sqlite3_errmsg(db));
+    return -1;
+  }
+
+  sqlite3_bind_text(stmt, 1, username, -1, NULL);
+  while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+    sqlite3_sleep(100);
+  }
+  int num = -1;
+  if (rc == SQLITE_ROW) {
+    num = sqlite3_column_int(stmt, 0);
+  }
+
+  sqlite3_finalize(stmt);
+  return num;
+}

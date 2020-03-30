@@ -30,3 +30,10 @@ char* get_new_address(const char* username) {
 int generate_num_addresses(const char* username, char* password, int num_addrs) {
   return _generate_num_addresses(username, password, num_addrs);
 }
+
+int get_num_generated_addresses(const char* username) {
+  sqlite3* db = get_db_handle();
+  int num = _get_num_generated_addresses(db, username);
+  close_db_handle(db);
+  return num;
+}
