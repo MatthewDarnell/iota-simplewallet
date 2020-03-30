@@ -18,3 +18,15 @@ target_compile_options(core PRIVATE
           -Wall>
      $<$<CXX_COMPILER_ID:MSVC>:
           /W4>)
+
+if(WIN32)
+    set(RUNTIME_DESTINATION appdir)
+else()
+    set(RUNTIME_DESTINATION appdir/usr/bin)
+endif()
+
+
+if(WIN32)
+	get_target_property(DLL_LOCATION iota::iota_simplewallet IMPORTED_LOCATION_RELEASE)
+	install(FILES ${DLL_LOCATION} DESTINATION ${RUNTIME_DESTINATION})
+endif()

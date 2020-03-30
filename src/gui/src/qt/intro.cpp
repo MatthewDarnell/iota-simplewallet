@@ -167,16 +167,16 @@ QString Intro::getDataDirectory()
 void Intro::setDataDirectory(const QString &dataDir)
 {
     ui->dataDirectory->setText(dataDir);
-    if(dataDir == GUIUtil::getDefaultDataDirectory())
-    {
-        ui->dataDirDefault->setChecked(true);
-        ui->dataDirectory->setEnabled(false);
-        ui->ellipsisButton->setEnabled(false);
-    } else {
-        ui->dataDirCustom->setChecked(true);
-        ui->dataDirectory->setEnabled(true);
-        ui->ellipsisButton->setEnabled(true);
-    }
+    // if(dataDir == GUIUtil::getDefaultDataDirectory())
+    // {
+    //     ui->dataDirDefault->setChecked(true);
+    //     ui->dataDirectory->setEnabled(false);
+    //     ui->ellipsisButton->setEnabled(false);
+    // } else {
+    //     ui->dataDirCustom->setChecked(true);
+    //     ui->dataDirectory->setEnabled(true);
+    //     ui->ellipsisButton->setEnabled(true);
+    // }
 }
 
 bool Intro::showIfNeeded(interfaces::Node& node, bool& did_show_intro, bool& prune)
@@ -187,11 +187,11 @@ bool Intro::showIfNeeded(interfaces::Node& node, bool& did_show_intro, bool& pru
     /* If data directory provided on command line, no need to look at settings
        or show a picking dialog */
 //    if(!gArgs.GetArg("-datadir", "").empty())
-    return true;
+    // return true;
     /* 1) Default data directory for operating system */
-    QString dataDir = GUIUtil::getDefaultDataDirectory();
+    // QString dataDir = GUIUtil::getDefaultDataDirectory();
     /* 2) Allow QSettings to override default dir */
-    dataDir = settings.value("strDataDir", dataDir).toString();
+    // dataDir = settings.value("strDataDir", dataDir).toString();
 
 //    if(!fs::exists(GUIUtil::qstringToBoostPath(dataDir)) || gArgs.GetBoolArg("-choosedatadir", DEFAULT_CHOOSE_DATADIR) || settings.value("fReset", false).toBool() || gArgs.GetBoolArg("-resetguisettings", false))
 //    {
@@ -304,7 +304,7 @@ void Intro::on_ellipsisButton_clicked()
 
 void Intro::on_dataDirDefault_clicked()
 {
-    setDataDirectory(GUIUtil::getDefaultDataDirectory());
+    // setDataDirectory(GUIUtil::getDefaultDataDirectory());
 }
 
 void Intro::on_dataDirCustom_clicked()

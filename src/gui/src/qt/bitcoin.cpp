@@ -363,10 +363,6 @@ WId BitcoinApplication::getMainWinId() const
 
 int GuiMain(int argc, char* argv[])
 {
-#ifdef WIN32
-    util::WinCmdLineArgs winArgs;
-    std::tie(argc, argv) = winArgs.get();
-#endif
     util::ThreadSetInternalName("main");
 
     std::unique_ptr<interfaces::Node> node = interfaces::MakeNode();

@@ -18,6 +18,7 @@ add_custom_target(forms SOURCES ${UI_FILES})
 set(QRC_FILES "bitcoin.qrc")
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/iotaqtconfig.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/iotaqtconfig.cpp" @ONLY)
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/clientversion.h.in" "${CMAKE_CURRENT_BINARY_DIR}/clientversion.h" @ONLY)
 list(APPEND SOURCES "${CMAKE_CURRENT_BINARY_DIR}/iotaqtconfig.cpp")
 
 if(CMAKE_BUILD_TYPE MATCHES Release OR CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
@@ -27,10 +28,10 @@ else()
     qt5_add_resources(RESOURCES ${QRC_FILES})
 endif()
 
-#if(WIN32)
-#    list(APPEND RESOURCES assets/winResourse.rc)
-#    set(GUI_TYPE WIN32)
-#endif(WIN32)
+if(WIN32)
+    list(APPEND RESOURCES res/iota-qt-res.rc)
+    set(GUI_TYPE WIN32)
+endif(WIN32)
 
 ## Set some Apple MacOS Specific settings
 
@@ -67,15 +68,21 @@ set_target_properties(iota-qt
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/appdir/usr/bin"
 )
 
+if(WIN32)
+    set(RUNTIME_DESTINATION appdir)
+else()
+    set(RUNTIME_DESTINATION appdir/usr/bin)
+endif()
+
 install(TARGETS iota-qt
     BUNDLE DESTINATION .
-    RUNTIME DESTINATION appdir/usr/bin
+    RUNTIME DESTINATION ${RUNTIME_DESTINATION}
 )
 
 if(APPLE)
     set(APP_EXE "$<TARGET_FILE_NAME:iota-qt>.app")
 else()
-    set(APP_EXE "$<TARGET_FILE_NAME:iota-qt>")
+    set(APP_EXE "${RUNTIME_DESTINATION}/$<TARGET_FILE_NAME:iota-qt>")
 endif()
 
 install(CODE "execute_process(COMMAND ${CMAKE_COMMAND}

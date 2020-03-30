@@ -97,8 +97,8 @@ void OptionsModel::Init(bool resetSettings)
 //    if (!settings.contains("nThreadsScriptVerif"))
 //        settings.setValue("nThreadsScriptVerif", DEFAULT_SCRIPTCHECK_THREADS);
 
-    if (!settings.contains("strDataDir"))
-        settings.setValue("strDataDir", GUIUtil::getDefaultDataDirectory());
+    // if (!settings.contains("strDataDir"))
+        // settings.setValue("strDataDir", GUIUtil::getDefaultDataDirectory());
 
     // Wallet
     if (!settings.contains("bSpendZeroConfChange"))
@@ -147,14 +147,14 @@ void OptionsModel::Reset()
 //    BackupSettings(GetDataDir(true) / "guisettings.ini.bak", settings);
 
     // Save the strDataDir setting
-    QString dataDir = GUIUtil::getDefaultDataDirectory();
-    dataDir = settings.value("strDataDir", dataDir).toString();
+    // QString dataDir = GUIUtil::getDefaultDataDirectory();
+    // dataDir = settings.value("strDataDir", dataDir).toString();
 
     // Remove all entries from our QSettings object
     settings.clear();
 
     // Set strDataDir
-    settings.setValue("strDataDir", dataDir);
+    // settings.setValue("strDataDir", dataDir);
 
     // Set that this was reset
     settings.setValue("fReset", true);

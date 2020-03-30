@@ -12,6 +12,7 @@
 //#include <base58.h>
 //#include <chainparams.h>
 #include <interfaces/node.h>
+#include <tinyformat.h>
 //#include <key_io.h>
 //#include <policy/policy.h>
 //#include <primitives/transaction.h>
@@ -29,6 +30,7 @@
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
+#include <windows.h>
 #include <shellapi.h>
 #include <shlobj.h>
 #include <shlwapi.h>
@@ -233,28 +235,6 @@ QList<QModelIndex> getEntryData(QAbstractItemView *view, int column)
     if(!view || !view->selectionModel())
         return QList<QModelIndex>();
     return view->selectionModel()->selectedRows(column);
-}
-
-QString getDefaultDataDirectory()
-{
-    // Windows < Vista: C:\Documents and Settings\Username\Application Data\Bitcoin
-    // Windows >= Vista: C:\Users\Username\AppData\Roaming\Bitcoin
-    // Mac: ~/Library/Application Support/Bitcoin
-    // Unix: ~/.bitcoin
-#ifdef WIN32
-    // Windows
-    return GetSpecialFolderPath(CSIDL_APPDATA) / "Bitcoin";
-#else
-    const char* pszHome = getenv("HOME");
-#ifdef MAC_OSX
-    // Mac
-    return pathRet / "Library/Application Support/Bitcoin";
-#else
-    // Unix
-    return QDir(QString(pszHome)).absoluteFilePath(".bitcoin");
-#endif
-#endif
-
 }
 
 QString getSaveFileName(QWidget *parent, const QString &caption, const QString &dir,
@@ -545,74 +525,76 @@ TableViewLastColumnResizingFixer::TableViewLastColumnResizingFixer(QTableView* t
 }
 
 #ifdef WIN32
-fs::path static StartupShortcutPath()
-{
-    std::string chain = "mainnet";
-    if (chain == CBaseChainParams::MAIN)
-        return GetSpecialFolderPath(CSIDL_STARTUP) / "Bitcoin.lnk";
-    if (chain == CBaseChainParams::TESTNET) // Remove this special case when CBaseChainParams::TESTNET = "testnet4"
-        return GetSpecialFolderPath(CSIDL_STARTUP) / "Bitcoin (testnet).lnk";
-    return GetSpecialFolderPath(CSIDL_STARTUP) / strprintf("Bitcoin (%s).lnk", chain);
-}
+// fs::path static StartupShortcutPath()
+// {
+//     std::string chain = "mainnet";
+//     if (chain == CBaseChainParams::MAIN)
+//         return GetSpecialFolderPath(CSIDL_STARTUP) / "Bitcoin.lnk";
+//     if (chain == CBaseChainParams::TESTNET) // Remove this special case when CBaseChainParams::TESTNET = "testnet4"
+//         return GetSpecialFolderPath(CSIDL_STARTUP) / "Bitcoin (testnet).lnk";
+//     return GetSpecialFolderPath(CSIDL_STARTUP) / strprintf("Bitcoin (%s).lnk", chain);
+// }
 
 bool GetStartOnSystemStartup()
 {
     // check for Bitcoin*.lnk
-    return fs::exists(StartupShortcutPath());
+    // return fs::exists(StartupShortcutPath());
+    return false;
 }
 
 bool SetStartOnSystemStartup(bool fAutoStart)
 {
-    // If the shortcut exists already, remove it for updating
-    fs::remove(StartupShortcutPath());
-
-    if (fAutoStart)
-    {
-        CoInitialize(nullptr);
-
-        // Get a pointer to the IShellLink interface.
-        IShellLinkW* psl = nullptr;
-        HRESULT hres = CoCreateInstance(CLSID_ShellLink, nullptr,
-            CLSCTX_INPROC_SERVER, IID_IShellLinkW,
-            reinterpret_cast<void**>(&psl));
-
-        if (SUCCEEDED(hres))
-        {
-            // Get the current executable path
-            WCHAR pszExePath[MAX_PATH];
-            GetModuleFileNameW(nullptr, pszExePath, ARRAYSIZE(pszExePath));
-
-            // Start client minimized
-            QString strArgs = "-min";
-            // Set -testnet /-regtest options
-            strArgs += QString::fromStdString(strprintf(" -chain=%s", "mainnet"));
-
-            // Set the path to the shortcut target
-            psl->SetPath(pszExePath);
-            PathRemoveFileSpecW(pszExePath);
-            psl->SetWorkingDirectory(pszExePath);
-            psl->SetShowCmd(SW_SHOWMINNOACTIVE);
-            psl->SetArguments(strArgs.toStdWString().c_str());
-
-            // Query IShellLink for the IPersistFile interface for
-            // saving the shortcut in persistent storage.
-            IPersistFile* ppf = nullptr;
-            hres = psl->QueryInterface(IID_IPersistFile, reinterpret_cast<void**>(&ppf));
-            if (SUCCEEDED(hres))
-            {
-                // Save the link by calling IPersistFile::Save.
-                hres = ppf->Save(StartupShortcutPath().wstring().c_str(), TRUE);
-                ppf->Release();
-                psl->Release();
-                CoUninitialize();
-                return true;
-            }
-            psl->Release();
-        }
-        CoUninitialize();
-        return false;
-    }
     return true;
+//     // If the shortcut exists already, remove it for updating
+//     fs::remove(StartupShortcutPath());
+
+//     if (fAutoStart)
+//     {
+//         CoInitialize(nullptr);
+
+//         // Get a pointer to the IShellLink interface.
+//         IShellLinkW* psl = nullptr;
+//         HRESULT hres = CoCreateInstance(CLSID_ShellLink, nullptr,
+//             CLSCTX_INPROC_SERVER, IID_IShellLinkW,
+//             reinterpret_cast<void**>(&psl));
+
+//         if (SUCCEEDED(hres))
+//         {
+//             // Get the current executable path
+//             WCHAR pszExePath[MAX_PATH];
+//             GetModuleFileNameW(nullptr, pszExePath, ARRAYSIZE(pszExePath));
+
+//             // Start client minimized
+//             QString strArgs = "-min";
+//             // Set -testnet /-regtest options
+//             strArgs += QString::fromStdString(strprintf(" -chain=%s", "mainnet"));
+
+//             // Set the path to the shortcut target
+//             psl->SetPath(pszExePath);
+//             PathRemoveFileSpecW(pszExePath);
+//             psl->SetWorkingDirectory(pszExePath);
+//             psl->SetShowCmd(SW_SHOWMINNOACTIVE);
+//             psl->SetArguments(strArgs.toStdWString().c_str());
+
+//             // Query IShellLink for the IPersistFile interface for
+//             // saving the shortcut in persistent storage.
+//             IPersistFile* ppf = nullptr;
+//             hres = psl->QueryInterface(IID_IPersistFile, reinterpret_cast<void**>(&ppf));
+//             if (SUCCEEDED(hres))
+//             {
+//                 // Save the link by calling IPersistFile::Save.
+//                 hres = ppf->Save(StartupShortcutPath().wstring().c_str(), TRUE);
+//                 ppf->Release();
+//                 psl->Release();
+//                 CoUninitialize();
+//                 return true;
+//             }
+//             psl->Release();
+//         }
+//         CoUninitialize();
+//         return false;
+//     }
+//     return true;
 }
 #elif defined(Q_OS_LINUX)
 
@@ -652,7 +634,7 @@ bool GetStartOnSystemStartup()
 //    }
 //    optionFile.close();
 
-    return true;
+    return false;
 }
 
 bool SetStartOnSystemStartup(bool fAutoStart)
