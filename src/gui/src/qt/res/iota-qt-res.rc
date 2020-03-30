@@ -1,0 +1,40 @@
+IDI_ICON1 ICON DISCARDABLE "icons/bitcoin.ico"
+IDI_ICON2 ICON DISCARDABLE "icons/bitcoin_testnet.ico"
+
+#include <windows.h>             // needed for VERSIONINFO
+#include <clientversion.h>
+
+
+#define STRINGIZE(arg) #arg
+#define VER_PRODUCTVERSION     IOTAQT_MAJOR_VERSION,IOTAQT_MINOR_VERSION,IOTAQT_PATCH_VERSION,IOTAQT_TWEAK_VERSION
+#define VER_PRODUCTVERSION_STR STRINGIZE(IOTAQT_MAJOR_VERSION) "." STRINGIZE(IOTAQT_MINOR_VERSION) "." STRINGIZE(IOTAQT_PATCH_VERSION) "." STRINGIZE(IOTAQT_TWEAK_VERSION)
+#define VER_FILEVERSION        VER_PRODUCTVERSION
+#define VER_FILEVERSION_STR    VER_PRODUCTVERSION_STR
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION     VER_FILEVERSION
+PRODUCTVERSION  VER_PRODUCTVERSION
+FILEOS          VOS_NT_WINDOWS32
+FILETYPE        VFT_APP
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904E4" // U.S. English - multilingual (hex)
+        BEGIN
+            VALUE "CompanyName",        "Iota"
+            VALUE "FileDescription",    "iota-qt  (GUI node for Iota)"
+            VALUE "FileVersion",        VER_FILEVERSION_STR
+            VALUE "InternalName",       "iota-qt"
+            VALUE "LegalCopyright",     "MIT"
+            VALUE "LegalTrademarks1",   "Distributed under the MIT software license, see the accompanying file COPYING or http://www.opensource.org/licenses/mit-license.php."
+            VALUE "OriginalFilename",   "iota-qt.exe"
+            VALUE "ProductName",        "iota-qt"
+            VALUE "ProductVersion",     VER_PRODUCTVERSION_STR
+        END
+    END
+
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0, 1252 // language neutral - multilingual (decimal)
+    END
+END
