@@ -58,6 +58,7 @@ char* parse_debug_command(const char* cmd) {
                     "\tAddresses:\n"
                     "\t\tget_new_address <username>\n"
                     "\t\tgenerate_num_addresses <username> <password> <num_addrs>\n"
+                    "\t\tget_num_generated_addresses <username>\n"
                     "\tTransactions:\n"
                     "\t\tsend_transaction <username> <password> <destination_address> <amount>\n"
                     "\t\tget_all_transactions <username> <offset> <limit>\n"
@@ -199,6 +200,21 @@ char* parse_debug_command(const char* cmd) {
       uint32_t num_addrs = strtol(str_num_addrs, NULL, 10);
       int res = generate_num_addresses(username, password, num_addrs);
       ret_val = strdup(res == 0 ? "OK" : "NOT OK");
+    }
+  }
+  else if(strcasecmp(command, "get_num_generated_addresses") == 0) {
+    username = strtok_r(NULL, " ", &saveptr);
+    if(!username) {
+      ret_val = strdup("Usage: get_num_generated_addresses <username>\n");
+    } else {
+      int num = get_num_generated_addresses(username);
+      if(num < 0) {
+        ret_val = strdup("Unable to get number of generated addresses");
+      } else {
+        char str[256] = { 0 };
+        snprintf(str, 255, "%d", num);
+        ret_val = strdup(str);
+      }
     }
   }
 

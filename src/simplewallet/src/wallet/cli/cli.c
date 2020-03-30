@@ -77,6 +77,7 @@ int parse_command(char* buf, int* quit_flag) {
                     "\t\tget_all_accounts\n"
                     "\tAddresses:\n"
                     "\t\tget_new_address <username>\n"
+                    "\t\tget_num_generated_addresses <username>\n"
                     "\tTransactions:\n"
                     "\t\tsend_transaction <username> <password> <destination_address> <amount>\n"
                     "\t\tget_all_transactions <username> <offset> <limit>\n"
@@ -232,6 +233,21 @@ int parse_command(char* buf, int* quit_flag) {
         printf("%s\n", address);
         log_wallet_info("%s\n", address);
         free(address);
+      }
+    }
+  }
+  else if(strcasecmp(command, "get_num_generated_addresses") == 0) {
+    username = strtok_r(NULL, " ", &saveptr);
+    if(!username) {
+      fprintf(stderr, "Usage: get_num_generated_addresses <username>\n");
+      log_wallet_error("Usage: get_num_generated_addresses <username>\n", "");
+    } else {
+      int num = get_num_generated_addresses(username);
+      if(num < 0) {
+        log_wallet_error("Unable to get number of generated addresses", "");
+      } else {
+        printf("%d\n", num);
+        log_wallet_info("%s\n", num);
       }
     }
   }

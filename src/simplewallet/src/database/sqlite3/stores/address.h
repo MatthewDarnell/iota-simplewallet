@@ -24,4 +24,5 @@ int32_t get_latest_offset(sqlite3* db, const char* username);
 int mark_address_spent_from(sqlite3* db, const char* address);
 int mark_address_used(sqlite3* db, const char* address);
 int mark_address_is_change_address(sqlite3* db, const char* address);
+int _get_num_generated_addresses(sqlite3* db, const char* username);
 #endif //IOTA_SIMPLEWALLET_ADDRESS_H

@@ -147,6 +147,9 @@ char* get_new_address(const char* username);
 //Generate a user-defined number of Deposit Addresses and Save to Disk
 int generate_num_addresses(const char* username, char* password, int num_addrs);
 
+//Get the number of addresses we have generated for this user
+int get_num_generated_addresses(const char* username);
+
 
 /*
  *

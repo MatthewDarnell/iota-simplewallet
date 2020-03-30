@@ -76,7 +76,7 @@ cJSON* _read_user_data(sqlite3* db, const char* username, const char* key) {
   sqlite3_stmt* stmt;
   int rc;
 
-  char* query = "SELECT * FROM user_data WHERE username=? AND key LIKE '?%'";
+  char* query = "SELECT * FROM user_data WHERE username=? ";
   rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
 
   if (rc != SQLITE_OK) {
@@ -85,20 +85,30 @@ cJSON* _read_user_data(sqlite3* db, const char* username, const char* key) {
   }
 
   sqlite3_bind_text(stmt, 1, username, -1, NULL);
-  sqlite3_bind_text(stmt, 2, key, -1, NULL);
 
   while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
     sqlite3_sleep(100);
   }
 
-  cJSON *json = NULL;
-  if (rc == SQLITE_ROW) {
-    json =  cJSON_CreateObject();
+  cJSON* json = cJSON_CreateArray();
 
-    cJSON_AddStringToObject(json, "username", (char*)sqlite3_column_text(stmt, 0 ));
-    cJSON_AddStringToObject(json, "key", (char*)sqlite3_column_text(stmt, 1 ));
-    cJSON_AddStringToObject(json, "value", (char*)sqlite3_column_text(stmt, 2 ));
-    cJSON_AddStringToObject(json, "created_at", (char*)sqlite3_column_text(stmt, 3));
+  while (rc == SQLITE_ROW) {
+    const char* found_key = (char*)sqlite3_column_text(stmt, 1);
+    if(strncmp(key, found_key, strlen(key)) != 0) {
+      continue;
+    }
+
+    cJSON* row =  cJSON_CreateObject();
+
+    cJSON_AddStringToObject(row, "username", (char*)sqlite3_column_text(stmt, 0 ));
+    cJSON_AddStringToObject(row, "key", (char*)sqlite3_column_text(stmt, 1 ));
+    cJSON_AddStringToObject(row, "value", (char*)sqlite3_column_text(stmt, 2 ));
+    cJSON_AddStringToObject(row, "created_at", (char*)sqlite3_column_text(stmt, 3));
+
+    cJSON_AddItemToArray(json, row);
+    while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
+      sqlite3_sleep(100);
+    }
   }
 
   sqlite3_finalize(stmt);
