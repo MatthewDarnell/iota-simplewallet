@@ -334,9 +334,10 @@ void ImportWalletActivity::import(QString path)
 {
     showProgressDialog(tr("Importing Account..."));
 
-    QTimer::singleShot(0, worker(), [this] {
+    QTimer::singleShot(0, worker(), [this, path] {
         std::string name(m_username.begin(), m_username.end());
-        std::unique_ptr<interfaces::Wallet> wallet = node().loadWallet(name, m_passphrase, m_seed, m_error_message);
+        std::unique_ptr<interfaces::Wallet> wallet = path.isEmpty() ? node().loadWallet(name, m_passphrase, m_seed, m_error_message) :
+                                                                      node().loadWallet(name, m_passphrase, path.toStdString(), m_error_message);
 
         if (wallet) m_wallet_model = m_wallet_controller->getOrCreateWallet(std::move(wallet));
 
