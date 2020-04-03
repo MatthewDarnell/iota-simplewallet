@@ -18,8 +18,12 @@ if (WIN32)
             )
 else ()
     ExternalProject_Add(iota.c-library
-            GIT_REPOSITORY https://github.com/iotaledger/iota.c
-            GIT_TAG e260967bd3a9088fa03d20c1517930e23f1de591
-            CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DBUILD_SHARED_LIBS=OFF -DCMAKE_C_FLAGS=-fPIC -DCMAKE_INSTALL_PREFIX=${DEPS_DIR}
+            GIT_REPOSITORY https://github.com/MatthewDarnell/iota.c.git
+            GIT_TAG 0d23c8f761b07937acec4813fc1cabb14aa2ffc8
+            CMAKE_ARGS 
+		-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} 
+		-DBUILD_SHARED_LIBS=OFF 
+		-DCMAKE_POSITION_INDEPENDENT_CODE=On
+		-DCMAKE_INSTALL_PREFIX=${DEPS_DIR}
             )
 endif()
