@@ -87,6 +87,7 @@ file(GLOB iota_simplewallet_SRC
         src/iota/common/generate_seed.c
         src/iota/common/get_inputs.c
 
+		src/iota/iota.c/find_transactions.c
         src/iota/iota.c/send_transaction.c
         src/iota/iota.c/send_trytes.c
 

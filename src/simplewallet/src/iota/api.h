@@ -27,6 +27,7 @@ int send_trytes(char* out_bundle, int out_bundle_max_len, char* out_hash, int ou
 
 int were_addresses_spent_from(cJSON** addresses);
 
+cJSON* find_transactions_by_bundle(const char* bundle);
 
 cJSON* get_node_info();
 cJSON* get_node();

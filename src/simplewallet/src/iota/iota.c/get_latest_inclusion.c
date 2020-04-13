@@ -33,53 +33,61 @@ void get_latest_inclusion(cJSON** addresses_with_transactions, int include_uncon
       continue;
     }
 
-    get_inclusion_states_res_t *inclusion_res = get_inclusion_states_res_new();
-    if (!inclusion_res) {
-      log_wallet_error( "%s Error: OOM\n", __func__);
-      continue;
-    }
-
+    get_inclusion_states_res_t *inclusion_res = NULL;
 
     for(j = 0; j < num_txs; j++) {
+
+      inclusion_res = get_inclusion_states_res_new();
+      if (!inclusion_res) {
+        log_wallet_error( "%s Error: OOM\n", __func__);
+        continue;
+      }
+
+
       cJSON* obj = cJSON_GetArrayItem(transaction_array, j);
-      const char* hash = cJSON_GetObjectItem(obj, "hash")->valuestring;
-      flex_trits_from_trytes(tmp_hash, NUM_TRITS_HASH, (tryte_t*)hash, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
-      hash243_queue_push(&txs, tmp_hash);
-    }
+      const char* bundle = cJSON_GetObjectItem(obj, "bundle")->valuestring;
+      cJSON* txs_by_bndl = find_transactions_by_bundle(bundle);
 
+      int k, num_txs_in_bundle = cJSON_GetArraySize(txs_by_bndl);
+      for(k = 0; k < num_txs_in_bundle; k++) {
+        const char* bndl = cJSON_GetArrayItem(txs_by_bndl, k)->valuestring;
+        flex_trits_from_trytes(tmp_hash, NUM_TRITS_HASH, (tryte_t*)bndl, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+        hash243_queue_push(&txs, tmp_hash);
+      }
 
-    if ((ret = iota_client_get_latest_inclusion(serv, txs, inclusion_res)) != RC_OK) {
-      log_wallet_error("%s, %s\n", __func__, error_2_string(ret));
+      if ((ret = iota_client_get_latest_inclusion(serv, txs, inclusion_res)) != RC_OK) {
+        log_wallet_error("%s, %s\n", __func__, error_2_string(ret));
+        get_inclusion_states_res_free(&inclusion_res);
+        hash243_queue_free(&txs);
+        continue;
+      }
+      cJSON_AddStringToObject(obj, "confirmed", "false");
+
+      for (j = 0; j < (int)get_inclusion_states_res_states_count(inclusion_res); j++) {
+        bool inclusion_state = get_inclusion_states_res_states_at(inclusion_res, j);
+        if(inclusion_state) {
+          cJSON_DeleteItemFromObject(obj, "confirmed");
+          cJSON_AddStringToObject(obj, "confirmed", "true");
+        }
+      }
+
+      if(!include_unconfirmed) {
+        j = 0;
+        while(1) {
+          if(j >=  cJSON_GetArraySize(transaction_array)) {
+            break;
+          }
+          char* c = cJSON_GetObjectItem(obj, "confirmed")->valuestring;
+          if(strcasecmp(c, "false") == 0) {
+            cJSON_DeleteItemFromArray(transaction_array, j);
+            j--;
+          }
+          j++;
+        }
+      }
       get_inclusion_states_res_free(&inclusion_res);
       hash243_queue_free(&txs);
-      continue;
     }
-
-    for (j = 0; j < (int)get_inclusion_states_res_states_count(inclusion_res); j++) {
-      cJSON* obj = cJSON_GetArrayItem(transaction_array, j);
-     // int confirmed = (int)get_inclusion_states_res_states_at(inclusion_res, j);
-      cJSON_AddStringToObject(obj, "confirmed", get_inclusion_states_res_states_at(inclusion_res, j) ? "true" : "false");
-    }
-
-    if(!include_unconfirmed) {
-      j = 0;
-      while(1) {
-        if(j >=  cJSON_GetArraySize(transaction_array)) {
-          break;
-        }
-        cJSON* obj = cJSON_GetArrayItem(transaction_array, j);
-        char* c = cJSON_GetObjectItem(obj, "confirmed")->valuestring;
-        if(strcasecmp(c, "false") == 0) {
-          cJSON_DeleteItemFromArray(transaction_array, j);
-          j--;
-        }
-        j++;
-      }
-    }
-
-
-    get_inclusion_states_res_free(&inclusion_res);
-    hash243_queue_free(&txs);
   }
 
   free_iota_client(&serv);

@@ -58,17 +58,13 @@ void thread_deposit_detector(void* args) {
       cJSON_Delete(address_array);
       continue;
     }
-
     get_transaction_inputs_to_address(&address_array);
-
     input_len = cJSON_GetArraySize(address_array);
 
     if(input_len < 1) { //No transactions found
       cJSON_Delete(address_array);
       continue;
     }
-
-
 
     cJSON* obj;
     int j = 0;
