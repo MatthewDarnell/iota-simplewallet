@@ -125,6 +125,8 @@ public:
                                    WalletOrderForm order_form,
                                    std::string &fail_reason) = 0;
 
+    virtual uint32_t numberOfAddresses() = 0;
+
     //! Get transaction information.
     virtual WalletTx getWalletTx(const std::string& txid) = 0;
 

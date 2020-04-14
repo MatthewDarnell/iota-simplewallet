@@ -285,6 +285,11 @@ std::vector<WalletTx> IotaWallet::getWalletTxs()
     return res;
 }
 
+uint32_t IotaWallet::numberOfAddresses()
+{
+    return get_num_generated_addresses(_account.username.toStdString().data());
+}
+
 bool IotaWallet::tryGetTxStatus(const std::string &txid, WalletTxStatus &tx_status, int &num_blocks, int64_t &block_time)
 {
     if(_transactions.count(txid) > 0)

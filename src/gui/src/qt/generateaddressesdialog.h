@@ -12,7 +12,7 @@ class GenerateAddressesDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit GenerateAddressesDialog(QWidget *parent);
+    explicit GenerateAddressesDialog(uint32_t numberOfAddressesGenerated, QWidget *parent);
     ~GenerateAddressesDialog();
 
 signals:

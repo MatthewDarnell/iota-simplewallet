@@ -357,7 +357,7 @@ GenerateAddressesWalletActivity::GenerateAddressesWalletActivity(WalletModel *wa
 
 void GenerateAddressesWalletActivity::generate()
 {
-    GenerateAddressesDialog *dlg = new GenerateAddressesDialog(m_parent_widget);
+    GenerateAddressesDialog *dlg = new GenerateAddressesDialog(m_walletModel->wallet().numberOfAddresses(), m_parent_widget);
     connect(dlg, &GenerateAddressesDialog::generateRequested, this, [this](int count) {
 
         WalletModel::UnlockContext ctx(m_walletModel->requestUnlock());
