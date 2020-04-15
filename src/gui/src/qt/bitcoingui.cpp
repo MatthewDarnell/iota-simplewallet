@@ -288,8 +288,8 @@ void BitcoinGUI::createActions()
     encryptWalletAction->setCheckable(true);
     backupWalletAction = new QAction(tr("&Backup Account..."), this);
     backupWalletAction->setStatusTip(tr("Backup account to another location"));
-    generateAddressesAction = new QAction(tr("&Generate more addresses..."), this);
-    generateAddressesAction->setStatusTip(tr("Generate more addresses for this account"));
+    generateAddressesAction = new QAction(tr("&Deposit Addresses..."), this);
+    generateAddressesAction->setStatusTip(tr("Generate Deposit Addresses To Check For Balances"));
     changePassphraseAction = new QAction(tr("&Change Passphrase..."), this);
     changePassphraseAction->setStatusTip(tr("Change the passphrase used for account encryption"));
 

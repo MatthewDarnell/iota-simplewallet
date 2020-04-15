@@ -10,7 +10,6 @@ GenerateAddressesDialog::GenerateAddressesDialog(uint32_t numberOfAddressesGener
     ui->setupUi(this);
 
     ui->numberOfAddresses->setText(QString("Number of addresses: %1").arg(numberOfAddressesGenerated));
-
     connect(ui->generateBtn, &QPushButton::clicked, this, [this] {
         generateRequested(ui->spinBox->value());
         close();

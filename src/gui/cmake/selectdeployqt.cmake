@@ -21,4 +21,4 @@ else()
     find_program(_DEPLOY_TOOL NAMES linuxdeployqt linuxdeployqt-continuous-x86_64.AppImage PATHS "${DEPLOY_DIR}/tools/bin")
 endif()
 
-set(DEPLOY_TOOL ${_DEPLOY_TOOL} CACHE PATH "Qt deploy tool")
+set(DEPLOY_TOOL ${_DEPLOY_TOOL} CACHE PATH "Qt deploy tool" FORCE)

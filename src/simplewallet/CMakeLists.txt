@@ -120,9 +120,9 @@ if(WIN32)
     set_target_properties(iota_simplewallet PROPERTIES
             LINK_FLAGS "-Wl,--whole-archive -Wl,--export-all-symbols"
             )
-    target_link_libraries(iota_simplewallet PRIVATE cclient logger libsodium.a common cjson http_parser mbedtls mbedx509 mbedcrypto unity keccak ssp pthread wldap32 ws2_32 wsock32 crypt32)
+    target_link_libraries(iota_simplewallet PRIVATE cclient libsodium.a common cjson http_parser mbedtls mbedx509 mbedcrypto unity keccak logger ssp pthread wldap32 ws2_32 wsock32 crypt32)
 else()
-    target_link_libraries(iota_simplewallet PRIVATE cclient logger sodium common cjson http_parser mbedtls mbedx509 mbedcrypto unity keccak pthread m dl)
+    target_link_libraries(iota_simplewallet PRIVATE cclient sodium common cjson http_parser mbedtls mbedx509 mbedcrypto unity keccak logger pthread m dl)
 endif()
 
 set(CMAKE_IOTA_CONFIG_INSTALL_DIR "lib/cmake/iota_simplewallet")
