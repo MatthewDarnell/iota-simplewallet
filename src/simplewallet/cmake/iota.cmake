@@ -12,7 +12,7 @@ if (WIN32)
     set(LINK_FLAGS " -fPIC -Wl,--export-all-symbols")
     ExternalProject_Add(iota.c-library
             GIT_REPOSITORY https://github.com/MatthewDarnell/iota.c
-            GIT_TAG 7d6dcedb478f57199bded4664447a20482068b05
+            GIT_TAG d8564408a416c4bedde1218e5003c2f5712227c3
             UPDATE_COMMAND ""
             CMAKE_ARGS
                 -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
