@@ -66,8 +66,7 @@ int store_inputs(sqlite3* db, char* str_inputs) {
         !cJSON_HasObjectItem(transaction, "hash") ||
         !cJSON_HasObjectItem(transaction, "bundle") ||
         !cJSON_HasObjectItem(transaction, "amount") ||
-        !cJSON_HasObjectItem(transaction, "timestamp") ||
-        !cJSON_HasObjectItem(transaction, "confirmed")
+        !cJSON_HasObjectItem(transaction, "timestamp")
         ) {
         log_wallet_error("Invalid Transaction Input for Storing: <%s>", cJSON_Print(transaction));
         continue;
@@ -76,14 +75,15 @@ int store_inputs(sqlite3* db, char* str_inputs) {
       const char* bundle = cJSON_GetObjectItem(transaction, "bundle")->valuestring;
       const char* amount = cJSON_GetObjectItem(transaction, "amount")->valuestring;
       const char* timestamp = cJSON_GetObjectItem(transaction, "timestamp")->valuestring;
-      const char* confirmed = cJSON_GetObjectItem(transaction, "confirmed")->valuestring;
+
+      int d_confirmed = 0;
+
+      if(cJSON_HasObjectItem(transaction, "confirmed")) {
+        const char* confirmed = cJSON_GetObjectItem(transaction, "confirmed")->valuestring;
+        d_confirmed = (strcasecmp(confirmed, "true") == 0) ? 1 : 0;
+      }
 
       uint64_t d_amount = strtoull(amount, NULL, 10);
-
-      int d_confirmed = (strcasecmp(confirmed, "true") == 0) ? 1 : 0;
-
-
-
 
       int create_ret_val = 0;
       if(0 == (create_ret_val = create_incoming_transaction(db, address, d_amount, bundle, hash, timestamp, d_confirmed))) {

@@ -29,12 +29,7 @@ int create_incoming_transaction(sqlite3* db, const char* address, uint64_t amoun
   sqlite3_bind_text(stmt, 5, time, -1, NULL);
   sqlite3_bind_int(stmt, 6, confirmed);
 
-  int count = 0;
   while((rc = sqlite3_step(stmt)) == SQLITE_BUSY) {
-    if(count > 5) {
-      break;
-    }
-    count++;
     sqlite3_sleep(100);
   }
   if(sqlite3_extended_errcode(db) == SQLITE_CONSTRAINT_UNIQUE) {
