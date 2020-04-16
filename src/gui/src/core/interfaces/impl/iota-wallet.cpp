@@ -14,8 +14,8 @@ namespace interfaces {
 
 static bool IsValidTransaction(QJsonObject obj)
 {
-    return obj.contains("amount") &&
-            obj.value("amount").toString().toLongLong() > 0;
+    return !obj.value("hash").toString().isEmpty() &&
+            obj.contains("amount") && obj.value("amount").toString().toLongLong() > 0;
 }
 
 static WalletTx ParseTransaction(QJsonObject obj)
@@ -305,8 +305,16 @@ bool IotaWallet::tryGetTxStatus(const std::string &txid, WalletTxStatus &tx_stat
     return false;
 }
 
-WalletTx IotaWallet::getWalletTxDetails(const uint256 &txid, WalletTxStatus &tx_status, WalletOrderForm &order_form, bool &in_mempool, int &num_blocks)
+WalletTx IotaWallet::getWalletTxDetails(const std::string &txid, WalletTxStatus &tx_status, WalletOrderForm &order_form, bool &in_mempool, int &num_blocks)
 {
+    if(_transactions.count(txid) > 0)
+    {
+        WalletTx wtx = _transactions.at(txid);
+        tx_status.is_confirmed = wtx.is_confirmed;
+        tx_status.time_received = wtx.time;
+        in_mempool = false;
+        return wtx;
+    }
     return {};
 }
 

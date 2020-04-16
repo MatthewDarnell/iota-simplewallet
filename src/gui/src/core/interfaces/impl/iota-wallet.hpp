@@ -69,7 +69,7 @@ public:
     std::vector<WalletTx> getWalletTxs() override;
     uint32_t numberOfAddresses() override;
     bool tryGetTxStatus(const std::string &txid, WalletTxStatus &tx_status, int &num_blocks, int64_t &block_time) override;
-    WalletTx getWalletTxDetails(const uint256 &txid, WalletTxStatus &tx_status, WalletOrderForm &order_form, bool &in_mempool, int &num_blocks) override;
+    WalletTx getWalletTxDetails(const std::string &txid, WalletTxStatus &tx_status, WalletOrderForm &order_form, bool &in_mempool, int &num_blocks) override;
     WalletBalances getBalances() override;
     bool tryGetBalances(WalletBalances &balances, int &num_blocks) override;
     CAmount getBalance() override;

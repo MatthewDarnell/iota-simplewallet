@@ -140,7 +140,7 @@ public:
                                 int64_t& block_time) = 0;
 
     //! Get transaction details.
-    virtual WalletTx getWalletTxDetails(const uint256& txid,
+    virtual WalletTx getWalletTxDetails(const std::string& txid,
                                         WalletTxStatus& tx_status,
                                         WalletOrderForm& order_form,
                                         bool& in_mempool,
