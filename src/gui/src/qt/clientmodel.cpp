@@ -12,6 +12,7 @@
 #include <interfaces/node.h>
 
 #include <stdint.h>
+#include <cassert>
 
 #include <QDebug>
 #include <QThread>

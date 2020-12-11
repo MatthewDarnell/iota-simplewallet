@@ -46,7 +46,7 @@ void* IotaNode::OnNodeUpdated(const char *payload)
     auto obj = QJsonDocument::fromJson(QByteArray(payload)).object();
     ForEachDeliverEvent([obj](IotaNode &node) {
         auto ptr = &node;
-        QMetaObject::invokeMethod(ptr, [=] {
+        QTimer::singleShot(0, ptr, [=] {
             ptr->updateNodeStatus(obj);
         });
     });

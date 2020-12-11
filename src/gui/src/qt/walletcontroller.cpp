@@ -369,10 +369,15 @@ void GenerateAddressesWalletActivity::generate()
 
         showProgressDialog(tr("Generating Addresses..."));
 
-        QTimer::singleShot(0, worker(), [this, count, ctx = std::move(ctx)] {
+	auto ctxRef = std::make_shared<WalletModel::UnlockContext>(std::move(ctx));
+
+        QTimer::singleShot(0, worker(), [this, count, ctxRef]() mutable {
             std::string fail_reason;
             auto r = m_walletModel->wallet().generateAddresses(count, fail_reason);
-            std::move(ctx);
+	    {
+		std::shared_ptr<WalletModel::UnlockContext> tmp;
+		ctxRef.swap(tmp);
+	    }
             if (r) {
                 QTimer::singleShot(500, this, &GenerateAddressesWalletActivity::finished);
             } else {
